@@ -15,7 +15,7 @@
 /**
  * @brief Allocate a new ITC ID
  *
- * @param pt_Id The new ID
+ * @param pt_Id (out) The new ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -26,7 +26,7 @@ Itc_Status_t ITC_Id_alloc(
 /**
  * @brief Free an allocated ITC ID
  *
- * @param pt_Id The new ID
+ * @param pt_Id The ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -36,7 +36,8 @@ Itc_Status_t ITC_Id_free(
 
 /**
  * @brief Initialise an ITC ID as a seed ID
- * @note All contained subrees will be recursively deallocated
+ *
+ * @note All contained subtrees (if any) will be recursively deallocated
  * @param pt_Id The ID to initialise
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
@@ -48,44 +49,44 @@ Itc_Status_t ITC_Id_init(
 /**
  * @brief Clone an existing ITC ID
  *
- * @param pt_SrcId A pointer to an existing ID
- * @param pt_DestId The pointer to the cloned ID
+ * @param pt_Id The existing ID
+ * @param pt_ClonedId The cloned ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_clone(
-    ITC_Id_t *pt_SrcId,
-    ITC_Id_t *pt_DestId
+    ITC_Id_t *pt_Id,
+    ITC_Id_t *pt_ClonedId
 );
 
 /**
  * @brief Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  *
- * @param pt_SrcId A pointer to an existing ID
- * @param pt_DestId1 The pointer to the first split ID
- * @param pt_DestId2 The pointer to the second split ID
+ * @param pt_Id The existing ID
+ * @param pt_Id1 The first ID
+ * @param pt_Id2 The second ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_split(
-    ITC_Id_t *pt_SrcId,
-    ITC_Id_t *pt_DestId1,
-    ITC_Id_t *pt_DestId2
+    ITC_Id_t *pt_Id,
+    ITC_Id_t *pt_Id1,
+    ITC_Id_t *pt_Id2
 );
 
 /**
  * @brief Sum two existing IDs into a single ID
  *
- * @param pt_SrcId1
- * @param pt_SrcId2
- * @param pt_DestId
+ * @param pt_Id1 The first ID
+ * @param pt_Id2 The second ID
+ * @param pt_Id The new ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_sum(
-    ITC_Id_t *pt_SrcId1,
-    ITC_Id_t *pt_SrcId2,
-    ITC_Id_t *pt_DestId
+    ITC_Id_t *pt_Id1,
+    ITC_Id_t *pt_Id2,
+    ITC_Id_t *pt_Id
 );
 
 #endif /* ITC_ID_PROTOTYPES_H_ */
