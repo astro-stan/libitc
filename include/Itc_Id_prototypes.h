@@ -13,6 +13,39 @@
 #include "Itc_Status.h"
 
 /**
+ * @brief Allocate a new ITC ID
+ *
+ * @param pt_Id The new ID
+ * @return Itc_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+Itc_Status_t ITC_Id_alloc(
+    ITC_Id_t *pt_Id
+);
+
+/**
+ * @brief Free an allocated ITC ID
+ *
+ * @param pt_Id The new ID
+ * @return Itc_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+Itc_Status_t ITC_Id_free(
+    ITC_Id_t *pt_Id
+);
+
+/**
+ * @brief Initialise an ITC ID as a seed ID
+ * @note All contained subrees will be recursively deallocated
+ * @param pt_Id The ID to initialise
+ * @return Itc_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+Itc_Status_t ITC_Id_init(
+    ITC_Id_t *pt_Id
+);
+
+/**
  * @brief Clone an existing ITC ID
  *
  * @param pt_SrcId A pointer to an existing ID
