@@ -16,7 +16,13 @@
  ******************************************************************************/
 
 /** Operation succeeded */
-#define ITC_STATUS_SUCCESS                                                    0
+#define ITC_STATUS_SUCCESS                                                   (0)
+
+/** Operation failed */
+#define ITC_STATUS_FAILURE                                                   (1)
+
+/** Operation failed due to insufficient resources */
+#define ITC_STATUS_INSUFFICIENT_RESOURCES                                    (2)
 
 
 /******************************************************************************

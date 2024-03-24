@@ -15,23 +15,23 @@
 /**
  * @brief Allocate a new ITC ID
  *
- * @param pt_Id (out) The new ID
+ * @param ppt_Id (out) The pointer to the new ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_alloc(
-    ITC_Id_t *pt_Id
+    ITC_Id_t **ppt_Id
 );
 
 /**
  * @brief Free an allocated ITC ID
  *
- * @param pt_Id The ID
+ * @param ppt_Id (in) The pointer to the ID to deallocate. (out) NULL
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_free(
-    ITC_Id_t *pt_Id
+    ITC_Id_t **ppt_Id
 );
 
 /**
