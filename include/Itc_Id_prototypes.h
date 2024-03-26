@@ -37,8 +37,8 @@ Itc_Status_t ITC_Id_free(
 /**
  * @brief Clone an existing ITC ID
  *
- * @note Memory for the new ITC ID node tree will be dynamically allocated.
- * On error, the cloned ID node tree is automatically deallocated
+ * @note Memory for the new ITC ID will be dynamically allocated.
+ * On error, the cloned ID is automatically deallocated.
  * @param pt_Id The existing ID
  * @param ppt_ClonedId The pointer to the cloned ID
  * @return Itc_Status_t The status of the operation
