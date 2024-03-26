@@ -191,7 +191,8 @@ Itc_Status_t ITC_Id_clone(
 
     if (t_Status != ITC_STATUS_SUCCESS)
     {
-        /* TODO: Deallocate clone */
+        /* Deallocate clone */
+        ITC_Id_free(ppt_ClonedId);
     }
 
     return t_Status;
