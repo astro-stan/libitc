@@ -21,8 +21,11 @@
 /** Operation failed */
 #define ITC_STATUS_FAILURE                                                   (1)
 
+/** Operation failed due to invalid input parameter */
+#define ITC_STATUS_INVALID_PARAM                                             (2)
+
 /** Operation failed due to insufficient resources */
-#define ITC_STATUS_INSUFFICIENT_RESOURCES                                    (2)
+#define ITC_STATUS_INSUFFICIENT_RESOURCES                                    (3)
 
 
 /******************************************************************************

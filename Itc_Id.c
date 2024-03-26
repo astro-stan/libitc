@@ -110,3 +110,117 @@ Itc_Status_t ITC_Id_free(
     /* Always succeeds */
     return ITC_STATUS_SUCCESS;
 }
+
+/******************************************************************************
+ * Clone an existing ITC ID
+ ******************************************************************************/
+
+Itc_Status_t ITC_Id_clone(
+    const ITC_Id_t const *pt_Id,
+    ITC_Id_t **ppt_ClonedId
+)
+{
+    tNode *current = original;
+    tNode *cloneCurrent = newtNode(0);
+    tNode *pre = NULL;
+    tNode *clonePre = NULL;
+
+    *clone = cloneCurrent;
+
+    /* Inorder Morris traversal */
+    while (current != NULL)
+    {
+        if (current->left == NULL)
+        {
+            cloneCurrent->data = current->data;
+
+            current = current->right;
+            cloneCurrent = cloneCurrent->right;
+        }
+        else
+        {
+            /* Esure the left node is not created again when we climb back */
+            if(!cloneCurrent->left)
+            {
+                cloneCurrent->left = newtNode(0);
+            }
+
+            /* Find the inorder predecessor of current */
+            pre = current->left;
+            clonePre = cloneCurrent->left;
+            while (pre->right != NULL
+                   && pre->right != current)
+            {
+                /* Create a new right node if:
+                 * - The pre->right has real node, not one used for climbing back
+                 * - Only if this iteration will terminate due to
+                 *   pre->right == NULL (i.e. this is the first time the
+                 *   iteration is done) */
+                if(!clonePre->right && pre->right && pre->right != current)
+                {
+                    clonePre->right = newtNode(0);
+                }
+                clonePre = clonePre->right;
+                pre = pre->right;
+            }
+
+            /* Make current as the right child of its
+               inorder predecessor */
+            if (pre->right == NULL)
+            {
+                clonePre->right = cloneCurrent;
+                cloneCurrent = cloneCurrent->left;
+
+                pre->right = current;
+                current = current->left;
+            }
+
+            /* Revert the changes made in the 'if' part to
+               restore the original tree i.e., fix the right
+               child of predecessor */
+            else
+            {
+                cloneCurrent->data = current->data;
+
+                /* Create a new node if it wasn't created in the while loop
+                 * I believe this happens only on the first iteration that starts
+                 * exploring the right subtree of the root (original) node */
+                if (!cloneCurrent->right)
+                {
+                    cloneCurrent->right = newtNode(0);
+                }
+
+                clonePre->right = NULL;
+                cloneCurrent = cloneCurrent->right;
+
+                pre->right = NULL;
+                current = current->right;
+            }
+        }
+    }
+}
+
+/******************************************************************************
+ * Initialise an ITC ID as a seed ID
+ ******************************************************************************/
+
+Itc_Status_t ITC_Id_init(
+    ITC_Id_t *pt_Id
+)
+{
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    /* Set the ID to be the owner of the interval */
+    pt_Id->b_IsOwner = 1;
+
+    /* Free the left subtree if it is present */
+    t_Status = ITC_Id_free(&pt_Id->pt_Left);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Free the right subtree if it is present */
+        t_Status = ITC_Id_free(&pt_Id->pt_Right);
+    }
+
+    return t_Status;
+}
