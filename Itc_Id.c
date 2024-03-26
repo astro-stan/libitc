@@ -258,11 +258,13 @@ Itc_Status_t ITC_Id_init(
     pt_Id->b_IsOwner = 1;
 
     /* Free the left subtree if it is present */
-    t_Status = ITC_Id_free(&pt_Id->pt_Left);
-
-    if (t_Status == ITC_STATUS_SUCCESS)
+    if (pt_Id->pt_Left)
     {
-        /* Free the right subtree if it is present */
+        t_Status = ITC_Id_free(&pt_Id->pt_Left);
+    }
+    /* Free the right subtree if it is present */
+    if (pt_Id->pt_Right)
+    {
         t_Status = ITC_Id_free(&pt_Id->pt_Right);
     }
 
