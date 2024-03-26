@@ -12,12 +12,14 @@
 #include <stdbool.h>
 
 /* The ITC ID */
-typedef struct
+typedef struct ITC_Id_t
 {
     /** A pointer to the left ID subtree */
-    ITC_Id_t *pt_Left;
+    struct ITC_Id_t *pt_Left;
     /** A pointer to the right ID subtree */
-    ITC_Id_t *pt_Right;
+    struct ITC_Id_t *pt_Right;
+    /** A pointer to the parent ID subtree. NULL if root */
+    struct ITC_Id_t *pt_Parent;
     /** Determines whether the interval (or subinterval) represented by this
      * ID is owned by it (i.e. it can be used to inflate events) or not */
     bool b_IsOwner;

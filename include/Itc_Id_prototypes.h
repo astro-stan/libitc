@@ -36,8 +36,7 @@ Itc_Status_t ITC_Id_free(
 
 /**
  * @brief Clone an existing ITC ID
- * Performes an inorder Morris traversal of the original tree. The new tree
- * is dynamically constructed during the traversal
+ *
  * @note Memory for the new ITC ID node tree will be dynamically allocated
  * @param pt_Id The existing ID
  * @param ppt_ClonedId The pointer to the cloned ID
@@ -45,7 +44,7 @@ Itc_Status_t ITC_Id_free(
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_clone(
-    ITC_Id_t *pt_Id,
+    const ITC_Id_t const *pt_Id,
     ITC_Id_t **ppt_ClonedId
 );
 

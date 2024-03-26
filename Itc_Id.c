@@ -116,129 +116,82 @@ Itc_Status_t ITC_Id_free(
  ******************************************************************************/
 
 Itc_Status_t ITC_Id_clone(
-    ITC_Id_t *pt_Id,
+    const ITC_Id_t const *pt_Id,
     ITC_Id_t **ppt_ClonedId
 )
 {
-
-    /* TODO: allocation failures are NOT handled properly below (WIP)
-     * Recovering from allocation failure is tricky because Morris traversal
-     * modifies both the original and cloned trees, creating temporary
-     * loops between the right leaf of a node (node->right) and its parent. */
     Itc_Status_t t_Status = ITC_STATUS_SUCCESS;
-    bool b_AllocFailed = false;
+    const ITC_Id_t *pt_Root = pt_Id;
+    ITC_Id_t *pt_ClonedRoot;
 
-    ITC_Id_t *pt_Current = pt_Id;
-    ITC_Id_t *pt_ClonedCurrent = NULL;
-    ITC_Id_t *pt_Predecessor = NULL;
-    ITC_Id_t *pt_ClonedPredecessor = NULL;
-
-    /* Allocate the root of the clone */
-    t_Status = ITC_Id_alloc(&pt_ClonedCurrent);
-
-    if (t_Status = ITC_STATUS_SUCCESS)
+    if (pt_Root == NULL)
     {
-        *ppt_ClonedId = pt_ClonedCurrent;
+        t_Status = ITC_STATUS_INVALID_PARAM;
     }
-
-    /* Perform the Morris traversal */
-    while (pt_Current != NULL)
+    else
     {
-        if (pt_Current->pt_Left == NULL && t_Status == ITC_STATUS_SUCCESS)
-        {
-            /* Clone the data */
-            pt_ClonedCurrent->b_IsOwner = pt_Current->b_IsOwner;
+        /* Allocate the root */
+        t_Status = ITC_Id_alloc(ppt_ClonedId);
 
-            pt_Current = pt_Current->pt_Right;
-            pt_ClonedCurrent = pt_ClonedCurrent->pt_Right;
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Initialise the cloned root pointer */
+            pt_ClonedRoot = *ppt_ClonedId;
+
+            /* Copy ownership */
+            pt_ClonedRoot->b_IsOwner = pt_Root->b_IsOwner;
         }
-        else
+
+        while(t_Status == ITC_STATUS_SUCCESS && pt_Root != NULL)
         {
-            /* Esure the left node is not created again when climbing back */
-            if(!pt_ClonedCurrent->pt_Left && !b_AllocFailed)
+            if (pt_Root->pt_Left && !pt_ClonedRoot->pt_Left)
             {
-                t_Status = ITC_Id_alloc(&pt_ClonedCurrent->pt_Left);
-                if (t_Status != ITC_STATUS_SUCCESS)
-                {
-                    b_AllocFailed = true;
-                }
-            }
+                /* Allocate left subtree */
+                t_Status = ITC_Id_alloc(&pt_ClonedRoot->pt_Left);
 
-            /* Find the inorder predecessor of pt_Current and create it for
-             * the pt_ClonedCurrent */
-            pt_Predecessor = pt_Current->pt_Left;
-
-            /* Prevous allocation might have failed somewhere, but we still
-             * need to cleanup. Proceed carefully. */
-            if(pt_ClonedCurrent->pt_Left)
-            {
-                pt_ClonedPredecessor = pt_ClonedCurrent->pt_Left;
-            }
-            while (pt_Predecessor->pt_Right != NULL &&
-                   pt_Predecessor->pt_Right != pt_Current)
-            {
-                /* Ensure the right node is only created on the first
-                * iteration (i.e. when termination occurs due to
-                * pt_Predecessor->pt_Right == NULL) and only for real nodes,
-                * not ones used for climbing back */
-                if(!b_AllocFailed &&
-                   !pt_ClonedPredecessor->pt_Right &&
-                   pt_Predecessor->pt_Right &&
-                   pt_Predecessor->pt_Right != pt_Current)
-                {
-                    t_Status =
-                        ITC_Id_alloc(&pt_ClonedPredecessor->pt_Right);
-                    if (t_Status !=ITC_STATUS_SUCCESS)
-                    {
-                        b_AllocFailed = true;
-                    }
-                }
-
-                pt_Predecessor = pt_Predecessor->pt_Right;
-                /* Prevous allocation might have failed somewhere, but we still
-                 * need to cleanup. Proceed carefully. */
-                if (pt_ClonedPredecessor->pt_Right)
-                {
-                    pt_ClonedPredecessor = pt_ClonedPredecessor->pt_Right;
-                }
-            }
-
-            /* Make pt_Current and pt_ClonedCurrent the right childs of
-             * their inorder predecessors */
-            if (pt_Predecessor->pt_Right == NULL)
-            {
-                pt_Predecessor->pt_Right = pt_Current;
-                pt_Current = pt_Current->pt_Left;
-
-                pt_ClonedPredecessor->pt_Right = pt_ClonedCurrent;
-                pt_ClonedCurrent = pt_ClonedCurrent->pt_Left;
-            }
-            /* On the next iteration fix the right child of
-             * predecessors */
-            else
-            {
-                /* Clone the data */
-                pt_ClonedCurrent->b_IsOwner = pt_Current->b_IsOwner;
-
-                pt_Predecessor->pt_Right = NULL;
-                pt_Current = pt_Current->pt_Right;
-
-                pt_ClonedPredecessor->pt_Right = NULL;
-
-                /* Create a new node if it wasn't created in the while
-                    * loop above */
-                if (!pt_ClonedCurrent->pt_Right)
-                {
-                    pt_ClonedCurrent->pt_Right = newtNode(0);
-                    t_Status =
-                        ITC_Id_alloc(&pt_ClonedCurrent->pt_Right);
-                }
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    pt_ClonedCurrent = pt_ClonedCurrent->pt_Right;
+                    /* Set parent */
+                    pt_ClonedRoot->pt_Left->pt_Parent = pt_ClonedRoot;
+
+                    /* Advance into the tree */
+                    pt_Root = pt_Root->pt_Left;
+                    pt_ClonedRoot = pt_ClonedRoot->pt_Left;
+
+                    /* Copy ownership */
+                    pt_ClonedRoot->b_IsOwner = pt_Root->b_IsOwner;
                 }
             }
+            else if (pt_Root->pt_Right && !pt_ClonedRoot->pt_Right)
+            {
+                /* Allocate right subtree */
+                t_Status = ITC_Id_alloc(&pt_ClonedRoot->pt_Right);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    /* Set parent */
+                    pt_ClonedRoot->pt_Right->pt_Parent = pt_ClonedRoot;
+
+                    /* Advance into the tree */
+                    pt_Root = pt_Root->pt_Right;
+                    pt_ClonedRoot = pt_ClonedRoot->pt_Right;
+
+                    /* Copy ownership */
+                    pt_ClonedRoot->b_IsOwner = pt_Root->b_IsOwner;
+                }
+            }
+            else
+            {
+                /* Go up the tree */
+                pt_Root = pt_Root->pt_Parent;
+                pt_ClonedRoot = pt_ClonedRoot->pt_Parent;
+            }
         }
+    }
+
+    if (t_Status != ITC_STATUS_SUCCESS)
+    {
+        /* TODO: Deallocate clone */
     }
 
     return t_Status;
