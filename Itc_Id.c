@@ -57,7 +57,7 @@ Itc_Status_t ITC_Id_free(
             pt_Swap = pt_Node->pt_Left;
             /* Save the parent address (obtained in the previous iteration) */
             pt_Node->pt_Left = pt_Up;
-            /* Save the current node as the next iteration parent node */
+            /* Save the pt_Current node as the next iteration parent node */
             pt_Up = pt_Node;
             /* Explore the left subtree next */
             pt_Node = pt_Swap;
@@ -69,7 +69,7 @@ Itc_Status_t ITC_Id_free(
             pt_Node->pt_Left = pt_Up;
             /* Forget the right subtree (it will be deallocated later) */
             pt_Node->pt_Right = NULL;
-            /* Save the current node as the next iteration parent node */
+            /* Save the pt_Current node as the next iteration parent node */
             pt_Up = pt_Node;
             /* Explore the right subtree next */
             pt_Node = pt_Swap;
@@ -116,88 +116,132 @@ Itc_Status_t ITC_Id_free(
  ******************************************************************************/
 
 Itc_Status_t ITC_Id_clone(
-    const ITC_Id_t const *pt_Id,
+    ITC_Id_t *pt_Id,
     ITC_Id_t **ppt_ClonedId
 )
 {
-    tNode *current = original;
-    tNode *cloneCurrent = newtNode(0);
-    tNode *pre = NULL;
-    tNode *clonePre = NULL;
 
-    *clone = cloneCurrent;
+    /* TODO: allocation failures are NOT handled properly below (WIP)
+     * Recovering from allocation failure is tricky because Morris traversal
+     * modifies both the original and cloned trees, creating temporary
+     * loops between the right leaf of a node (node->right) and its parent. */
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS;
+    bool b_AllocFailed = false;
 
-    /* Inorder Morris traversal */
-    while (current != NULL)
+    ITC_Id_t *pt_Current = pt_Id;
+    ITC_Id_t *pt_ClonedCurrent = NULL;
+    ITC_Id_t *pt_Predecessor = NULL;
+    ITC_Id_t *pt_ClonedPredecessor = NULL;
+
+    /* Allocate the root of the clone */
+    t_Status = ITC_Id_alloc(&pt_ClonedCurrent);
+
+    if (t_Status = ITC_STATUS_SUCCESS)
     {
-        if (current->left == NULL)
-        {
-            cloneCurrent->data = current->data;
+        *ppt_ClonedId = pt_ClonedCurrent;
+    }
 
-            current = current->right;
-            cloneCurrent = cloneCurrent->right;
+    /* Perform the Morris traversal */
+    while (pt_Current != NULL)
+    {
+        if (pt_Current->pt_Left == NULL && t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Clone the data */
+            pt_ClonedCurrent->b_IsOwner = pt_Current->b_IsOwner;
+
+            pt_Current = pt_Current->pt_Right;
+            pt_ClonedCurrent = pt_ClonedCurrent->pt_Right;
         }
         else
         {
-            /* Esure the left node is not created again when we climb back */
-            if(!cloneCurrent->left)
+            /* Esure the left node is not created again when climbing back */
+            if(!pt_ClonedCurrent->pt_Left && !b_AllocFailed)
             {
-                cloneCurrent->left = newtNode(0);
-            }
-
-            /* Find the inorder predecessor of current */
-            pre = current->left;
-            clonePre = cloneCurrent->left;
-            while (pre->right != NULL
-                   && pre->right != current)
-            {
-                /* Create a new right node if:
-                 * - The pre->right has real node, not one used for climbing back
-                 * - Only if this iteration will terminate due to
-                 *   pre->right == NULL (i.e. this is the first time the
-                 *   iteration is done) */
-                if(!clonePre->right && pre->right && pre->right != current)
+                t_Status = ITC_Id_alloc(&pt_ClonedCurrent->pt_Left);
+                if (t_Status != ITC_STATUS_SUCCESS)
                 {
-                    clonePre->right = newtNode(0);
+                    b_AllocFailed = true;
                 }
-                clonePre = clonePre->right;
-                pre = pre->right;
             }
 
-            /* Make current as the right child of its
-               inorder predecessor */
-            if (pre->right == NULL)
+            /* Find the inorder predecessor of pt_Current and create it for
+             * the pt_ClonedCurrent */
+            pt_Predecessor = pt_Current->pt_Left;
+
+            /* Prevous allocation might have failed somewhere, but we still
+             * need to cleanup. Proceed carefully. */
+            if(pt_ClonedCurrent->pt_Left)
             {
-                clonePre->right = cloneCurrent;
-                cloneCurrent = cloneCurrent->left;
+                pt_ClonedPredecessor = pt_ClonedCurrent->pt_Left;
+            }
+            while (pt_Predecessor->pt_Right != NULL &&
+                   pt_Predecessor->pt_Right != pt_Current)
+            {
+                /* Ensure the right node is only created on the first
+                * iteration (i.e. when termination occurs due to
+                * pt_Predecessor->pt_Right == NULL) and only for real nodes,
+                * not ones used for climbing back */
+                if(!b_AllocFailed &&
+                   !pt_ClonedPredecessor->pt_Right &&
+                   pt_Predecessor->pt_Right &&
+                   pt_Predecessor->pt_Right != pt_Current)
+                {
+                    t_Status =
+                        ITC_Id_alloc(&pt_ClonedPredecessor->pt_Right);
+                    if (t_Status !=ITC_STATUS_SUCCESS)
+                    {
+                        b_AllocFailed = true;
+                    }
+                }
 
-                pre->right = current;
-                current = current->left;
+                pt_Predecessor = pt_Predecessor->pt_Right;
+                /* Prevous allocation might have failed somewhere, but we still
+                 * need to cleanup. Proceed carefully. */
+                if (pt_ClonedPredecessor->pt_Right)
+                {
+                    pt_ClonedPredecessor = pt_ClonedPredecessor->pt_Right;
+                }
             }
 
-            /* Revert the changes made in the 'if' part to
-               restore the original tree i.e., fix the right
-               child of predecessor */
+            /* Make pt_Current and pt_ClonedCurrent the right childs of
+             * their inorder predecessors */
+            if (pt_Predecessor->pt_Right == NULL)
+            {
+                pt_Predecessor->pt_Right = pt_Current;
+                pt_Current = pt_Current->pt_Left;
+
+                pt_ClonedPredecessor->pt_Right = pt_ClonedCurrent;
+                pt_ClonedCurrent = pt_ClonedCurrent->pt_Left;
+            }
+            /* On the next iteration fix the right child of
+             * predecessors */
             else
             {
-                cloneCurrent->data = current->data;
+                /* Clone the data */
+                pt_ClonedCurrent->b_IsOwner = pt_Current->b_IsOwner;
 
-                /* Create a new node if it wasn't created in the while loop
-                 * I believe this happens only on the first iteration that starts
-                 * exploring the right subtree of the root (original) node */
-                if (!cloneCurrent->right)
+                pt_Predecessor->pt_Right = NULL;
+                pt_Current = pt_Current->pt_Right;
+
+                pt_ClonedPredecessor->pt_Right = NULL;
+
+                /* Create a new node if it wasn't created in the while
+                    * loop above */
+                if (!pt_ClonedCurrent->pt_Right)
                 {
-                    cloneCurrent->right = newtNode(0);
+                    pt_ClonedCurrent->pt_Right = newtNode(0);
+                    t_Status =
+                        ITC_Id_alloc(&pt_ClonedCurrent->pt_Right);
                 }
-
-                clonePre->right = NULL;
-                cloneCurrent = cloneCurrent->right;
-
-                pre->right = NULL;
-                current = current->right;
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_ClonedCurrent = pt_ClonedCurrent->pt_Right;
+                }
             }
         }
     }
+
+    return t_Status;
 }
 
 /******************************************************************************
@@ -208,7 +252,7 @@ Itc_Status_t ITC_Id_init(
     ITC_Id_t *pt_Id
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The pt_Current status */
 
     /* Set the ID to be the owner of the interval */
     pt_Id->b_IsOwner = 1;
