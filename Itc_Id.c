@@ -44,71 +44,50 @@ Itc_Status_t ITC_Id_free(
     ITC_Id_t **ppt_Id
 )
 {
-    ITC_Id_t *pt_Node = *ppt_Id; /* The currently explored node */
-    ITC_Id_t *pt_Up = NULL;    /* The parent node */
-    ITC_Id_t *pt_Swap = NULL;  /* Used for swapping pointers */
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Id_t *pt_Root = *ppt_Id;
+    ITC_Id_t *pt_Tmp = NULL;
 
-    /* Perform a depth-first walk of the tree
-     * Uses the pt_Left subtree pointer to keep track of the parent node */
-    while (pt_Node)
+    if (pt_Root == NULL)
     {
-        if (pt_Node->pt_Left)
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        while(t_Status == ITC_STATUS_SUCCESS && pt_Root != NULL)
         {
-            pt_Swap = pt_Node->pt_Left;
-            /* Save the parent address (obtained in the previous iteration) */
-            pt_Node->pt_Left = pt_Up;
-            /* Save the pt_Current node as the next iteration parent node */
-            pt_Up = pt_Node;
-            /* Explore the left subtree next */
-            pt_Node = pt_Swap;
-        }
-        else if (pt_Node->pt_Right)
-        {
-            pt_Swap = pt_Node->pt_Right;
-            /* Save the parent address (obtained in the previous iteration) */
-            pt_Node->pt_Left = pt_Up;
-            /* Forget the right subtree (it will be deallocated later) */
-            pt_Node->pt_Right = NULL;
-            /* Save the pt_Current node as the next iteration parent node */
-            pt_Up = pt_Node;
-            /* Explore the right subtree next */
-            pt_Node = pt_Swap;
-        }
-        else
-        {
-            /* If the initially given tree had no subtrees */
-            if (!pt_Up)
+            if(pt_Root->pt_Left)
             {
-                free(pt_Node);
-                pt_Node = NULL;
+                pt_Root = pt_Root->pt_Left;
             }
-            /* Iterate over the parent nodes */
-            while (pt_Up)
+            else if(pt_Root->pt_Right)
             {
-                free(pt_Node);
-                if (pt_Up->pt_Right)
+                pt_Root = pt_Root->pt_Right;
+            }
+            else
+            {
+                pt_Tmp = pt_Root->pt_Parent;
+
+                if(pt_Tmp)
                 {
-                    /* The right subtree of the parent hasn't been explored
-                     * yet */
-                    pt_Node = pt_Up->pt_Right;
-                    pt_Up->pt_Right = NULL;
-                    break;
+                    if(pt_Tmp->pt_Left == pt_Root)
+                    {
+                        pt_Tmp->pt_Left = NULL;
+                    }
+                    else
+                    {
+                        pt_Tmp->pt_Right = NULL;
+                    }
                 }
-                else
-                {
-                    /* Move to the parent */
-                    pt_Node = pt_Up;
-                    pt_Up = pt_Up->pt_Left;
-                }
+
+                free(pt_Root);
+
+                pt_Root = pt_Tmp;
             }
         }
     }
 
-    /* Set pt_Id to NULL */
-    *ppt_Id = NULL;
-
-    /* Always succeeds */
-    return ITC_STATUS_SUCCESS;
+    return t_Status;
 }
 
 /******************************************************************************
