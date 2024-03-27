@@ -209,14 +209,12 @@ static Itc_Status_t newSplitI(
     ITC_Id_t **ppt_CurrentId2 = ppt_Id2;
     ITC_Id_t *pt_ParentCurrentId2 = NULL;
 
-    /* TODO: validate *ppt_Id1 == NULL && *pp_Id2 == NULL ; cleanup & simplify*/
+    /* TODO: cleanup & simplify*/
 
-    // t_Status = ITC_Id_newNullId(&pt_CurrentId1);
-
-    // if (t_Status == ITC_STATUS_SUCCESS)
-    // {
-    //     t_Status = ITC_Id_newNullId(&pt_CurrentId2);
-    // }
+    if ((*ppt_CurrentId1) || (*ppt_CurrentId2))
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
 
     while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
     {
@@ -410,7 +408,7 @@ static Itc_Status_t newSplitI(
         }
     }
 
-    if (t_Status != ITC_STATUS_SUCCESS)
+    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
     {
         t_Status = ITC_Id_destroy(ppt_Id1);
         t_OpStatus = ITC_Id_destroy(ppt_Id2);
