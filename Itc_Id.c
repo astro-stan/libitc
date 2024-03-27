@@ -568,25 +568,5 @@ Itc_Status_t ITC_Id_split(
     ITC_Id_t **ppt_Id2
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
-    if (ITC_ID_IS_LEAF_NODE(pt_Id))
-    {
-        /* split(1) = ((1, 0), (0, 1)) */
-        if(pt_Id->b_IsOwner)
-        {
-            t_Status = newSplit1(ppt_Id1, NULL, ppt_Id2, NULL);
-        }
-        /* split(1) = (0, 0) */
-        else
-        {
-            t_Status = newSplit0(ppt_Id1, NULL, ppt_Id2, NULL);
-        }
-    }
-    else
-    {
-        t_Status = newSplitI(pt_Id, ppt_Id1, ppt_Id2);
-    }
-
-    return t_Status;
+    return newSplitI(pt_Id, ppt_Id1, ppt_Id2);
 }
