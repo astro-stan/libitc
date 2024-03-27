@@ -27,6 +27,9 @@
 /** Operation failed due to insufficient resources */
 #define ITC_STATUS_INSUFFICIENT_RESOURCES                                    (3)
 
+/** Operation failed due to the ITC ID being corrupted */
+#define ITC_STATUS_CORRUPT_ID                                                (4)
+
 
 /******************************************************************************
  * Types

@@ -12,6 +12,10 @@
 #include "Itc_Id.h"
 #include "Itc_Status.h"
 
+/******************************************************************************
+ * Functions
+ ******************************************************************************/
+
 /**
  * @brief Free an allocated ITC ID
  *
@@ -39,7 +43,7 @@ Itc_Status_t ITC_Id_clone(
 );
 
 /**
- * @brief Allocate a new ITC ID and initialise it as a seed ID ([1])
+ * @brief Allocate a new ITC ID and initialise it as a seed ID (1)
  *
  * @param ppt_Id (out) The pointer to the seed ID
  * @return Itc_Status_t The status of the operation
@@ -50,7 +54,7 @@ Itc_Status_t ITC_Id_newSeedId(
 );
 
 /**
- * @brief Allocate a new ITC ID and initialise it as a null ID ([0])
+ * @brief Allocate a new ITC ID and initialise it as a null ID (0)
  *
  * @param ppt_Id (out) The pointer to the null ID
  * @return Itc_Status_t The status of the operation
@@ -64,15 +68,15 @@ Itc_Status_t ITC_Id_newNullId(
  * @brief Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  *
  * @param pt_Id The existing ID
- * @param pt_Id1 The first ID
- * @param pt_Id2 The second ID
+ * @param ppt_Id1 The first ID
+ * @param ppt_Id2 The second ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_split(
-    ITC_Id_t *pt_Id,
-    ITC_Id_t *pt_Id1,
-    ITC_Id_t *pt_Id2
+    const ITC_Id_t *const pt_Id,
+    ITC_Id_t **ppt_Id1,
+    ITC_Id_t **ppt_Id2
 );
 
 /**
