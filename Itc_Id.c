@@ -44,33 +44,37 @@ Itc_Status_t ITC_Id_free(
     ITC_Id_t **ppt_Id
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS;
-    ITC_Id_t *pt_Root = *ppt_Id;
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_Current = *ppt_Id; /* The current element */
     ITC_Id_t *pt_Tmp = NULL;
 
-    if (pt_Root == NULL)
+    if (pt_Current == NULL)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
     else
     {
-        while(t_Status == ITC_STATUS_SUCCESS && pt_Root != NULL)
+        while(t_Status == ITC_STATUS_SUCCESS && pt_Current != NULL)
         {
-            if(pt_Root->pt_Left)
+            if(pt_Current->pt_Left)
             {
-                pt_Root = pt_Root->pt_Left;
+                /* Advance into left subtree */
+                pt_Current = pt_Current->pt_Left;
             }
-            else if(pt_Root->pt_Right)
+            else if(pt_Current->pt_Right)
             {
-                pt_Root = pt_Root->pt_Right;
+                /* Advance into right subtree */
+                pt_Current = pt_Current->pt_Right;
             }
             else
             {
-                pt_Tmp = pt_Root->pt_Parent;
+                /* Remember the parent element */
+                pt_Tmp = pt_Current->pt_Parent;
 
                 if(pt_Tmp)
                 {
-                    if(pt_Tmp->pt_Left == pt_Root)
+                    /* Remove the current element address from the parent */
+                    if(pt_Tmp->pt_Left == pt_Current)
                     {
                         pt_Tmp->pt_Left = NULL;
                     }
@@ -80,9 +84,11 @@ Itc_Status_t ITC_Id_free(
                     }
                 }
 
-                free(pt_Root);
+                /* Free the current element */
+                free(pt_Current);
 
-                pt_Root = pt_Tmp;
+                /* Go up the tree */
+                pt_Current = pt_Tmp;
             }
         }
     }
@@ -99,9 +105,9 @@ Itc_Status_t ITC_Id_clone(
     ITC_Id_t **ppt_ClonedId
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS;
-    const ITC_Id_t *pt_Root = pt_Id;
-    ITC_Id_t *pt_ClonedRoot;
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    const ITC_Id_t *pt_Root = pt_Id; /* The current root */
+    ITC_Id_t *pt_ClonedRoot; /* The current cloned root */
 
     if (pt_Root == NULL)
     {
@@ -168,6 +174,7 @@ Itc_Status_t ITC_Id_clone(
         }
     }
 
+    /* Something went wrong */
     if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* Deallocate clone */
@@ -185,7 +192,7 @@ Itc_Status_t ITC_Id_init(
     ITC_Id_t *pt_Id
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The pt_Current status */
+    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Set the ID to be the owner of the interval */
     pt_Id->b_IsOwner = 1;
