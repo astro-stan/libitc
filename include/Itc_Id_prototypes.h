@@ -13,19 +13,6 @@
 #include "Itc_Status.h"
 
 /**
- * @brief Allocate a new ITC ID
- *
- * @param ppt_Id (out) The pointer to the new ID
- * @param ppt_Id The pointer to the parent ID in the tree. Otherwise NULL.
- * @return Itc_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
- */
-Itc_Status_t ITC_Id_alloc(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent
-);
-
-/**
  * @brief Free an allocated ITC ID
  *
  * @param ppt_Id (in) The pointer to the ID to deallocate. (out) NULL
@@ -47,7 +34,7 @@ Itc_Status_t ITC_Id_free(
  * @retval ITC_STATUS_SUCCESS on success
  */
 Itc_Status_t ITC_Id_clone(
-    const ITC_Id_t const *pt_Id,
+    const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId
 );
 

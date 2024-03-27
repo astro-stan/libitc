@@ -7,6 +7,7 @@
  *
  */
 #include "Itc_Id.h"
+#include "Itc_Id_package.h"
 
 #include <stdlib.h>
 
@@ -108,7 +109,7 @@ Itc_Status_t ITC_Id_free(
  ******************************************************************************/
 
 Itc_Status_t ITC_Id_clone(
-    const ITC_Id_t const *pt_Id,
+    const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId
 )
 {
