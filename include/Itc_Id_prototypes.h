@@ -45,7 +45,18 @@ Itc_Status_t ITC_Id_clone(
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_newSeed(
+Itc_Status_t ITC_Id_newSeedId(
+    ITC_Id_t **ppt_Id
+);
+
+/**
+ * @brief Allocate a new ITC ID and initialise it as a null ID ([0])
+ *
+ * @param ppt_Id (out) The pointer to the null ID
+ * @return Itc_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+Itc_Status_t ITC_Id_newNullId(
     ITC_Id_t **ppt_Id
 );
 

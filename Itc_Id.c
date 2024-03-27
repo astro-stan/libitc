@@ -192,7 +192,7 @@ Itc_Status_t ITC_Id_clone(
  * Allocate a new ITC ID and initialise it as a seed ID ([1])
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_newSeed(
+Itc_Status_t ITC_Id_newSeedId(
     ITC_Id_t **ppt_Id
 )
 {
@@ -200,10 +200,33 @@ Itc_Status_t ITC_Id_newSeed(
 
     t_Status = ITC_Id_new(ppt_Id, NULL);
 
-    /* Initialise as stamp seed */
+    /* Initialise as seed ID */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         (*ppt_Id)->b_IsOwner = 1;
+        (*ppt_Id)->pt_Left = NULL;
+        (*ppt_Id)->pt_Right = NULL;
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Allocate a new ITC ID and initialise it as a null ID ([0])
+ ******************************************************************************/
+
+Itc_Status_t ITC_Id_newNullId(
+    ITC_Id_t **ppt_Id
+)
+{
+    Itc_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_Id_new(ppt_Id, NULL);
+
+    /* Initialise as null ID */
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        (*ppt_Id)->b_IsOwner = 0;
         (*ppt_Id)->pt_Left = NULL;
         (*ppt_Id)->pt_Right = NULL;
     }
