@@ -20,7 +20,7 @@
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_alloc(
+Itc_Status_t ITC_Id_new(
     ITC_Id_t **ppt_Id,
     ITC_Id_t *pt_Parent
 );

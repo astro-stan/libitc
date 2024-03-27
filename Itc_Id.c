@@ -19,7 +19,7 @@
  * Allocate a new ITC ID
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_alloc(
+Itc_Status_t ITC_Id_new(
     ITC_Id_t **ppt_Id,
     ITC_Id_t *pt_Parent
 )
@@ -48,7 +48,7 @@ Itc_Status_t ITC_Id_alloc(
  * Free an allocated ITC ID
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_free(
+Itc_Status_t ITC_Id_destroy(
     ITC_Id_t **ppt_Id
 )
 {
@@ -124,7 +124,7 @@ Itc_Status_t ITC_Id_clone(
     else
     {
         /* Allocate the root */
-        t_Status = ITC_Id_alloc(ppt_ClonedId, NULL);
+        t_Status = ITC_Id_new(ppt_ClonedId, NULL);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
@@ -141,7 +141,7 @@ Itc_Status_t ITC_Id_clone(
             {
                 /* Allocate left subtree */
                 t_Status =
-                    ITC_Id_alloc(&pt_ClonedRoot->pt_Left, pt_ClonedRoot);
+                    ITC_Id_new(&pt_ClonedRoot->pt_Left, pt_ClonedRoot);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
@@ -157,7 +157,7 @@ Itc_Status_t ITC_Id_clone(
             {
                 /* Allocate right subtree */
                 t_Status =
-                    ITC_Id_alloc(&pt_ClonedRoot->pt_Right, pt_ClonedRoot);
+                    ITC_Id_new(&pt_ClonedRoot->pt_Right, pt_ClonedRoot);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
@@ -182,7 +182,7 @@ Itc_Status_t ITC_Id_clone(
     if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* Deallocate clone */
-        ITC_Id_free(ppt_ClonedId);
+        ITC_Id_destroy(ppt_ClonedId);
     }
 
     return t_Status;
@@ -198,7 +198,7 @@ Itc_Status_t ITC_Id_newSeed(
 {
     Itc_Status_t t_Status; /* The current status */
 
-    t_Status = ITC_Id_alloc(ppt_Id, NULL);
+    t_Status = ITC_Id_new(ppt_Id, NULL);
 
     /* Initialise as stamp seed */
     if (t_Status == ITC_STATUS_SUCCESS)

@@ -19,7 +19,7 @@
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_free(
+Itc_Status_t ITC_Id_destroy(
     ITC_Id_t **ppt_Id
 );
 
