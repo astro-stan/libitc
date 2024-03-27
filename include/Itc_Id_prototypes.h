@@ -49,7 +49,7 @@ Itc_Status_t ITC_Id_clone(
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_newSeedId(
+Itc_Status_t ITC_Id_newSeed(
     ITC_Id_t **ppt_Id
 );
 
@@ -60,7 +60,7 @@ Itc_Status_t ITC_Id_newSeedId(
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_newNullId(
+Itc_Status_t ITC_Id_newNull(
     ITC_Id_t **ppt_Id
 );
 

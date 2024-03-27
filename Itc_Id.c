@@ -538,7 +538,7 @@ Itc_Status_t ITC_Id_clone(
  * Allocate a new ITC ID and initialise it as a seed ID (1)
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_newSeedId(
+Itc_Status_t ITC_Id_newSeed(
     ITC_Id_t **ppt_Id
 )
 {
@@ -549,7 +549,7 @@ Itc_Status_t ITC_Id_newSeedId(
  * Allocate a new ITC ID and initialise it as a null ID (0)
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_newNullId(
+Itc_Status_t ITC_Id_newNull(
     ITC_Id_t **ppt_Id
 )
 {
