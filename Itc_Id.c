@@ -189,27 +189,23 @@ Itc_Status_t ITC_Id_clone(
 }
 
 /******************************************************************************
- * Initialise an ITC ID as a seed ID
+ * Allocate a new ITC ID and initialise it as a seed ID ([1])
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_init(
-    ITC_Id_t *pt_Id
+Itc_Status_t ITC_Id_newSeed(
+    ITC_Id_t **ppt_Id
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    Itc_Status_t t_Status; /* The current status */
 
-    /* Set the ID to be the owner of the interval */
-    pt_Id->b_IsOwner = 1;
+    t_Status = ITC_Id_alloc(ppt_Id, NULL);
 
-    /* Free the left subtree if it is present */
-    if (pt_Id->pt_Left)
+    /* Initialise as stamp seed */
+    if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_free(&pt_Id->pt_Left);
-    }
-    /* Free the right subtree if it is present */
-    if (pt_Id->pt_Right)
-    {
-        t_Status = ITC_Id_free(&pt_Id->pt_Right);
+        (*ppt_Id)->b_IsOwner = 1;
+        (*ppt_Id)->pt_Left = NULL;
+        (*ppt_Id)->pt_Right = NULL;
     }
 
     return t_Status;

@@ -39,15 +39,14 @@ Itc_Status_t ITC_Id_clone(
 );
 
 /**
- * @brief Initialise an ITC ID as a seed ID
+ * @brief Allocate a new ITC ID and initialise it as a seed ID ([1])
  *
- * @note All contained subtrees (if any) will be deallocated
- * @param pt_Id The ID to initialise
+ * @param ppt_Id (out) The pointer to the seed ID
  * @return Itc_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_init(
-    ITC_Id_t *pt_Id
+Itc_Status_t ITC_Id_newSeed(
+    ITC_Id_t **ppt_Id
 );
 
 /**
