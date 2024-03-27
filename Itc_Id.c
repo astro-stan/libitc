@@ -355,59 +355,38 @@ static Itc_Status_t newSplitI(
                     }
                 }
                 /* split((i1, i2)) = ((i1, 0), (0, i2)) */
-                else
+                else if (ITC_ID_IS_LEAF_NODE(*ppt_CurrentId1) && ITC_ID_IS_LEAF_NODE(*ppt_CurrentId2))
                 {
-                    /* split(i1) = (i1, 0) */
-                    if (ITC_ID_IS_LEAF_NODE(*ppt_CurrentId1))
+                    t_Status = ITC_Id_new(
+                        &(*ppt_CurrentId1)->pt_Right,
+                        *ppt_CurrentId1,
+                        0);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
                     {
-                        t_Status = ITC_Id_new(
-                            &(*ppt_CurrentId1)->pt_Right,
-                            *ppt_CurrentId1,
-                            0);
-
-                        if (t_Status == ITC_STATUS_SUCCESS)
-                        {
-                            t_Status = ITC_Id_new(
-                                &(*ppt_CurrentId1)->pt_Left,
-                                *ppt_CurrentId1,
-                                0);
-                        }
-
-                        if (t_Status == ITC_STATUS_SUCCESS)
-                        {
-                            pt_CurrentId = pt_CurrentId->pt_Left;
-                            pt_ParentCurrentId2 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Left : NULL;
-                            pt_ParentCurrentId1 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Left : NULL;
-                            ppt_CurrentId2 = &(*ppt_CurrentId1)->pt_Left->pt_Right;
-                            ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Left->pt_Left;
-                        }
+                        t_Status = cloneId(
+                            (const ITC_Id_t *const)pt_CurrentId->pt_Left,
+                            &(*ppt_CurrentId1)->pt_Left,
+                            *ppt_CurrentId1);
                     }
-                    /* split(i2) = (0, i2) */
-                    else if (ITC_ID_IS_LEAF_NODE(*ppt_CurrentId2))
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
                     {
                         t_Status = ITC_Id_new(
                             &(*ppt_CurrentId2)->pt_Left,
                             *ppt_CurrentId2,
                             0);
-
-                        if (t_Status == ITC_STATUS_SUCCESS)
-                        {
-                            t_Status = ITC_Id_new(
-                                &(*ppt_CurrentId2)->pt_Right,
-                                *ppt_CurrentId2,
-                                0);
-                        }
-
-                        if (t_Status == ITC_STATUS_SUCCESS)
-                        {
-                            pt_CurrentId = pt_CurrentId->pt_Right;
-                            pt_ParentCurrentId1 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Right : NULL;
-                            pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Right : NULL;
-                            ppt_CurrentId1 = &(*ppt_CurrentId2)->pt_Right->pt_Left;
-                            ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Right->pt_Right;
-                        }
                     }
-                    else if (pt_CurrentId)
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        t_Status = cloneId(
+                            (const ITC_Id_t *const)pt_CurrentId->pt_Right,
+                            &(*ppt_CurrentId2)->pt_Right,
+                            *ppt_CurrentId2);
+                    }
+
+                    if (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
                     {
                         pt_CurrentId = pt_CurrentId->pt_Parent;
                         if (pt_CurrentId)
@@ -418,6 +397,10 @@ static Itc_Status_t newSplitI(
                             pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Parent : NULL;
                         }
                     }
+                }
+                else
+                {
+                    t_Status = ITC_STATUS_CORRUPT_ID;
                 }
             }
         }
