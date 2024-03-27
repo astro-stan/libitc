@@ -19,7 +19,8 @@
  ******************************************************************************/
 
 Itc_Status_t ITC_Id_alloc(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t *pt_Parent
 )
 {
     ITC_Id_t *pt_Alloc = (ITC_Id_t*)calloc(1, sizeof(ITC_Id_t));
@@ -28,6 +29,12 @@ Itc_Status_t ITC_Id_alloc(
     if (!pt_Alloc)
     {
         return ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    /* Assign the parent */
+    if (pt_Parent)
+    {
+        pt_Alloc->pt_Parent = pt_Parent;
     }
 
     /* Return the pointer to the allocated memory */
@@ -116,7 +123,7 @@ Itc_Status_t ITC_Id_clone(
     else
     {
         /* Allocate the root */
-        t_Status = ITC_Id_alloc(ppt_ClonedId);
+        t_Status = ITC_Id_alloc(ppt_ClonedId, NULL);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
@@ -132,13 +139,11 @@ Itc_Status_t ITC_Id_clone(
             if (pt_Root->pt_Left && !pt_ClonedRoot->pt_Left)
             {
                 /* Allocate left subtree */
-                t_Status = ITC_Id_alloc(&pt_ClonedRoot->pt_Left);
+                t_Status =
+                    ITC_Id_alloc(&pt_ClonedRoot->pt_Left, pt_ClonedRoot);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    /* Set parent */
-                    pt_ClonedRoot->pt_Left->pt_Parent = pt_ClonedRoot;
-
                     /* Advance into the tree */
                     pt_Root = pt_Root->pt_Left;
                     pt_ClonedRoot = pt_ClonedRoot->pt_Left;
@@ -150,13 +155,11 @@ Itc_Status_t ITC_Id_clone(
             else if (pt_Root->pt_Right && !pt_ClonedRoot->pt_Right)
             {
                 /* Allocate right subtree */
-                t_Status = ITC_Id_alloc(&pt_ClonedRoot->pt_Right);
+                t_Status =
+                    ITC_Id_alloc(&pt_ClonedRoot->pt_Right, pt_ClonedRoot);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    /* Set parent */
-                    pt_ClonedRoot->pt_Right->pt_Parent = pt_ClonedRoot;
-
                     /* Advance into the tree */
                     pt_Root = pt_Root->pt_Right;
                     pt_ClonedRoot = pt_ClonedRoot->pt_Right;
