@@ -1,0 +1,3 @@
+[submodule "vendor/cmock"]
+	path = vendor/cmock
+	url = https://github.com/ThrowTheSwitch/CMock/
