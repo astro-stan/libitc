@@ -1,4 +1,8 @@
 
+libitc_test_inc = include_directories([
+    'include',
+])
+
 libitc_test_c_args = [
 
 ]

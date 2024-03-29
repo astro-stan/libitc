@@ -72,6 +72,7 @@ foreach libitc_test_src_file_path : libitc_test_src
         libitc_test_runner_ch_tgt,
         libitc_test_entrypoint_c_tgt,
         build_by_default: false,
+        include_directories: [libitc_test_inc],
         dependencies: [
             libitc_dep,
             unity_dep,

@@ -3,9 +3,16 @@
 #include "ITC_Id_Test.h"
 #include "ITC_Id.h"
 #include "ITC_Id_package.h"
+#include "ITC_Test_helpers.h"
 
 #include <stdio.h>
 
+/******************************************************************************
+ *  Global variables
+ ******************************************************************************/
+
+/* The initial seed */
+const ITC_Id_t *gpt_Seed = NULL;
 
 static void debugPrintTree(ITC_Id_t *pt_Root)
 {
@@ -37,10 +44,12 @@ static void debugPrintTree(ITC_Id_t *pt_Root)
 
 void setUp(void)
 {
+    TEST_SUCCESS(ITC_Id_newSeed(&gpt_Seed));
 }
 
 void tearDown(void)
 {
+    TEST_SUCCESS(ITC_Id_destroy(&gpt_Seed));
 }
 
 void ITC_Id_Test_memleak(void)
@@ -90,7 +99,7 @@ void ITC_Id_Test_memleak(void)
 
         printf("Testing split(i, i)\n");
 
-        ITC_Id_newNull(&pt_Original);
+        TEST_SUCCESS(ITC_Id_newNull(&pt_Original));
 
         ITC_Id_newSeed(&pt_Original->pt_Left);
         pt_Original->pt_Left->pt_Parent = pt_Original;
