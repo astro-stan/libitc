@@ -1,5 +1,5 @@
 /**
- * @file Itc_Status.h
+ * @file ITC_Status.h
  * @author Stan
  * @brief Status codes for the ITC implementation
  *
@@ -36,6 +36,6 @@
  ******************************************************************************/
 
 /** The resulting status of an operation */
-typedef uint32_t Itc_Status_t;
+typedef uint32_t ITC_Status_t;
 
 #endif /* ITC_STATUS_H_ */

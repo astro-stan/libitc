@@ -1,5 +1,5 @@
 /**
- * @file Itc_Id_prototypes.h
+ * @file ITC_Id_prototypes.h
  * @author Stan
  * @brief Prototypes for the Interval Tree Clock's ID mechanism
  *
@@ -9,8 +9,8 @@
 #ifndef ITC_ID_PROTOTYPES_H_
 #define ITC_ID_PROTOTYPES_H_
 
-#include "Itc_Id.h"
-#include "Itc_Status.h"
+#include "ITC_Id.h"
+#include "ITC_Status.h"
 
 /******************************************************************************
  * Functions
@@ -20,10 +20,10 @@
  * @brief Free an allocated ITC ID
  *
  * @param ppt_Id (in) The pointer to the ID to deallocate. (out) NULL
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_destroy(
+ITC_Status_t ITC_Id_destroy(
     ITC_Id_t **ppt_Id
 );
 
@@ -34,10 +34,10 @@ Itc_Status_t ITC_Id_destroy(
  * On error, the cloned ID is automatically deallocated.
  * @param pt_Id The existing ID
  * @param ppt_ClonedId The pointer to the cloned ID
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_clone(
+ITC_Status_t ITC_Id_clone(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId
 );
@@ -46,10 +46,10 @@ Itc_Status_t ITC_Id_clone(
  * @brief Allocate a new ITC ID and initialise it as a seed ID (1)
  *
  * @param ppt_Id (out) The pointer to the seed ID
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_newSeed(
+ITC_Status_t ITC_Id_newSeed(
     ITC_Id_t **ppt_Id
 );
 
@@ -57,10 +57,10 @@ Itc_Status_t ITC_Id_newSeed(
  * @brief Allocate a new ITC ID and initialise it as a null ID (0)
  *
  * @param ppt_Id (out) The pointer to the null ID
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_newNull(
+ITC_Status_t ITC_Id_newNull(
     ITC_Id_t **ppt_Id
 );
 
@@ -70,10 +70,10 @@ Itc_Status_t ITC_Id_newNull(
  * @param pt_Id The existing ID
  * @param ppt_Id1 The first ID
  * @param ppt_Id2 The second ID
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_split(
+ITC_Status_t ITC_Id_split(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_Id1,
     ITC_Id_t **ppt_Id2
@@ -85,10 +85,10 @@ Itc_Status_t ITC_Id_split(
  * @param pt_Id1 The first ID
  * @param pt_Id2 The second ID
  * @param pt_Id The new ID
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_sum(
+ITC_Status_t ITC_Id_sum(
     ITC_Id_t *pt_Id1,
     ITC_Id_t *pt_Id2,
     ITC_Id_t *pt_Id

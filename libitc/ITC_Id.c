@@ -1,13 +1,13 @@
 /**
- * @file Itc_Id.c
+ * @file ITC_Id.c
  * @author Stan
  * @brief Implementation of the Interval Tree Clock's ID mechanism
  *
  * @copypt_Right Copypt_Right (c) 2024
  *
  */
-#include "Itc_Id.h"
-#include "Itc_Id_package.h"
+#include "ITC_Id.h"
+#include "ITC_Id_package.h"
 
 #include <stdlib.h>
 
@@ -23,16 +23,16 @@
  * @param pt_Id The existing ID
  * @param ppt_ClonedId The pointer to the cloned ID
  * @param pt_ParentId The pointer to parent ID. Otherwise NULL
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static Itc_Status_t cloneId(
+static ITC_Status_t cloneId(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId,
     ITC_Id_t *pt_ParentId
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     const ITC_Id_t *pt_Root = pt_Id; /* The current root */
     ITC_Id_t *pt_ClonedRoot; /* The current cloned root */
 
@@ -109,16 +109,16 @@ static Itc_Status_t cloneId(
  * @param pt_ParentId1 The parent of ID1. Otherwise NULL
  * @param ppt_Id2 (out) The second ID
  * @param pt_ParentId2 The parent of ID2. Otherwise NULL
- * @return Itc_Status_t
+ * @return ITC_Status_t
  */
-static Itc_Status_t newSplit1(
+static ITC_Status_t newSplit1(
     ITC_Id_t **ppt_Id1,
     ITC_Id_t *pt_ParentId1,
     ITC_Id_t **ppt_Id2,
     ITC_Id_t *pt_ParentId2
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Allocate the first root */
     t_Status = ITC_Id_new(ppt_Id1, pt_ParentId1, 0);
@@ -159,16 +159,16 @@ static Itc_Status_t newSplit1(
  * @param pt_ParentId1 The parent of ID1. Otherwise NULL
  * @param ppt_Id2 (out) The second ID
  * @param pt_ParentId2 The parent of ID2. Otherwise NULL
- * @return Itc_Status_t
+ * @return ITC_Status_t
  */
-static Itc_Status_t newSplit0(
+static ITC_Status_t newSplit0(
     ITC_Id_t **ppt_Id1,
     ITC_Id_t *pt_ParentId1,
     ITC_Id_t **ppt_Id2,
     ITC_Id_t *pt_ParentId2
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     t_Status = ITC_Id_new(ppt_Id1, pt_ParentId1, 0);
 
@@ -192,16 +192,16 @@ static Itc_Status_t newSplit0(
  * @param pt_Id The existing ID
  * @param ppt_Id1 The first ID
  * @param ppt_Id2 The second ID
- * @return Itc_Status_t
+ * @return ITC_Status_t
  */
-static Itc_Status_t newSplitI(
+static ITC_Status_t newSplitI(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_Id1,
     ITC_Id_t **ppt_Id2
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    Itc_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current status */
 
     const ITC_Id_t *pt_CurrentId = pt_Id;
     ITC_Id_t **ppt_CurrentId1 = ppt_Id1;
@@ -426,13 +426,13 @@ static Itc_Status_t newSplitI(
  * Allocate a new ITC ID
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_new(
+ITC_Status_t ITC_Id_new(
     ITC_Id_t **ppt_Id,
     ITC_Id_t *pt_Parent,
     bool b_IsOwner
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Id_t *pt_Alloc = malloc(sizeof(ITC_Id_t));
 
     /* Allocation failed */
@@ -460,11 +460,11 @@ Itc_Status_t ITC_Id_new(
  * Free an allocated ITC ID
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_destroy(
+ITC_Status_t ITC_Id_destroy(
     ITC_Id_t **ppt_Id
 )
 {
-    Itc_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Id_t *pt_Current = *ppt_Id; /* The current element */
     ITC_Id_t *pt_Tmp = NULL;
 
@@ -526,7 +526,7 @@ Itc_Status_t ITC_Id_destroy(
  * Clone an existing ITC ID
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_clone(
+ITC_Status_t ITC_Id_clone(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId
 )
@@ -538,7 +538,7 @@ Itc_Status_t ITC_Id_clone(
  * Allocate a new ITC ID and initialise it as a seed ID (1)
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_newSeed(
+ITC_Status_t ITC_Id_newSeed(
     ITC_Id_t **ppt_Id
 )
 {
@@ -549,7 +549,7 @@ Itc_Status_t ITC_Id_newSeed(
  * Allocate a new ITC ID and initialise it as a null ID (0)
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_newNull(
+ITC_Status_t ITC_Id_newNull(
     ITC_Id_t **ppt_Id
 )
 {
@@ -560,7 +560,7 @@ Itc_Status_t ITC_Id_newNull(
  * Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  ******************************************************************************/
 
-Itc_Status_t ITC_Id_split(
+ITC_Status_t ITC_Id_split(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_Id1,
     ITC_Id_t **ppt_Id2

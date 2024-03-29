@@ -1,5 +1,5 @@
 /**
- * @file Itc_config.h
+ * @file ITC_config.h
  * @author Stan
  * @brief Configuration options for the ITC implementation
  *

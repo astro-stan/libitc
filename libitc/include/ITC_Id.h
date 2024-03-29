@@ -1,5 +1,5 @@
 /**
- * @file Itc_Id.h
+ * @file ITC_Id.h
  * @author Stan
  * @brief Definitions for the Interval Tree Clock's ID mechanism
  *
@@ -27,6 +27,6 @@ typedef struct ITC_Id_t
 } ITC_Id_t;
 
 /* Late include. We need to define the types first */
-#include "Itc_Id_prototypes.h"
+#include "ITC_Id_prototypes.h"
 
 #endif /* ITC_ID_H_ */

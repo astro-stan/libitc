@@ -1,5 +1,5 @@
 /**
- * @file Itc_Id_package.h
+ * @file ITC_Id_package.h
  * @author Stan
  * @brief Package definitions for the Interval Tree Clock's ID mechanism
  *
@@ -9,8 +9,8 @@
 #ifndef ITC_ID_PACKAGE_H_
 #define ITC_ID_PACKAGE_H_
 
-#include "Itc_Id.h"
-#include "Itc_Status.h"
+#include "ITC_Id.h"
+#include "ITC_Status.h"
 
 
 /******************************************************************************
@@ -39,10 +39,10 @@
  * @param ppt_Id (out) The pointer to the new ID
  * @param ppt_Parent The pointer to the parent ID in the tree. Otherwise NULL.
  * @param b_IsOwner Whether the ID owns its interval or not.
- * @return Itc_Status_t The status of the operation
+ * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-Itc_Status_t ITC_Id_new(
+ITC_Status_t ITC_Id_new(
     ITC_Id_t **ppt_Id,
     ITC_Id_t *pt_Parent,
     bool b_IsOwner
