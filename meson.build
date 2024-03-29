@@ -53,14 +53,16 @@ subdir('libitc')
 subdir('libitc' / 'config')
 
 # Build unit tests
-cmock_proj = subproject('cmock')
-cmock_dep = cmock_proj.get_variable('cmock_dep')
-unity_dep = cmock_proj.get_variable('unity_dep')
+if get_option('tests')
+    cmock_proj = subproject('cmock')
+    cmock_dep = cmock_proj.get_variable('cmock_dep')
+    unity_dep = cmock_proj.get_variable('unity_dep')
 
-ruby = find_program('ruby', required: true)
-valgrind = find_program('valgrind', required: false)
-unity_test_runner_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'vendor' / 'unity' / 'auto' / 'generate_test_runner.rb'
+    ruby = find_program('ruby', required: true)
+    valgrind = find_program('valgrind', required: false)
+    unity_test_runner_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'vendor' / 'unity' / 'auto' / 'generate_test_runner.rb'
 
-libitc_test_src_dir = 'libitc' / 'test'
-subdir(libitc_test_src_dir)
-subdir(libitc_test_src_dir / 'config')
+    libitc_test_src_dir = 'libitc' / 'test'
+    subdir(libitc_test_src_dir)
+    subdir(libitc_test_src_dir / 'config')
+endif
