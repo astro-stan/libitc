@@ -1,0 +1,15 @@
+:cmock:
+  :verbosity: 2
+  :plugins:
+    - :callback
+    - :ignore
+    - :ignore_arg
+    - :return_thru_ptr
+    - :array
+    - :expect_any_args
+  :enforce_strict_ordering: TRUE
+  :when_no_prototypes: ignore
+  :treat_as:
+    ITC_Status_t: HEX32
+
+:unity:
