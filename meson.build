@@ -58,7 +58,7 @@ cmock_dep = cmock_proj.get_variable('cmock_dep')
 unity_dep = cmock_proj.get_variable('unity_dep')
 
 ruby = find_program('ruby', required: true)
-valgrind = find_program('valgrind', required: true)
+valgrind = find_program('valgrind', required: false)
 unity_test_runner_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'vendor' / 'unity' / 'auto' / 'generate_test_runner.rb'
 
 libitc_test_src_dir = 'libitc' / 'test'

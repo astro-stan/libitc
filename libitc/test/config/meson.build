@@ -16,6 +16,15 @@ libitc_test_config_yaml = 'config.yaml'
 
 fs = import('fs')
 
+# Add valgrind as a custom test setup
+if valgrind.found()
+    add_test_setup(
+        'valgrind',
+        exe_wrapper: [valgrind, '--leak-check=full', '--error-exitcode=1'],
+        is_default: true,
+    )
+endif
+
 # Create the entrypoint source file for all tests
 libitc_test_entrypoint_c_tgt = custom_target(
     'Unit test entrypoint',
@@ -74,5 +83,5 @@ foreach libitc_test_src_file_path : libitc_test_src
         install_dir: libitc_test_bin_install_dir
     )
 
-    test(libitc_test_src_file, libitc_test_exe)
+    test(libitc_test_src_file, libitc_test_exe, verbose: true)
 endforeach
