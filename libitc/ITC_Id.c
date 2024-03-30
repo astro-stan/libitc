@@ -63,7 +63,7 @@ static ITC_Status_t cloneId(
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    /* Advance into the tree */
+                    /* Descend into the left child */
                     pt_Root = pt_Root->pt_Left;
                     pt_ClonedRoot = pt_ClonedRoot->pt_Left;
                 }
@@ -78,7 +78,7 @@ static ITC_Status_t cloneId(
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    /* Advance into the tree */
+                    /* Descend into the right child */
                     pt_Root = pt_Root->pt_Right;
                     pt_ClonedRoot = pt_ClonedRoot->pt_Right;
                 }
@@ -182,17 +182,18 @@ static ITC_Status_t newSplit0(
 
 /**
  * @brief Allocates 2 new IDs fulfilling `split(i)`
- *
  * Rules:
  *  - split(0) = (0, 0)
  *  - split(1) = ((1, 0), (0, 1))
  *  - split((0, i)) = ((0, i1), (0, i2)), where (i1, i2) = split(i)
  *  - split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i)
  *  - split((i1, i2)) = ((i1, 0), (0, i2))
+ *
  * @param pt_Id The existing ID
  * @param ppt_Id1 The first ID
  * @param ppt_Id2 The second ID
- * @return ITC_Status_t
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t newSplitI(
     const ITC_Id_t *const pt_Id,
@@ -209,17 +210,27 @@ static ITC_Status_t newSplitI(
     ITC_Id_t **ppt_CurrentId2 = ppt_Id2;
     ITC_Id_t *pt_ParentCurrentId2 = NULL;
 
-    /* TODO: cleanup & simplify*/
-
-    if ((*ppt_CurrentId1) || (*ppt_CurrentId2))
+    if (!pt_CurrentId || !ppt_CurrentId1 || !ppt_CurrentId2)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        /* Init the new IDs */
+        *ppt_CurrentId1 = NULL;
+        *ppt_CurrentId2 = NULL;
     }
 
     while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
     {
-        /* split(0) = (0, 0) */
-        if (ITC_ID_IS_NULL_ID(pt_CurrentId) && !(*ppt_CurrentId1) && !(*ppt_CurrentId2))
+        /* split(0) = (0, 0)
+         * *ppt_CurrentId1 && *ppt_CurrentId2 should always be NULL here
+         * but ensure this is the case before overwriting the pointer as
+         * this could lead to a memory leak.
+         */
+        if (ITC_ID_IS_NULL_ID(pt_CurrentId)
+            && !(*ppt_CurrentId1)
+            && !(*ppt_CurrentId2))
         {
             t_Status = newSplit0(
                 ppt_CurrentId1,
@@ -227,20 +238,18 @@ static ITC_Status_t newSplitI(
                 ppt_CurrentId2,
                 pt_ParentCurrentId2);
 
-            if (pt_CurrentId)
+            if (t_Status == ITC_STATUS_SUCCESS)
             {
                 pt_CurrentId = pt_CurrentId->pt_Parent;
-                if (pt_CurrentId)
-                {
-                    ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Parent;
-                    ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Parent;
-                    pt_ParentCurrentId1 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Parent : NULL;
-                    pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Parent : NULL;
-                }
             }
         }
-        /* split(1) = ((1, 0), (0, 1)) */
-        else if (ITC_ID_IS_SEED_ID(pt_CurrentId) && !(*ppt_CurrentId1) && !(*ppt_CurrentId2))
+        /* split(1) = ((1, 0), (0, 1))
+         * *ppt_CurrentId1 && *ppt_CurrentId2 should always be NULL here
+         * but ensure this is the case before overwriting the pointer as
+         * this could lead to a memory leak. */
+        else if (ITC_ID_IS_SEED_ID(pt_CurrentId)
+                 && !(*ppt_CurrentId1)
+                 && !(*ppt_CurrentId2))
         {
             t_Status = newSplit1(
                 ppt_CurrentId1,
@@ -248,26 +257,24 @@ static ITC_Status_t newSplitI(
                 ppt_CurrentId2,
                 pt_ParentCurrentId2);
 
-            if (pt_CurrentId)
+            if (t_Status == ITC_STATUS_SUCCESS)
             {
                 pt_CurrentId = pt_CurrentId->pt_Parent;
-                if (pt_CurrentId)
-                {
-                    ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Parent;
-                    ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Parent;
-                    pt_ParentCurrentId1 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Parent : NULL;
-                    pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Parent : NULL;
-                }
             }
         }
+        /* split(0, i), split(i, 0), split(i1, i2) */
         else if(!ITC_ID_IS_LEAF_ID(pt_CurrentId))
         {
+            /* Create left child container.
+             * This might exist from a previous iteration. This is fine. */
             if(!(*ppt_CurrentId1))
             {
                 t_Status = ITC_Id_new(
                     ppt_CurrentId1, pt_ParentCurrentId1, 0);
             }
 
+            /* Create right child container.
+             * This might exist from a previous iteration. This is fine. */
             if(t_Status == ITC_STATUS_SUCCESS && !(*ppt_CurrentId2))
             {
                 t_Status = ITC_Id_new(
@@ -276,14 +283,17 @@ static ITC_Status_t newSplitI(
 
             if (t_Status == ITC_STATUS_SUCCESS)
             {
-                /* split((0, i)) = ((0, i1), (0, i2)), where (i1, i2) = split(i) */
+                /* split((0, i)) = ((0, i1), (0, i2)), where (i1, i2) = split(i)
+                 */
                 if (ITC_ID_IS_NULL_ID(pt_CurrentId->pt_Left))
                 {
+                    /* Create the chilren of the children.
+                     * This happens the first time pt_CurentId is reached */
                     if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) &&
                         ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
-                        t_Status =
-                            ITC_Id_new(&(*ppt_CurrentId1)->pt_Left, *ppt_CurrentId1, 0);
+                        t_Status = ITC_Id_new(
+                            &(*ppt_CurrentId1)->pt_Left, *ppt_CurrentId1, 0);
 
                         if(t_Status == ITC_STATUS_SUCCESS)
                         {
@@ -295,6 +305,12 @@ static ITC_Status_t newSplitI(
 
                         if (t_Status == ITC_STATUS_SUCCESS)
                         {
+                            /* - Descend into pt_CurrentId->pt_Right
+                             * - Set the current iteration children as the next
+                             *   iteration parents
+                             * - Set the right child of the current iteration's
+                             *   children as the next iteration's children
+                             */
                             pt_CurrentId = pt_CurrentId->pt_Right;
                             pt_ParentCurrentId1 = *ppt_CurrentId1;
                             ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Right;
@@ -302,26 +318,30 @@ static ITC_Status_t newSplitI(
                             ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Right;
                         }
                     }
+                    /* Children already exist and pt_CurrentId has a parent
+                     * This happens on the next iteration after the children
+                     * have been created.
+                     */
                     else if (pt_CurrentId)
                     {
                         pt_CurrentId = pt_CurrentId->pt_Parent;
-                        if (pt_CurrentId)
-                        {
-                            ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Parent;
-                            ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Parent;
-                            pt_ParentCurrentId1 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Parent : NULL;
-                            pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Parent : NULL;
-                        }
+                    }
+                    else
+                    {
+                        t_Status = ITC_STATUS_CORRUPT_ID;
                     }
                 }
-                /* split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i) */
+                /* split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i)
+                 */
                 else if (ITC_ID_IS_NULL_ID(pt_CurrentId->pt_Right))
                 {
+                    /* Create the chilren of the children.
+                     * This happens the first time pt_CurentId is reached */
                     if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) &&
                         ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
-                        t_Status =
-                            ITC_Id_new(&(*ppt_CurrentId1)->pt_Right, *ppt_CurrentId1, 0);
+                        t_Status = ITC_Id_new(
+                            &(*ppt_CurrentId1)->pt_Right, *ppt_CurrentId1, 0);
 
                         if(t_Status == ITC_STATUS_SUCCESS)
                         {
@@ -333,6 +353,12 @@ static ITC_Status_t newSplitI(
 
                         if (t_Status == ITC_STATUS_SUCCESS)
                         {
+                            /* - Descend into pt_CurrentId->pt_Left
+                             * - Set the current iteration children as the next
+                             *   iteration parents
+                             * - Set the left child of the current iteration's
+                             *   children as the next iteration's children
+                             */
                             pt_CurrentId = pt_CurrentId->pt_Left;
                             pt_ParentCurrentId1 = *ppt_CurrentId1;
                             ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Left;
@@ -340,20 +366,22 @@ static ITC_Status_t newSplitI(
                             ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Left;
                         }
                     }
+                    /* Children already exist and pt_CurrentId has a parent
+                     * This happens on the next iteration after the children
+                     * have been created.
+                     */
                     else if (pt_CurrentId)
                     {
                         pt_CurrentId = pt_CurrentId->pt_Parent;
-                        if (pt_CurrentId)
-                        {
-                            ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Parent;
-                            ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Parent;
-                            pt_ParentCurrentId1 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Parent : NULL;
-                            pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Parent : NULL;
-                        }
+                    }
+                    else
+                    {
+                        t_Status = ITC_STATUS_CORRUPT_ID;
                     }
                 }
                 /* split((i1, i2)) = ((i1, 0), (0, i2)) */
-                else if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) && ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
+                else if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1)
+                         && ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                 {
                     t_Status = ITC_Id_new(
                         &(*ppt_CurrentId1)->pt_Right,
@@ -387,13 +415,6 @@ static ITC_Status_t newSplitI(
                     if (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
                     {
                         pt_CurrentId = pt_CurrentId->pt_Parent;
-                        if (pt_CurrentId)
-                        {
-                            ppt_CurrentId1 = &(*ppt_CurrentId1)->pt_Parent;
-                            ppt_CurrentId2 = &(*ppt_CurrentId2)->pt_Parent;
-                            pt_ParentCurrentId1 = (*ppt_CurrentId1) ? (*ppt_CurrentId1)->pt_Parent : NULL;
-                            pt_ParentCurrentId2 = (*ppt_CurrentId2) ? (*ppt_CurrentId2)->pt_Parent : NULL;
-                        }
                     }
                 }
                 else
@@ -408,6 +429,7 @@ static ITC_Status_t newSplitI(
         }
     }
 
+    /* If something went wrong during the split process */
     if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
     {
         t_Status = ITC_Id_destroy(ppt_Id1);
