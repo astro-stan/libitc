@@ -8,7 +8,7 @@ project('itc', 'c',
         'prefix=' + meson.current_build_dir(),
         'c_std=gnu99',
         'default_library=both',
-        'warning_level=3',
+        'werror=true',
     ]
 )
 
