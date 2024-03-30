@@ -103,6 +103,34 @@ static ITC_Status_t cloneId(
 }
 
 /**
+ * @brief Allocates 2 new IDs fulfilling `split(0) = (0, 0)`
+ *
+ * @param ppt_Id1 (out) The first ID
+ * @param pt_ParentId1 The parent of ID1. Otherwise NULL
+ * @param ppt_Id2 (out) The second ID
+ * @param pt_ParentId2 The parent of ID2. Otherwise NULL
+ * @return ITC_Status_t
+ */
+static ITC_Status_t newSplit0(
+    ITC_Id_t **ppt_Id1,
+    ITC_Id_t *pt_ParentId1,
+    ITC_Id_t **ppt_Id2,
+    ITC_Id_t *pt_ParentId2
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    t_Status = ITC_Id_new(ppt_Id1, pt_ParentId1, 0);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_new(ppt_Id2, pt_ParentId2, 0);
+    }
+
+    return t_Status;
+}
+
+/**
  * @brief Allocates 2 new IDs fulfilling `split(1) = ((1, 0), (0, 1))`
  *
  * @param ppt_Id1 (out) The first ID
@@ -147,34 +175,6 @@ static ITC_Status_t newSplit1(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = ITC_Id_new(&(*ppt_Id2)->pt_Right, *ppt_Id2, 1);
-    }
-
-    return t_Status;
-}
-
-/**
- * @brief Allocates 2 new IDs fulfilling `split(0) = (0, 0)`
- *
- * @param ppt_Id1 (out) The first ID
- * @param pt_ParentId1 The parent of ID1. Otherwise NULL
- * @param ppt_Id2 (out) The second ID
- * @param pt_ParentId2 The parent of ID2. Otherwise NULL
- * @return ITC_Status_t
- */
-static ITC_Status_t newSplit0(
-    ITC_Id_t **ppt_Id1,
-    ITC_Id_t *pt_ParentId1,
-    ITC_Id_t **ppt_Id2,
-    ITC_Id_t *pt_ParentId2
-)
-{
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
-    t_Status = ITC_Id_new(ppt_Id1, pt_ParentId1, 0);
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = ITC_Id_new(ppt_Id2, pt_ParentId2, 0);
     }
 
     return t_Status;
