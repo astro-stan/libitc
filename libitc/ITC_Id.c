@@ -260,7 +260,7 @@ static ITC_Status_t newSplitI(
                 }
             }
         }
-        else if(!ITC_ID_IS_LEAF_NODE(pt_CurrentId))
+        else if(!ITC_ID_IS_LEAF_ID(pt_CurrentId))
         {
             if(!(*ppt_CurrentId1))
             {
@@ -279,8 +279,8 @@ static ITC_Status_t newSplitI(
                 /* split((0, i)) = ((0, i1), (0, i2)), where (i1, i2) = split(i) */
                 if (ITC_ID_IS_NULL_ID(pt_CurrentId->pt_Left))
                 {
-                    if (ITC_ID_IS_LEAF_NODE(*ppt_CurrentId1) &&
-                        ITC_ID_IS_LEAF_NODE(*ppt_CurrentId2))
+                    if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) &&
+                        ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
                         t_Status =
                             ITC_Id_new(&(*ppt_CurrentId1)->pt_Left, *ppt_CurrentId1, 0);
@@ -317,8 +317,8 @@ static ITC_Status_t newSplitI(
                 /* split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i) */
                 else if (ITC_ID_IS_NULL_ID(pt_CurrentId->pt_Right))
                 {
-                    if (ITC_ID_IS_LEAF_NODE(*ppt_CurrentId1) &&
-                        ITC_ID_IS_LEAF_NODE(*ppt_CurrentId2))
+                    if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) &&
+                        ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
                         t_Status =
                             ITC_Id_new(&(*ppt_CurrentId1)->pt_Right, *ppt_CurrentId1, 0);
@@ -353,7 +353,7 @@ static ITC_Status_t newSplitI(
                     }
                 }
                 /* split((i1, i2)) = ((i1, 0), (0, i2)) */
-                else if (ITC_ID_IS_LEAF_NODE(*ppt_CurrentId1) && ITC_ID_IS_LEAF_NODE(*ppt_CurrentId2))
+                else if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) && ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                 {
                     t_Status = ITC_Id_new(
                         &(*ppt_CurrentId1)->pt_Right,

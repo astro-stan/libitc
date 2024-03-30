@@ -18,16 +18,16 @@
  ******************************************************************************/
 
 /** Checks whether the given `ITC_Id_t` is a leaf node */
-#define ITC_ID_IS_LEAF_NODE(pt_Id)                                            \
+#define ITC_ID_IS_LEAF_ID(pt_Id)                                              \
     ((pt_Id) && !(pt_Id)->pt_Left && !(pt_Id)->pt_Right)
 
 /** Checks whether the given `ITC_Id_t` is a null ID */
 #define ITC_ID_IS_NULL_ID(pt_Id)                                              \
-    (ITC_ID_IS_LEAF_NODE(pt_Id) && !(pt_Id)->b_IsOwner)
+    (ITC_ID_IS_LEAF_ID(pt_Id) && !(pt_Id)->b_IsOwner)
 
 /** Checks whether the given `ITC_Id_t` is a seed ID */
 #define ITC_ID_IS_SEED_ID(pt_Id)                                              \
-    (ITC_ID_IS_LEAF_NODE(pt_Id) && (pt_Id)->b_IsOwner)
+    (ITC_ID_IS_LEAF_ID(pt_Id) && (pt_Id)->b_IsOwner)
 
 /******************************************************************************
  * Functions
