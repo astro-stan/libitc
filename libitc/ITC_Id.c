@@ -93,7 +93,7 @@ static ITC_Status_t cloneId(
     }
 
     /* Something went wrong */
-    if (t_Status != ITC_STATUS_SUCCESS)
+    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
     {
         /* Deallocate clone */
         ITC_Id_destroy(ppt_ClonedId);
@@ -455,25 +455,34 @@ ITC_Status_t ITC_Id_new(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_Alloc = malloc(sizeof(ITC_Id_t));
+    ITC_Id_t *pt_Alloc = NULL;
+
+    if (!ppt_Id)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        pt_Alloc = malloc(sizeof(ITC_Id_t));
+    }
 
     /* Allocation failed */
-    if (!pt_Alloc)
+    if (t_Status == ITC_STATUS_SUCCESS && !pt_Alloc)
     {
         t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
     }
 
-    /* Initialise members */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Initialise members */
         pt_Alloc->b_IsOwner = b_IsOwner;
         pt_Alloc->pt_Parent = pt_Parent;
         pt_Alloc->pt_Left = NULL;
         pt_Alloc->pt_Right = NULL;
-    }
 
-    /* Return the pointer to the allocated memory */
-    *ppt_Id = pt_Alloc;
+        /* Return the pointer to the allocated memory */
+        *ppt_Id = pt_Alloc;
+    }
 
     return t_Status;
 }
@@ -487,15 +496,17 @@ ITC_Status_t ITC_Id_destroy(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_Current = *ppt_Id; /* The current element */
+    ITC_Id_t *pt_Current = NULL; /* The current element */
     ITC_Id_t *pt_Tmp = NULL;
 
-    if (pt_Current == NULL)
+    if (ppt_Id == NULL)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
     else
     {
+        pt_Current = *ppt_Id;
+
         while(t_Status == ITC_STATUS_SUCCESS && pt_Current != NULL)
         {
             if(pt_Current->pt_Left)

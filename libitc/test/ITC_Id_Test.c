@@ -62,6 +62,18 @@ void setUp(void) {}
 /* Fini test */
 void tearDown(void) {}
 
+/* Test destroying an ID fails with invalid param */
+void ITC_Id_Test_destroyIdFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Id_destroy(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test creating a NULL ID fails with invalid param */
+void ITC_Id_Test_createNullIdFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Id_newNull(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
 /* Test creating a NULL ID succeeds */
 void ITC_Id_Test_createNullIdSuccessful(void)
 {
@@ -77,6 +89,12 @@ void ITC_Id_Test_createNullIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 }
 
+/* Test creating a seed ID fails with invalid param */
+void ITC_Id_Test_createSeedIdFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Id_newSeed(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
 /* Test creating a Seed ID succeeds */
 void ITC_Id_Test_createSeedIdSuccessful(void)
 {
@@ -90,6 +108,73 @@ void ITC_Id_Test_createSeedIdSuccessful(void)
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test cloning an ID fails with invalid param */
+void ITC_Id_Test_cloneIdFailInvalidParam(void)
+{
+  ITC_Id_t *pt_DummyId = NULL;
+
+  TEST_FAILURE(ITC_Id_clone(NULL, &pt_DummyId), ITC_STATUS_INVALID_PARAM);
+  TEST_FAILURE(ITC_Id_clone(pt_DummyId, NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test cloning an ID succeeds */
+void ITC_Id_Test_cloneSuccessful(void)
+{
+    ITC_Id_t *pt_OriginalId = NULL;
+    ITC_Id_t *pt_ClonedId = NULL;
+
+    /* Test cloning seed ID */
+    TEST_SUCCESS(newSeed(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
+    TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+
+    TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
+    TEST_IS_SEED_ID(pt_ClonedId);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
+
+    /* Test cloning null ID */
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
+    TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+
+    TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
+    TEST_IS_NULL_ID(pt_ClonedId);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
+
+    /* Test cloning a complex ID */
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
+    TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
+    TEST_IS_NOT_LEAF_ID(pt_ClonedId);
+    TEST_ASSERT_TRUE(pt_OriginalId->pt_Left != pt_ClonedId->pt_Left);
+    TEST_ASSERT_TRUE(pt_OriginalId->pt_Right != pt_ClonedId->pt_Right);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+
+    TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
+    TEST_IS_NULL_ID(pt_ClonedId->pt_Left);
+    TEST_ASSERT_TRUE(pt_ClonedId->pt_Left->pt_Parent == pt_ClonedId);
+    TEST_IS_SEED_ID(pt_ClonedId->pt_Right);
+    TEST_ASSERT_TRUE(pt_ClonedId->pt_Right->pt_Parent == pt_ClonedId);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
+}
+
+/* Test spliting an ID fails with invalid param */
+void ITC_Id_Test_splitIdFailInvalidParam(void)
+{
+  ITC_Id_t *pt_DummyId = NULL;
+
+  TEST_FAILURE(
+    ITC_Id_split(NULL, &pt_DummyId, &pt_DummyId), ITC_STATUS_INVALID_PARAM);
+  TEST_FAILURE(
+    ITC_Id_split(pt_DummyId, NULL, &pt_DummyId), ITC_STATUS_INVALID_PARAM);
+  TEST_FAILURE(
+    ITC_Id_split(pt_DummyId, &pt_DummyId, NULL), ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test splitting a Seed ID succeeds */
