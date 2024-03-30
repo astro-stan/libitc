@@ -95,25 +95,25 @@ void ITC_Id_Test_createSeedIdSuccessful(void)
 /* Test splitting a Seed ID succeeds */
 void ITC_Id_Test_splitSeedIdSuccessful(void)
 {
-    ITC_Id_t *pt_OriignalId;
+    ITC_Id_t *pt_OriginalId;
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* Create a new seed ID */
-    TEST_SUCCESS(newSeed(&pt_OriignalId, NULL));
+    TEST_SUCCESS(newSeed(&pt_OriginalId, NULL));
 
     /* Split the seed ID */
-    TEST_SUCCESS(ITC_Id_split(pt_OriignalId, &pt_SplitId1, &pt_SplitId2));
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((1, 0), (0, 1)) */
     TEST_IS_SEED_NULL_ID(pt_SplitId1);
     TEST_IS_NULL_SEED_ID(pt_SplitId2);
 
     /* Test the original is still a seed ID */
-    TEST_IS_SEED_ID(pt_OriignalId);
+    TEST_IS_SEED_ID(pt_OriginalId);
 
     /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriignalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
@@ -121,25 +121,25 @@ void ITC_Id_Test_splitSeedIdSuccessful(void)
 /* Test splitting a NULL ID succeeds */
 void ITC_Id_Test_splitNullIdSuccessful(void)
 {
-    ITC_Id_t *pt_OriignalId;
+    ITC_Id_t *pt_OriginalId;
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* Create a new NULL ID */
-    TEST_SUCCESS(newNull(&pt_OriignalId, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
 
     /* Split the NULL ID */
-    TEST_SUCCESS(ITC_Id_split(pt_OriignalId, &pt_SplitId1, &pt_SplitId2));
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (0, 0) */
     TEST_IS_NULL_ID(pt_SplitId1);
     TEST_IS_NULL_ID(pt_SplitId2);
 
     /* Test the original is still a NULL ID */
-    TEST_IS_NULL_ID(pt_OriignalId);
+    TEST_IS_NULL_ID(pt_OriginalId);
 
     /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriignalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
@@ -147,17 +147,17 @@ void ITC_Id_Test_splitNullIdSuccessful(void)
 /* Test splitting a (0, 1) ID succeeds */
 void ITC_Id_Test_split01IdSuccessful(void)
 {
-    ITC_Id_t *pt_OriignalId;
+    ITC_Id_t *pt_OriginalId;
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* Create a new (0, 1) ID */
-    TEST_SUCCESS(newNull(&pt_OriignalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left, pt_OriignalId));
-    TEST_SUCCESS(newSeed(&pt_OriignalId->pt_Right, pt_OriignalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right, pt_OriginalId));
 
     /* Split the (0, 1) ID */
-    TEST_SUCCESS(ITC_Id_split(pt_OriignalId, &pt_SplitId1, &pt_SplitId2));
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((0, (1, 0)), (0, (0, 1))) */
     TEST_IS_NOT_LEAF_ID(pt_SplitId1);
@@ -168,11 +168,99 @@ void ITC_Id_Test_split01IdSuccessful(void)
     TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a (0, 1) ID */
-    TEST_IS_NULL_ID(pt_OriignalId->pt_Left);
-    TEST_IS_SEED_ID(pt_OriignalId->pt_Right);
+    TEST_IS_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_IS_SEED_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriignalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
+}
+
+/* Test splitting a (0, (1, 0)) ID succeeds */
+void ITC_Id_Test_split010RIdSuccessful(void)
+{
+    ITC_Id_t *pt_OriginalId;
+    ITC_Id_t *pt_SplitId1 = NULL;
+    ITC_Id_t *pt_SplitId2 = NULL;
+
+    /* clang-format off */
+    /* Create a new (0, (1, 0)) ID */
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
+    /* clang-format on */
+
+    /* Split the (0, (1, 0)) ID */
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
+
+    /* Test the new IDs match ((0, ((1, 0), 0)), (0, ((0, 1), 0))) */
+    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_IS_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_IS_NOT_LEAF_ID(pt_SplitId1->pt_Right);
+    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Right->pt_Left);
+    TEST_IS_NULL_ID(pt_SplitId1->pt_Right->pt_Right);
+
+    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_IS_NOT_LEAF_ID(pt_SplitId2->pt_Right);
+    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right->pt_Left);
+    TEST_IS_NULL_ID(pt_SplitId2->pt_Right->pt_Right);
+
+    /* Test the original is still a (0, (1, 0)) ID */
+    TEST_IS_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Right);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
+}
+
+/* Test splitting a ((0, 1), 0) ID succeeds */
+void ITC_Id_Test_split010LIdSuccessful(void)
+{
+    ITC_Id_t *pt_OriginalId;
+    ITC_Id_t *pt_SplitId1 = NULL;
+    ITC_Id_t *pt_SplitId2 = NULL;
+
+    /* clang-format off */
+    /* Create a new ((0, 1), 0) ID */
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    /* clang-format on */
+
+    /* Split the ((0, 1), 0) ID */
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
+
+    /* Test the new IDs match (((0, (1, 0)), 0), ((0, (0, 1)), 0)) */
+    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_IS_NOT_LEAF_ID(pt_SplitId1->pt_Left);
+    TEST_IS_NULL_ID(pt_SplitId1->pt_Left->pt_Left);
+    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left->pt_Right);
+    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
+
+    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_IS_NOT_LEAF_ID(pt_SplitId2->pt_Left);
+    TEST_IS_NULL_ID(pt_SplitId2->pt_Left->pt_Left);
+    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Left->pt_Right);
+    TEST_IS_NULL_ID(pt_SplitId2->pt_Right);
+
+    /* Test the original is still a ((0, 1), 0) ID */
+    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Left);
+    TEST_IS_NULL_ID(pt_OriginalId->pt_Right);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
@@ -180,17 +268,17 @@ void ITC_Id_Test_split01IdSuccessful(void)
 /* Test splitting a (1, 0) ID succeeds */
 void ITC_Id_Test_split10IdSuccessful(void)
 {
-    ITC_Id_t *pt_OriignalId;
+    ITC_Id_t *pt_OriginalId;
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* Create a new (1, 0) ID */
-    TEST_SUCCESS(newNull(&pt_OriignalId, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriignalId->pt_Left, pt_OriignalId));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right, pt_OriignalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
 
     /* Split the (1, 0) ID */
-    TEST_SUCCESS(ITC_Id_split(pt_OriignalId, &pt_SplitId1, &pt_SplitId2));
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((1, 0), 0), ((0, 1), 0)) */
     TEST_IS_NOT_LEAF_ID(pt_SplitId1);
@@ -201,11 +289,11 @@ void ITC_Id_Test_split10IdSuccessful(void)
     TEST_IS_NULL_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a (1, 0) ID */
-    TEST_IS_SEED_ID(pt_OriignalId->pt_Left);
-    TEST_IS_NULL_ID(pt_OriignalId->pt_Right);
+    TEST_IS_SEED_ID(pt_OriginalId->pt_Left);
+    TEST_IS_NULL_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriignalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
@@ -213,25 +301,25 @@ void ITC_Id_Test_split10IdSuccessful(void)
 /* Test splitting a ((1, 0), (0, 1)) ID succeeds */
 void ITC_Id_Test_split1001IdSuccessful(void)
 {
-    ITC_Id_t *pt_OriignalId;
+    ITC_Id_t *pt_OriginalId;
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* clang-format off */
     /* Create a new ((1, 0), (0, 1)) ID */
-    TEST_SUCCESS(newNull(&pt_OriignalId, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
 
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left, pt_OriignalId));
-    TEST_SUCCESS(newSeed(&pt_OriignalId->pt_Left->pt_Left, pt_OriignalId->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left->pt_Right, pt_OriignalId->pt_Left));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
 
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right, pt_OriignalId));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right->pt_Left, pt_OriignalId->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_OriignalId->pt_Right->pt_Right, pt_OriignalId->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
     /* clang-format on */
 
     /* Split the ((1, 0), (0, 1)) ID */
-    TEST_SUCCESS(ITC_Id_split(pt_OriignalId, &pt_SplitId1, &pt_SplitId2));
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((1, 0), 0), (0, (0, 1))) */
     TEST_IS_NOT_LEAF_ID(pt_SplitId1);
@@ -242,11 +330,11 @@ void ITC_Id_Test_split1001IdSuccessful(void)
     TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a ((1, 0), (0, 1)) ID */
-    TEST_IS_SEED_NULL_ID(pt_OriignalId->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_OriignalId->pt_Right);
+    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriignalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
@@ -254,29 +342,29 @@ void ITC_Id_Test_split1001IdSuccessful(void)
 /* Test splitting a ((0, (1, 0)), ((0, 1), 0)) ID succeeds */
 void ITC_Id_Test_split010010IdSuccessful(void)
 {
-    ITC_Id_t *pt_OriignalId;
+    ITC_Id_t *pt_OriginalId;
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* clang-format off */
     /* Create a new ((0, (1, 0)), ((0, 1), 0)) ID */
-    TEST_SUCCESS(newNull(&pt_OriignalId, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
 
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left, pt_OriignalId));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left->pt_Left, pt_OriignalId->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left->pt_Right, pt_OriignalId->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriignalId->pt_Left->pt_Right->pt_Left, pt_OriignalId->pt_Left->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Left->pt_Right->pt_Right, pt_OriignalId->pt_Left->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Right->pt_Left, pt_OriginalId->pt_Left->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right->pt_Right, pt_OriginalId->pt_Left->pt_Right));
 
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right, pt_OriignalId));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right->pt_Left, pt_OriignalId->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right->pt_Left->pt_Left, pt_OriignalId->pt_Right->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriignalId->pt_Right->pt_Left->pt_Right, pt_OriignalId->pt_Right->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriignalId->pt_Right->pt_Right, pt_OriignalId->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left->pt_Left, pt_OriginalId->pt_Right->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Left->pt_Right, pt_OriginalId->pt_Right->pt_Left));
+    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
     /* clang-format on */
 
     /* Split the ((0, (1, 0)), ((0, 1), 0)) ID */
-    TEST_SUCCESS(ITC_Id_split(pt_OriignalId, &pt_SplitId1, &pt_SplitId2));
+    TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((0, (1, 0)), 0), (0, ((0, 1), 0))) */
     TEST_IS_NOT_LEAF_ID(pt_SplitId1);
@@ -292,13 +380,13 @@ void ITC_Id_Test_split010010IdSuccessful(void)
     TEST_IS_NULL_ID(pt_SplitId2->pt_Right->pt_Right);
 
     /* Test the original is still a ((0, (1, 0)), ((0, 1), 0)) ID */
-    TEST_IS_NULL_ID(pt_OriignalId->pt_Left->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_OriignalId->pt_Left->pt_Right);
-    TEST_IS_NULL_SEED_ID(pt_OriignalId->pt_Right->pt_Left);
-    TEST_IS_NULL_ID(pt_OriignalId->pt_Right->pt_Right);
+    TEST_IS_NULL_ID(pt_OriginalId->pt_Left->pt_Left);
+    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Left->pt_Right);
+    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Right->pt_Left);
+    TEST_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Right);
 
     /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriignalId));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
