@@ -29,6 +29,18 @@
 #define ITC_ID_IS_SEED_ID(pt_Id)                                              \
     (ITC_ID_IS_LEAF_ID(pt_Id) && (pt_Id)->b_IsOwner)
 
+/** Checks whether the given `ITC_Id_t` is a (0, 0) ID */
+#define ITC_ID_IS_NULL_NULL_ID(pt_Id)                                         \
+    (!ITC_ID_IS_LEAF_ID(pt_Id) &&                                             \
+     ITC_ID_IS_NULL_ID(pt_Id->pt_Left) &&                                     \
+     ITC_ID_IS_NULL_ID(pt_Id->pt_Right))
+
+/** Checks whether the given `ITC_Id_t` is a (1, 1) ID */
+#define ITC_ID_IS_SEED_SEED_ID(pt_Id)                                         \
+    (!ITC_ID_IS_LEAF_ID(pt_Id) &&                                             \
+     ITC_ID_IS_SEED_ID(pt_Id->pt_Left) &&                                     \
+     ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
+
 /******************************************************************************
  * Functions
  ******************************************************************************/

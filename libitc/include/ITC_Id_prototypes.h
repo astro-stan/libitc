@@ -80,6 +80,17 @@ ITC_Status_t ITC_Id_split(
 );
 
 /**
+ * @brief Normalise an ID
+ *
+ * @param pt_Id The ID to normalise
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Id_normalise(
+    ITC_Id_t *pt_Id
+);
+
+/**
  * @brief Sum two existing IDs into a single ID
  *
  * @param pt_Id1 The first ID

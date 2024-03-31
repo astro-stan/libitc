@@ -475,3 +475,312 @@ void ITC_Id_Test_split010010IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
+
+/* Test normalising an ID fails with invalid param */
+void ITC_Id_Test_normaliseIdFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Id_normalise(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test normalising NULL and seed IDs succeeds */
+void ITC_Id_Test_normaliseNullAndSeedIdsSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new NULL ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test this is still a NULL ID */
+    TEST_IS_NULL_ID(pt_Id);
+
+    /* Change ID into a seed ID */
+    pt_Id->b_IsOwner = true;
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test this is still a seed ID */
+    TEST_IS_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (1, 0) and (0, 1) IDs succeeds */
+void ITC_Id_Test_normalise10And01IdsSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (1, 0) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test this is still a (1, 0) ID */
+    TEST_IS_SEED_NULL_ID(pt_Id);
+
+    /* Switch the (1, 0) ID into a (0, 1) ID */
+    pt_Id->pt_Left->b_IsOwner = false;
+    pt_Id->pt_Right->b_IsOwner = true;
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test this is still a (1, 0) ID */
+    TEST_IS_NULL_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (1, 1) and (0, 0) IDs succeeds */
+void ITC_Id_Test_normalise11And00IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (1, 1) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a seed ID */
+    TEST_IS_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new (0, 0) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a NULL ID */
+    TEST_IS_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (0, (1, 1)) and ((1, 1), 0) and IDs succeeds */
+void ITC_Id_Test_normalise011And110IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (0, (1, 1)) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a (0, 1) ID */
+    TEST_IS_NULL_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new ((1, 1), 0) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a (1, 0) ID */
+    TEST_IS_SEED_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (1, (1, 1)) and ((1, 1), 1) and IDs succeeds */
+void ITC_Id_Test_normalise111And111IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (1, (1, 1)) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a seed ID */
+    TEST_IS_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new ((1, 1), 1) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a seed ID */
+    TEST_IS_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (1, (0, 0)) and ((0, 0), 1) and IDs succeeds */
+void ITC_Id_Test_normalise100And001IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (1, (0, 0)) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a (1, 0) ID */
+    TEST_IS_SEED_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new ((0, 0), 1) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a (0, 1) ID */
+    TEST_IS_NULL_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (0, (0, 0)) and ((0, 0), 0) and IDs succeeds */
+void ITC_Id_Test_normalise000And000IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (0, (0, 0)) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a NULL ID */
+    TEST_IS_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new ((0, 0), 0) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a NULL ID */
+    TEST_IS_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (((1, 1), 1), (1, 1)) ID succeeds */
+void ITC_Id_Test_normalise11111IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* clang-format off */
+    /* Create a new (((1, 1), 1), (1, 1)) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left->pt_Left, pt_Id->pt_Left->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left->pt_Right, pt_Id->pt_Left->pt_Left));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a seed ID */
+    TEST_IS_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a ((0, 0), ((0, 0), 0)) ID succeeds */
+void ITC_Id_Test_normalise00000IdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* clang-format off */
+    /* Create a new ((0, 0), ((0, 0), 0)) ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id));
+
+    /* Test the ID is now a seed ID */
+    TEST_IS_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}

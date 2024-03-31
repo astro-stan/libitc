@@ -444,6 +444,95 @@ static ITC_Status_t newSplitI(
     return t_Status;
 }
 
+/**
+ * @brief Normalise an ID fulfilling `norm(i)`
+ * Rules:
+ *  - norm(0, 0) = 0
+ *  - norm(1, 1) = 1
+ *  - norm(i) = i
+ *
+ * @param pt_Id The ID to normalise
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t normI(
+    ITC_Id_t *pt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current op status */
+    ITC_Id_t *pt_CurrentId = pt_Id;
+
+    if(!pt_CurrentId)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Start from the left most child*/
+        while (pt_CurrentId->pt_Left)
+        {
+            pt_CurrentId = pt_CurrentId->pt_Left;
+        }
+    }
+
+    /* Perform a post-order traversal */
+    while(t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
+    {
+        /* If pt_CurrentId is the root node (no parent) - break */
+        if(!pt_CurrentId->pt_Parent)
+        {
+            pt_CurrentId = NULL;
+        }
+        /* If pt_CurrentId is the right child of its parent */
+        else if (pt_CurrentId->pt_Parent->pt_Right == pt_CurrentId)
+        {
+            pt_CurrentId = pt_CurrentId->pt_Parent;
+        }
+        /* pt_CurentId is the left child of its parent */
+        else
+        {
+            /* Go to the right child of the pt_CurrentId parent */
+            pt_CurrentId = pt_CurrentId->pt_Parent->pt_Right;
+
+            /* Find the left most parent */
+            while (pt_CurrentId && !ITC_ID_IS_LEAF_ID(pt_CurrentId))
+            {
+                /* Go to the left child if there is one, otherwise go to the
+                 * right child */
+                pt_CurrentId = (pt_CurrentId->pt_Left)
+                                    ? pt_CurrentId->pt_Left
+                                    : pt_CurrentId->pt_Right;
+            }
+        }
+
+        /* norm(1, 1) = 1 or norm(0, 0) = 0 */
+        if (pt_CurrentId &&
+            (ITC_ID_IS_SEED_SEED_ID(pt_CurrentId) ||
+             ITC_ID_IS_NULL_NULL_ID(pt_CurrentId)))
+        {
+            /* Set the interval ownership */
+            pt_CurrentId->b_IsOwner = ITC_ID_IS_SEED_SEED_ID(pt_CurrentId);
+
+            /* Dissociate the children from pt_CurrentId */
+            pt_CurrentId->pt_Left->pt_Parent = NULL;
+            pt_CurrentId->pt_Right->pt_Parent = NULL;
+
+            /* Destroy the children */
+            t_Status = ITC_Id_destroy(&pt_CurrentId->pt_Left);
+            t_OpStatus = ITC_Id_destroy(&pt_CurrentId->pt_Right);
+
+            if(t_Status == ITC_STATUS_SUCCESS)
+            {
+                t_Status = t_OpStatus;
+            }
+        }
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -604,4 +693,15 @@ ITC_Status_t ITC_Id_split(
 )
 {
     return newSplitI(pt_Id, ppt_Id1, ppt_Id2);
+}
+
+/******************************************************************************
+ * Normalise an ID
+ ******************************************************************************/
+
+ITC_Status_t ITC_Id_normalise(
+    ITC_Id_t *pt_Id
+)
+{
+    return normI(pt_Id);
 }
