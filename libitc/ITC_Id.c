@@ -92,11 +92,13 @@ static ITC_Status_t cloneId(
         }
     }
 
-    /* Something went wrong */
+    /* If something goes wrong during the cloning - the ID is invalid and must
+     * not be used. */
     if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
     {
-        /* Deallocate clone */
-        ITC_Id_destroy(ppt_ClonedId);
+        /* There is nothing else to do if the cloning fails. Also it is more
+         * important to convey the cloning failed, rather than the destroy */
+        (void)ITC_Id_destroy(ppt_ClonedId);
     }
 
     return t_Status;
@@ -202,7 +204,6 @@ static ITC_Status_t newSplitI(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current status */
 
     const ITC_Id_t *pt_CurrentId = pt_Id;
     ITC_Id_t **ppt_CurrentId1 = ppt_Id1;
@@ -429,16 +430,14 @@ static ITC_Status_t newSplitI(
         }
     }
 
-    /* If something went wrong during the split process */
+    /* If something goes wrong during the splitting - the IDs are invalid and
+     * must not be used. */
     if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
     {
-        t_Status = ITC_Id_destroy(ppt_Id1);
-        t_OpStatus = ITC_Id_destroy(ppt_Id2);
-
-        if (t_Status == ITC_STATUS_SUCCESS)
-        {
-            t_Status = t_OpStatus;
-        }
+        /* There is nothing else to do if the destroy fails. Also it is more
+         * important to convey the split failed, rather than the destroy */
+        (void)ITC_Id_destroy(ppt_Id1);
+        (void)ITC_Id_destroy(ppt_Id2);
     }
 
     return t_Status;
