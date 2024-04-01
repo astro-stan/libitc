@@ -212,6 +212,7 @@ static ITC_Status_t newSplitI(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     const ITC_Id_t *pt_CurrentId = pt_Id;
+    const ITC_Id_t *pt_CurrentIdParent = NULL;
     ITC_Id_t **ppt_CurrentId1 = ppt_Id1;
     ITC_Id_t *pt_ParentCurrentId1 = NULL;
     ITC_Id_t **ppt_CurrentId2 = ppt_Id2;
@@ -223,12 +224,15 @@ static ITC_Status_t newSplitI(
     }
     else
     {
+        /* Remember the parent of the root as this might be a subtree */
+        pt_CurrentIdParent = pt_CurrentId->pt_Parent;
+
         /* Init the new IDs */
         *ppt_CurrentId1 = NULL;
         *ppt_CurrentId2 = NULL;
     }
 
-    while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
+    while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId != pt_CurrentIdParent)
     {
         /* split(0) = (0, 0)
          * *ppt_CurrentId1 && *ppt_CurrentId2 should always be NULL here
