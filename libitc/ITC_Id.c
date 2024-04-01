@@ -475,6 +475,7 @@ static ITC_Status_t normI(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current op status */
     ITC_Id_t *pt_CurrentId = pt_Id;
+    const ITC_Id_t *pt_CurrentIdParent = NULL;
 
     if(!pt_CurrentId)
     {
@@ -483,6 +484,9 @@ static ITC_Status_t normI(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Remember the parent of the root as this might be a subtree */
+        pt_CurrentIdParent = pt_CurrentId->pt_Parent;
+
         /* Start from the left most child*/
         while (pt_CurrentId->pt_Left)
         {
@@ -494,7 +498,7 @@ static ITC_Status_t normI(
     while(t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
     {
         /* If pt_CurrentId is the root node (no parent) - break */
-        if(!pt_CurrentId->pt_Parent)
+        if(pt_CurrentId->pt_Parent == pt_CurrentIdParent)
         {
             pt_CurrentId = NULL;
         }

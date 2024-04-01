@@ -691,6 +691,32 @@ void ITC_Id_Test_normaliseNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 }
 
+/* Test normalising NULL and seed ID subtrees succeeds */
+void ITC_Id_Test_normaliseNullAndSeedIdSubtreesSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new NULL and seed ID subtrees */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the NULL ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Right));
+
+    /* Test the whole ID hasn't changed */
+    TEST_IS_SEED_NULL_ID(pt_Id);
+
+    /* Normalise the seed ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
+
+    /* Test the whole ID hasn't changed */
+    TEST_IS_SEED_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
 /* Test normalising a (1, 0) and (0, 1) IDs succeeds */
 void ITC_Id_Test_normalise10And01IdsSuccessful(void)
 {
@@ -716,6 +742,42 @@ void ITC_Id_Test_normalise10And01IdsSuccessful(void)
 
     /* Test this is still a (1, 0) ID */
     TEST_IS_NULL_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (1, 0) and (0, 1) ID subtrees succeeds */
+void ITC_Id_Test_normalise10And01IdSubtreesSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (1, 0) ID subree */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
+
+    /* Test the whole ID hasn't changed */
+    TEST_IS_NOT_LEAF_ID(pt_Id);
+    TEST_IS_SEED_NULL_ID(pt_Id->pt_Left);
+    TEST_IS_NULL_ID(pt_Id->pt_Right);
+
+    /* Switch the (1, 0) ID into a (0, 1) ID */
+    pt_Id->pt_Left->pt_Left->b_IsOwner = false;
+    pt_Id->pt_Left->pt_Right->b_IsOwner = true;
+
+    /* Normalise the ID */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
+
+    /* Test the whole ID hasn't changed */
+    TEST_IS_NOT_LEAF_ID(pt_Id);
+    TEST_IS_NULL_SEED_ID(pt_Id->pt_Left);
+    TEST_IS_NULL_ID(pt_Id->pt_Right);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -750,6 +812,46 @@ void ITC_Id_Test_normalise11And00IdSuccessful(void)
 
     /* Test the ID is now a NULL ID */
     TEST_IS_NULL_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test normalising a (1, 1) and (0, 0) ID subtrees succeeds */
+void ITC_Id_Test_normalise11And00IdSubtreesSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new (1, 1) ID subtree (whole tree (1, (1, 1)) ) */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+
+    /* Normalise the ID subtree */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Right));
+
+    /* Test the targeted subtree has been normalised but the rest of the tree
+     * is untouched */
+    TEST_IS_SEED_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new (0, 0) ID subtree (whole tree ((0, 0), 0) ) */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+
+    /* Normalise the ID subtree */
+    TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
+
+    /* Test the targeted subtree has been normalised but the rest of the tree
+     * is untouched */
+    TEST_IS_NULL_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
