@@ -33,61 +33,67 @@ static ITC_Status_t cloneId(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    const ITC_Id_t *pt_Root = pt_Id; /* The current root */
-    ITC_Id_t *pt_ClonedRoot; /* The current cloned root */
+    const ITC_Id_t *pt_CurrentId = pt_Id; /* The current root */
+    const ITC_Id_t *pt_CurrentIdParent; /* pt_CurrentId's parent */
+    ITC_Id_t *pt_ClonedIdClone; /* The current cloned root */
 
-    if (pt_Root == NULL)
+    if (pt_CurrentId == NULL)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
     else
     {
+        /* Remember the parent of the root as this might be a subree */
+        pt_CurrentIdParent = pt_CurrentId->pt_Parent;
+
         /* Allocate the root */
-        t_Status = ITC_Id_new(ppt_ClonedId, pt_ParentId, pt_Root->b_IsOwner);
+        t_Status = ITC_Id_new(
+            ppt_ClonedId, pt_ParentId, pt_CurrentId->b_IsOwner);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
             /* Initialise the cloned root pointer */
-            pt_ClonedRoot = *ppt_ClonedId;
+            pt_ClonedIdClone = *ppt_ClonedId;
         }
 
-        while(t_Status == ITC_STATUS_SUCCESS && pt_Root != NULL)
+        while(t_Status == ITC_STATUS_SUCCESS &&
+              pt_CurrentId != pt_CurrentIdParent)
         {
-            if (pt_Root->pt_Left && !pt_ClonedRoot->pt_Left)
+            if (pt_CurrentId->pt_Left && !pt_ClonedIdClone->pt_Left)
             {
                 /* Allocate left subtree */
                 t_Status = ITC_Id_new(
-                    &pt_ClonedRoot->pt_Left,
-                    pt_ClonedRoot,
-                    pt_Root->pt_Left->b_IsOwner);
+                    &pt_ClonedIdClone->pt_Left,
+                    pt_ClonedIdClone,
+                    pt_CurrentId->pt_Left->b_IsOwner);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
                     /* Descend into the left child */
-                    pt_Root = pt_Root->pt_Left;
-                    pt_ClonedRoot = pt_ClonedRoot->pt_Left;
+                    pt_CurrentId = pt_CurrentId->pt_Left;
+                    pt_ClonedIdClone = pt_ClonedIdClone->pt_Left;
                 }
             }
-            else if (pt_Root->pt_Right && !pt_ClonedRoot->pt_Right)
+            else if (pt_CurrentId->pt_Right && !pt_ClonedIdClone->pt_Right)
             {
                 /* Allocate right subtree */
                 t_Status = ITC_Id_new(
-                    &pt_ClonedRoot->pt_Right,
-                    pt_ClonedRoot,
-                    pt_Root->pt_Right->b_IsOwner);
+                    &pt_ClonedIdClone->pt_Right,
+                    pt_ClonedIdClone,
+                    pt_CurrentId->pt_Right->b_IsOwner);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
                     /* Descend into the right child */
-                    pt_Root = pt_Root->pt_Right;
-                    pt_ClonedRoot = pt_ClonedRoot->pt_Right;
+                    pt_CurrentId = pt_CurrentId->pt_Right;
+                    pt_ClonedIdClone = pt_ClonedIdClone->pt_Right;
                 }
             }
             else
             {
                 /* Go up the tree */
-                pt_Root = pt_Root->pt_Parent;
-                pt_ClonedRoot = pt_ClonedRoot->pt_Parent;
+                pt_CurrentId = pt_CurrentId->pt_Parent;
+                pt_ClonedIdClone = pt_ClonedIdClone->pt_Parent;
             }
         }
     }
