@@ -111,7 +111,9 @@ static ITC_Status_t cloneId(
 }
 
 /**
- * @brief Allocates 2 new IDs fulfilling `split(0) = (0, 0)`
+ * @brief Splits a NULL ID into 2 new IDs fulfilling `split(0)`
+ * Rules:
+ *  - split(0) = (0, 0)`
  *
  * @param ppt_Id1 (out) The first ID
  * @param pt_ParentId1 The parent of ID1. Otherwise NULL
@@ -119,7 +121,7 @@ static ITC_Status_t cloneId(
  * @param pt_ParentId2 The parent of ID2. Otherwise NULL
  * @return ITC_Status_t
  */
-static ITC_Status_t newSplit0(
+static ITC_Status_t splitId0(
     ITC_Id_t **ppt_Id1,
     ITC_Id_t *pt_ParentId1,
     ITC_Id_t **ppt_Id2,
@@ -139,7 +141,9 @@ static ITC_Status_t newSplit0(
 }
 
 /**
- * @brief Allocates 2 new IDs fulfilling `split(1) = ((1, 0), (0, 1))`
+ * @brief Splits a seed ID into 2 new IDs fulfilling `split(1)`
+ * Rules
+ *  - split(1) = ((1, 0), (0, 1))`
  *
  * @param ppt_Id1 (out) The first ID
  * @param pt_ParentId1 The parent of ID1. Otherwise NULL
@@ -147,7 +151,7 @@ static ITC_Status_t newSplit0(
  * @param pt_ParentId2 The parent of ID2. Otherwise NULL
  * @return ITC_Status_t
  */
-static ITC_Status_t newSplit1(
+static ITC_Status_t splitId1(
     ITC_Id_t **ppt_Id1,
     ITC_Id_t *pt_ParentId1,
     ITC_Id_t **ppt_Id2,
@@ -189,7 +193,7 @@ static ITC_Status_t newSplit1(
 }
 
 /**
- * @brief Allocates 2 new IDs fulfilling `split(i)`
+ * @brief Splits an ID into 2 new IDs fulfilling `split(i)`
  * Rules:
  *  - split(0) = (0, 0)
  *  - split(1) = ((1, 0), (0, 1))
@@ -203,7 +207,7 @@ static ITC_Status_t newSplit1(
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t newSplitI(
+static ITC_Status_t splitIdI(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_Id1,
     ITC_Id_t **ppt_Id2
@@ -243,7 +247,7 @@ static ITC_Status_t newSplitI(
             && !(*ppt_CurrentId1)
             && !(*ppt_CurrentId2))
         {
-            t_Status = newSplit0(
+            t_Status = splitId0(
                 ppt_CurrentId1,
                 pt_ParentCurrentId1,
                 ppt_CurrentId2,
@@ -262,7 +266,7 @@ static ITC_Status_t newSplitI(
                  && !(*ppt_CurrentId1)
                  && !(*ppt_CurrentId2))
         {
-            t_Status = newSplit1(
+            t_Status = splitId1(
                 ppt_CurrentId1,
                 pt_ParentCurrentId1,
                 ppt_CurrentId2,
@@ -701,7 +705,7 @@ ITC_Status_t ITC_Id_split(
     ITC_Id_t **ppt_Id2
 )
 {
-    return newSplitI(pt_Id, ppt_Id1, ppt_Id2);
+    return splitIdI(pt_Id, ppt_Id1, ppt_Id2);
 }
 
 /******************************************************************************
