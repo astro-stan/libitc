@@ -550,6 +550,259 @@ static ITC_Status_t normI(
     return t_Status;
 }
 
+/**
+ * @brief Sum two IDs into a a new ID fulfilling `sum(i)`
+ * Rules:
+ *  - sum(0, i) = i
+ *  - sum(i, 0) = i
+ *  - sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2))
+ * @param pt_Id1 The first ID
+ * @param pt_Id2 The second ID
+ * @param ppt_Id The new ID
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t sumI2(
+    const ITC_Id_t *const pt_Id1,
+    const ITC_Id_t *const pt_Id2,
+    ITC_Id_t **ppt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
+    ITC_Id_t **ppt_CurrentId = ppt_Id;
+    ITC_Id_t *pt_ParentCurrentId = NULL;
+    ITC_Id_t *pt_Tmp = NULL;
+    const ITC_Id_t *pt_CurrentId1 = pt_Id1;
+    const ITC_Id_t *pt_CurrentId2 = pt_Id2;
+
+    if(!ppt_CurrentId || !pt_CurrentId1 || !pt_CurrentId2)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        *ppt_CurrentId = NULL;
+    }
+
+    while(t_Status == ITC_STATUS_SUCCESS && pt_CurrentId1 && pt_CurrentId2)
+    {
+        /* sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2)) */
+        if(!ITC_ID_IS_LEAF_ID(pt_CurrentId1) &&
+           !ITC_ID_IS_LEAF_ID(pt_CurrentId2))
+        {
+            if(!(*ppt_CurrentId))
+            {
+                t_Status = ITC_Id_new(ppt_CurrentId, pt_ParentCurrentId, 0);
+            }
+
+            if(!(*ppt_CurrentId)->pt_Left)
+            {
+                pt_ParentCurrentId = *ppt_CurrentId;
+                ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+
+                pt_CurrentId1 = pt_CurrentId1->pt_Left;
+                pt_CurrentId2 = pt_CurrentId2->pt_Left;
+            }
+            else if(!(*ppt_CurrentId)->pt_Right)
+            {
+                pt_ParentCurrentId = *ppt_CurrentId;
+                ppt_CurrentId = &(*ppt_CurrentId)->pt_Right;
+
+                pt_CurrentId1 = pt_CurrentId1->pt_Right;
+                pt_CurrentId2 = pt_CurrentId2->pt_Right;
+            }
+            else
+            {
+                t_Status = normI(*ppt_CurrentId);
+                pt_Tmp = (*ppt_CurrentId)->pt_Parent;
+
+                ppt_CurrentId = &pt_Tmp;
+                pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+                pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+            }
+        }
+        /* sum(0, i) = i */
+        else if (ITC_ID_IS_NULL_ID(pt_CurrentId1))
+        {
+            t_Status = cloneId(
+                pt_CurrentId2, ppt_CurrentId, pt_ParentCurrentId);
+
+            pt_Tmp = pt_ParentCurrentId;
+            ppt_CurrentId = &pt_Tmp;
+            pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+            pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+        }
+        /* sum(i, 0) = i */
+        else if (ITC_ID_IS_NULL_ID(pt_CurrentId2))
+        {
+
+            t_Status = cloneId(
+                pt_CurrentId1, ppt_CurrentId, pt_ParentCurrentId);
+
+            pt_Tmp = pt_ParentCurrentId;
+            ppt_CurrentId = &pt_Tmp;
+            pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+            pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+        }
+        else
+        {
+            t_Status = ITC_STATUS_CORRUPT_ID;
+        }
+    }
+
+    return t_Status;
+}
+
+// /**
+//  * @brief Sum two IDs into a a new ID fulfilling `sum(i)`
+//  * Rules:
+//  *  - sum(0, i) = i
+//  *  - sum(i, 0) = i
+//  *  - sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2))
+//  * @param pt_Id1 The first ID
+//  * @param pt_Id2 The second ID
+//  * @param ppt_Id The new ID
+//  * @return ITC_Status_t The status of the operation
+//  * @retval ITC_STATUS_SUCCESS on success
+//  */
+// static ITC_Status_t sumI(
+//     const ITC_Id_t *const pt_Id1,
+//     const ITC_Id_t *const pt_Id2,
+//     ITC_Id_t **ppt_Id
+// )
+// {
+//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
+//     ITC_Id_t **ppt_CurrentId = ppt_Id;
+//     ITC_Id_t *pt_ParentCurrentId = NULL;
+//     const ITC_Id_t *pt_CurrentId1 = pt_Id1;
+//     const ITC_Id_t *pt_CurrentId2 = pt_Id2;
+
+//     /*
+//      * 1, 0 = 1
+//      * 0, 0 = 0
+//      * 1, 1 = corrupt id
+//      * (1, 0), (0, 1) = (1, 1) = 1
+//      * (0, 1), (0, 1) = corrupt id
+//      * (1, (1, 0)), (0, (0, 1)) = (1, (1, 1)) = (1, 1) = 1
+//      * (1, (1, 0)), (0, 1) = (1, ?) = corrupt ID
+//      */
+
+//     if (!ppt_CurrentId || !pt_CurrentId1 || !pt_CurrentId2)
+//     {
+//         t_Status = ITC_STATUS_INVALID_PARAM;
+//     }
+//     else
+//     {
+//         /* TODO: Is this needed? */
+//         /* Init the new ID */
+//         *ppt_CurrentId = NULL;
+//     }
+
+//     while(t_Status == ITC_STATUS_SUCCESS && pt_CurrentId1 && pt_CurrentId2)
+//     {
+//         /* sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2)) */
+//         if (!ITC_ID_IS_LEAF_ID(pt_CurrentId1) &&
+//             !ITC_ID_IS_LEAF_ID(pt_CurrentId2))
+//         {
+//             if (!(*ppt_CurrentId))
+//             {
+//                 t_Status = ITC_Id_new(ppt_CurrentId, pt_ParentCurrentId, 0);
+//             }
+
+//             if (t_Status == ITC_STATUS_SUCCESS)
+//             {
+//                 if (!(*ppt_CurrentId)->pt_Left)
+//                 {
+//                     pt_ParentCurrentId = *ppt_CurrentId;
+//                     ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+
+//                     // t_Status = ITC_Id_new(ppt_CurrentId, pt_ParentCurrentId, 0);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         // pt_ParentCurrentId = *ppt_CurrentId;
+//                         // ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+//                         pt_CurrentId1 = pt_CurrentId1->pt_Left;
+//                         pt_CurrentId2 = pt_CurrentId2->pt_Left;
+//                     }
+//                 }
+//                 else if (!(*ppt_CurrentId)->pt_Right)
+//                 {
+//                     pt_ParentCurrentId = *ppt_CurrentId;
+//                     ppt_CurrentId = &(*ppt_CurrentId)->pt_Right;
+
+//                     // t_Status = ITC_Id_new(ppt_CurrentId, pt_ParentCurrentId, 0);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         // pt_ParentCurrentId = *ppt_CurrentId;
+//                         // ppt_CurrentId = &(*ppt_CurrentId)->pt_Right;
+//                         pt_CurrentId1 = pt_CurrentId1->pt_Right;
+//                         pt_CurrentId2 = pt_CurrentId2->pt_Right;
+//                     }
+//                 }
+//                 else
+//                 {
+//                     if(*ppt_CurrentId)
+//                     {
+//                         t_Status = normI(ppt_CurrentId);
+//                         #include <stdio.h>
+//                         printf("wtf");
+//                         ppt_CurrentId = &(*ppt_CurrentId)->pt_Parent;
+//                     }
+//                     pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+//                     pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+//                 }
+//             }
+//         }
+//         /* sum(0, i) = i */
+//         else if(ITC_ID_IS_NULL_ID(pt_CurrentId1))
+//         {
+//             t_Status = cloneId(
+//                 pt_CurrentId2, ppt_CurrentId, pt_ParentCurrentId);
+
+//             pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+//             pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+
+//             if(*ppt_CurrentId)
+//             {
+//                 ppt_CurrentId = &(*ppt_CurrentId)->pt_Parent;
+//             }
+//         }
+//         /* sum(i, 0) = i */
+//         else if(ITC_ID_IS_NULL_ID(pt_CurrentId2))
+//         {
+//             t_Status = cloneId(
+//                 pt_CurrentId1, ppt_CurrentId, pt_ParentCurrentId);
+
+//             pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+//             pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+
+//             if(*ppt_CurrentId)
+//             {
+//                 ppt_CurrentId = &(*ppt_CurrentId)->pt_Parent;
+//             }
+//         }
+//         else
+//         {
+//             t_Status = ITC_STATUS_CORRUPT_ID;
+//         }
+//     }
+
+//     /* If something goes wrong during the summing - the ID is invalid and must
+//      * not be used */
+//     if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+//     {
+//         /* There is nothing else to do if the destroy fails. Also it is more
+//          * important to convey the sum failed, rather than the destroy */
+//         (void)ITC_Id_destroy(ppt_CurrentId);
+//     }
+
+//     return t_Status;
+// }
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -721,4 +974,17 @@ ITC_Status_t ITC_Id_normalise(
 )
 {
     return normI(pt_Id);
+}
+
+/******************************************************************************
+ * Sum two existing IDs into a single ID
+ ******************************************************************************/
+
+ITC_Status_t ITC_Id_sum(
+    const ITC_Id_t *const pt_Id1,
+    const ITC_Id_t *const pt_Id2,
+    ITC_Id_t **ppt_Id
+)
+{
+    return sumI2(pt_Id1, pt_Id2, ppt_Id);
 }

@@ -95,14 +95,14 @@ ITC_Status_t ITC_Id_normalise(
  *
  * @param pt_Id1 The first ID
  * @param pt_Id2 The second ID
- * @param pt_Id The new ID
+ * @param ppt_Id The new ID
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 ITC_Status_t ITC_Id_sum(
-    ITC_Id_t *pt_Id1,
-    ITC_Id_t *pt_Id2,
-    ITC_Id_t *pt_Id
+    const ITC_Id_t *const pt_Id1,
+    const ITC_Id_t *const pt_Id2,
+    ITC_Id_t **ppt_Id
 );
 
 #endif /* ITC_ID_PROTOTYPES_H_ */
