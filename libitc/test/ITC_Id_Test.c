@@ -1318,6 +1318,47 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
 }
 
+/* Test summing a (1, (1, 0)) and a (0, (0, 1)) ID succeeds */
+void ITC_Id_Test_sumId001110And110001Succeeds(void)
+{
+    ITC_Id_t *pt_OriginalId1;
+    ITC_Id_t *pt_OriginalId2;
+    ITC_Id_t *pt_SumId = NULL;
+
+    /* Create the (1, (1, 0)) and a (0, (0, 1)) IDs */
+    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Right->pt_Left, pt_OriginalId1->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right->pt_Right, pt_OriginalId1->pt_Right));
+
+    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Left, pt_OriginalId2->pt_Right));
+    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right->pt_Right, pt_OriginalId2->pt_Right));
+
+    /* Sum the IDs */
+    TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
+
+    /* Test the summed ID is a seed ID */
+    TEST_IS_SEED_ID(pt_SumId);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+
+    /* Sum the IDs the other way around */
+    TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
+
+    /* Test the summed ID is a seed ID */
+    TEST_IS_SEED_ID(pt_SumId);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+}
+
 /* Test splitting a seed ID several times and summing it back succeeds */
 void ITC_Id_Test_sumIdSplitSeedAndSumItBackToSeedSucceeds(void)
 {
