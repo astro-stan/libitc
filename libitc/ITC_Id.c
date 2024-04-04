@@ -16,6 +16,102 @@
  ******************************************************************************/
 
 /**
+ * @brief Validate an existing ITC ID
+ *
+ * Should be used to validate all incoming IDs before any processing is done.
+ *
+ * @param pt_Id The ID to validate
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t validateId(
+    const ITC_Id_t *const pt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    const ITC_Id_t *pt_CurrentId = pt_Id;
+    const ITC_Id_t *pt_ParentCurrentId = NULL;
+    const ITC_Id_t *pt_ParentRootId = NULL;
+
+    if(!pt_CurrentId)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        /* Remember the root parent ID as this might be a subtree */
+        pt_ParentRootId = pt_CurrentId->pt_Parent;
+
+        pt_ParentCurrentId = pt_ParentRootId;
+    }
+
+    /* Perform a pre-order traversal */
+    while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentId)
+    {
+        /* Checks:
+         *  - The parent pointer must match pt_ParentCurrentId.
+         *  - If not a leaf node:
+         *    - `pt_CurrentId->b_IsOwner == false`
+         *    - `pt_CurrentId->pt_Left != pt_CurrentId->pt_Right != NULL`
+         */
+        if (pt_ParentCurrentId != pt_CurrentId->pt_Parent ||
+            (!ITC_ID_IS_LEAF_ID(pt_CurrentId) &&
+             !ITC_IS_VALID_PARENT_ID(pt_CurrentId)))
+        {
+
+            t_Status = ITC_STATUS_CORRUPT_ID;
+        }
+        else
+        {
+            /* Descend into left tree */
+            if (pt_CurrentId->pt_Left)
+            {
+                /* Remember the parent address */
+                pt_ParentCurrentId = pt_CurrentId;
+
+                pt_CurrentId = pt_CurrentId->pt_Left;
+            }
+            /* Descend into right tree */
+            else if (pt_CurrentId->pt_Right)
+            {
+                /* Remember the parent address */
+                pt_ParentCurrentId = pt_CurrentId;
+
+                pt_CurrentId = pt_CurrentId->pt_Right;
+            }
+            else
+            {
+                /* Trust the parent pointers.
+                 * They were validated on the way down */
+                pt_ParentCurrentId = pt_CurrentId->pt_Parent;
+
+                /* Loop until the current element is no longer reachable
+                 * through he parent's right child */
+                while (pt_ParentCurrentId != pt_ParentRootId &&
+                    pt_ParentCurrentId->pt_Right == pt_CurrentId)
+                {
+                    pt_CurrentId = pt_CurrentId->pt_Parent;
+                    pt_ParentCurrentId = pt_ParentCurrentId->pt_Parent;
+                }
+
+                /* There is a right subtree that has not been explored yet */
+                if (pt_ParentCurrentId != pt_ParentRootId)
+                {
+                    pt_CurrentId = pt_ParentCurrentId->pt_Right;
+                }
+                else
+                {
+                    pt_CurrentId = NULL;
+                }
+            }
+        }
+    }
+
+    return t_Status;
+}
+
+/**
  * @brief Clone an existing ITC ID
  *
  * @note Memory for the new ITC ID will be dynamically allocated.
@@ -798,7 +894,16 @@ ITC_Status_t ITC_Id_clone(
     ITC_Id_t **ppt_ClonedId
 )
 {
-    return cloneId(pt_Id, ppt_ClonedId, NULL);
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    t_Status = validateId(pt_Id);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = cloneId(pt_Id, ppt_ClonedId, NULL);
+    }
+
+    return t_Status;
 }
 
 /******************************************************************************
@@ -833,7 +938,16 @@ ITC_Status_t ITC_Id_split(
     ITC_Id_t **ppt_Id2
 )
 {
-    return splitIdI(pt_Id, ppt_Id1, ppt_Id2);
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateId(pt_Id);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = splitIdI(pt_Id, ppt_Id1, ppt_Id2);
+    }
+
+    return t_Status;
 }
 
 /******************************************************************************
@@ -844,7 +958,16 @@ ITC_Status_t ITC_Id_normalise(
     ITC_Id_t *pt_Id
 )
 {
-    return normI(pt_Id);
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateId(pt_Id);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = normI(pt_Id);
+    }
+
+    return t_Status;
 }
 
 /******************************************************************************
@@ -857,5 +980,19 @@ ITC_Status_t ITC_Id_sum(
     ITC_Id_t **ppt_Id
 )
 {
-    return sumI(pt_Id1, pt_Id2, ppt_Id);
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateId(pt_Id1);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id2);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = sumI(pt_Id1, pt_Id2, ppt_Id);
+    }
+
+    return t_Status;
 }

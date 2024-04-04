@@ -83,6 +83,12 @@
 #define TEST_IS_SEED_SEED_ID(pt_Id)                                           \
     TEST_ASSERT_TRUE(ITC_ID_IS_SEED_SEED_ID(pt_Id))
 
+/** Returns the size of an array.
+ * https://stackoverflow.com/a/4415646/11121557
+ */
+#define ARRAY_COUNT(x)                                                        \
+    ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
 /******************************************************************************
  * Types
  ******************************************************************************/
