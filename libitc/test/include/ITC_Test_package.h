@@ -1,13 +1,13 @@
 /**
- * @file ITC_Test_helpers.h
+ * @file ITC_Test_package.h
  * @author Stan
- * @brief Helpers for unit testing
+ * @brief Unit testing package definitions
  *
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef ITC_TEST_HELPERS_H_
-#define ITC_TEST_HELPERS_H_
+#ifndef ITC_TEST_PACKAGE_H_
+#define ITC_TEST_PACKAGE_H_
 
 #include "unity.h"
 #include "ITC_Status.h"
@@ -89,14 +89,4 @@
 #define ARRAY_COUNT(x)                                                        \
     ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
-/******************************************************************************
- * Types
- ******************************************************************************/
-
-/* A null-terminated character string */
-typedef char* string_t;
-
-/* A constant null-terminated character string */
-typedef const char* cstring_t;
-
-#endif /* ITC_TEST_HELPERS_H_ */
+#endif /* ITC_TEST_PACKAGE_H_ */
