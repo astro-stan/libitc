@@ -693,41 +693,48 @@ static ITC_Status_t sumI(
                 t_Status = ITC_Id_new(ppt_CurrentId, pt_ParentCurrentId, 0);
             }
 
-            /* Descend into left child  */
-            if(!(*ppt_CurrentId)->pt_Left)
+            if (t_Status == ITC_STATUS_SUCCESS)
             {
-                /* Save the parent pointer on the stack */
-                pt_ParentCurrentId = *ppt_CurrentId;
+                /* Descend into left child  */
+                if(!(*ppt_CurrentId)->pt_Left)
+                {
+                    /* Save the parent pointer on the stack */
+                    pt_ParentCurrentId = *ppt_CurrentId;
 
-                ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
-                pt_CurrentId1 = pt_CurrentId1->pt_Left;
-                pt_CurrentId2 = pt_CurrentId2->pt_Left;
-            }
-            /* Descend into right child  */
-            else if(!(*ppt_CurrentId)->pt_Right)
-            {
-                /* Save the parent pointer on the stack */
-                pt_ParentCurrentId = *ppt_CurrentId;
+                    ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+                    pt_CurrentId1 = pt_CurrentId1->pt_Left;
+                    pt_CurrentId2 = pt_CurrentId2->pt_Left;
+                }
+                /* Descend into right child  */
+                else if(!(*ppt_CurrentId)->pt_Right)
+                {
+                    /* Save the parent pointer on the stack */
+                    pt_ParentCurrentId = *ppt_CurrentId;
 
-                ppt_CurrentId = &(*ppt_CurrentId)->pt_Right;
-                pt_CurrentId1 = pt_CurrentId1->pt_Right;
-                pt_CurrentId2 = pt_CurrentId2->pt_Right;
-            }
-            /* Normalise ID and climb back to parent */
-            else
-            {
-                /* Normalise ID.
-                 * This may destroy all child nodes stored under *ppt_CurrentId
-                 */
-                t_Status = normI(*ppt_CurrentId);
+                    ppt_CurrentId = &(*ppt_CurrentId)->pt_Right;
+                    pt_CurrentId1 = pt_CurrentId1->pt_Right;
+                    pt_CurrentId2 = pt_CurrentId2->pt_Right;
+                }
+                /* Normalise ID and climb back to parent */
+                else
+                {
+                    /* Normalise ID.
+                    * This may destroy all child nodes stored under
+                    * *ppt_CurrentId
+                    */
+                    t_Status = normI(*ppt_CurrentId);
 
-                /* Save the parent pointer on the stack */
-                pt_ParentCurrentId = (*ppt_CurrentId)->pt_Parent;
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        /* Save the parent pointer on the stack */
+                        pt_ParentCurrentId = (*ppt_CurrentId)->pt_Parent;
 
-                /* Climb back to the parent node */
-                ppt_CurrentId = &pt_ParentCurrentId;
-                pt_CurrentId1 = pt_CurrentId1->pt_Parent;
-                pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+                        /* Climb back to the parent node */
+                        ppt_CurrentId = &pt_ParentCurrentId;
+                        pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+                        pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+                    }
+                }
             }
         }
         /* sum(0, i) = i */
@@ -736,14 +743,17 @@ static ITC_Status_t sumI(
             t_Status = cloneId(
                 pt_CurrentId2, ppt_CurrentId, pt_ParentCurrentId);
 
-            /* Climb back to the parent node
-             * Use the parent pointer saved on the stack instead of
-             * `(*ppt_CurrentId)->pt_Parent` as that will be the child element
-             * on the next iteration and may get destroyed by `normI`
-             */
-            ppt_CurrentId = &pt_ParentCurrentId;
-            pt_CurrentId1 = pt_CurrentId1->pt_Parent;
-            pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                /* Climb back to the parent node
+                * Use the parent pointer saved on the stack instead of
+                * `(*ppt_CurrentId)->pt_Parent` as that will be the child
+                * element on the next iteration and may get destroyed by `normI`
+                */
+                ppt_CurrentId = &pt_ParentCurrentId;
+                pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+                pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+            }
         }
         /* sum(i, 0) = i */
         else if (ITC_ID_IS_NULL_ID(pt_CurrentId2))
@@ -752,19 +762,31 @@ static ITC_Status_t sumI(
             t_Status = cloneId(
                 pt_CurrentId1, ppt_CurrentId, pt_ParentCurrentId);
 
-            /* Climb back to the parent node
-             * Use the parent pointer saved on the stack instead of
-             * `(*ppt_CurrentId)->pt_Parent` as that will be the child element
-             * on the next iteration and may get destroyed by `normI`
-             */
-            ppt_CurrentId = &pt_ParentCurrentId;
-            pt_CurrentId1 = pt_CurrentId1->pt_Parent;
-            pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                /* Climb back to the parent node
+                * Use the parent pointer saved on the stack instead of
+                * `(*ppt_CurrentId)->pt_Parent` as that will be the child
+                * element on the next iteration and may get destroyed by `normI`
+                */
+                ppt_CurrentId = &pt_ParentCurrentId;
+                pt_CurrentId1 = pt_CurrentId1->pt_Parent;
+                pt_CurrentId2 = pt_CurrentId2->pt_Parent;
+            }
         }
         else
         {
             t_Status = ITC_STATUS_CORRUPT_ID;
         }
+    }
+
+    /* If something goes wrong during the summing process - the ID is invalid
+     * and must not be used. */
+    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    {
+        /* There is nothing else to do if the destroy fails. Also it is more
+         * important to convey the split failed, rather than the destroy */
+        (void)ITC_Id_destroy(ppt_Id);
     }
 
     return t_Status;
