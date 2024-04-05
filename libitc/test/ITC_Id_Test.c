@@ -1,5 +1,6 @@
 #include "ITC_Id.h"
 #include "ITC_Id_Test.h"
+#include "ITC_Id_Test_private.h"
 
 #include "ITC_Test_package.h"
 
@@ -223,10 +224,11 @@ void ITC_Id_Test_createNullIdSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new NULL ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_Id_newNull(&pt_Id));
 
     /* Test this is a NULL ID */
-    TEST_IS_NULL_ID(pt_Id);
+    TEST_ASSERT_FALSE(pt_Id->pt_Parent);
+    TEST_ID_IS_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -244,10 +246,11 @@ void ITC_Id_Test_createSeedIdSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new seed ID */
-    TEST_SUCCESS(newSeed(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_Id_newSeed(&pt_Id));
 
     /* Test this is a seed ID */
-    TEST_IS_SEED_ID(pt_Id);
+    TEST_ASSERT_FALSE(pt_Id->pt_Parent);
+    TEST_ID_IS_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -297,7 +300,7 @@ void ITC_Id_Test_cloneIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
-    TEST_IS_SEED_ID(pt_ClonedId);
+    TEST_ID_IS_SEED_ID(pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
     /* Test cloning null ID */
@@ -307,7 +310,7 @@ void ITC_Id_Test_cloneIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
-    TEST_IS_NULL_ID(pt_ClonedId);
+    TEST_ID_IS_NULL_ID(pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
     /* Test cloning a complex ID */
@@ -316,15 +319,15 @@ void ITC_Id_Test_cloneIdSuccessful(void)
     TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right, pt_OriginalId));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
-    TEST_IS_NOT_LEAF_ID(pt_ClonedId);
+    TEST_ID_IS_NOT_LEAF_ID(pt_ClonedId);
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left != pt_ClonedId->pt_Left);
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Right != pt_ClonedId->pt_Right);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
-    TEST_IS_NULL_ID(pt_ClonedId->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_ClonedId->pt_Left);
     TEST_ASSERT_TRUE(pt_ClonedId->pt_Left->pt_Parent == pt_ClonedId);
-    TEST_IS_SEED_ID(pt_ClonedId->pt_Right);
+    TEST_ID_IS_SEED_ID(pt_ClonedId->pt_Right);
     TEST_ASSERT_TRUE(pt_ClonedId->pt_Right->pt_Parent == pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 }
@@ -344,7 +347,7 @@ void ITC_Id_Test_cloneIdSubtreeSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
-    TEST_IS_SEED_ID(pt_ClonedId);
+    TEST_ID_IS_SEED_ID(pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
     /* Test cloning null subree ID */
@@ -356,9 +359,10 @@ void ITC_Id_Test_cloneIdSubtreeSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
-    TEST_IS_NULL_ID(pt_ClonedId);
+    TEST_ID_IS_NULL_ID(pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
+    /* clang-format off */
     /* Test cloning a complex ID subree */
     TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
     TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
@@ -367,15 +371,16 @@ void ITC_Id_Test_cloneIdSubtreeSuccessful(void)
     TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId->pt_Left, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left != pt_ClonedId);
-    TEST_IS_NOT_LEAF_ID(pt_ClonedId);
+    TEST_ID_IS_NOT_LEAF_ID(pt_ClonedId);
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left->pt_Left != pt_ClonedId->pt_Left);
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left->pt_Right != pt_ClonedId->pt_Right);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+    /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
-    TEST_IS_NULL_ID(pt_ClonedId->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_ClonedId->pt_Left);
     TEST_ASSERT_TRUE(pt_ClonedId->pt_Left->pt_Parent == pt_ClonedId);
-    TEST_IS_SEED_ID(pt_ClonedId->pt_Right);
+    TEST_ID_IS_SEED_ID(pt_ClonedId->pt_Right);
     TEST_ASSERT_TRUE(pt_ClonedId->pt_Right->pt_Parent == pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 }
@@ -432,11 +437,11 @@ void ITC_Id_Test_splitNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (0, 0) */
-    TEST_IS_NULL_ID(pt_SplitId1);
-    TEST_IS_NULL_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_ID(pt_SplitId2);
 
     /* Test the original is still a NULL ID */
-    TEST_IS_NULL_ID(pt_OriginalId);
+    TEST_ID_IS_NULL_ID(pt_OriginalId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
@@ -449,11 +454,11 @@ void ITC_Id_Test_splitNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((1, 0), (0, 1)) */
-    TEST_IS_SEED_NULL_ID(pt_SplitId1);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2);
 
     /* Test the original is still a seed ID */
-    TEST_IS_SEED_ID(pt_OriginalId);
+    TEST_ID_IS_SEED_ID(pt_OriginalId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -478,11 +483,11 @@ void ITC_Id_Test_splitNullAndSeedIdSubtreesSuccessful(void)
         pt_OriginalId->pt_Left, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (0, 0) */
-    TEST_IS_NULL_ID(pt_SplitId1);
-    TEST_IS_NULL_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_ID(pt_SplitId2);
 
     /* Test the original is still a NULL ID */
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Left);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
@@ -493,11 +498,11 @@ void ITC_Id_Test_splitNullAndSeedIdSubtreesSuccessful(void)
         pt_OriginalId->pt_Right, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((1, 0), (0, 1)) */
-    TEST_IS_SEED_NULL_ID(pt_SplitId1);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2);
 
     /* Test the original is still a seed ID */
-    TEST_IS_SEED_ID(pt_OriginalId->pt_Right);
+    TEST_ID_IS_SEED_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -521,16 +526,16 @@ void ITC_Id_Test_split01And10IdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((0, (1, 0)), (0, (0, 1))) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Right);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a (0, 1) ID */
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Left);
-    TEST_IS_SEED_ID(pt_OriginalId->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_ID_IS_SEED_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
@@ -544,16 +549,16 @@ void ITC_Id_Test_split01And10IdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((1, 0), 0), ((0, 1), 0)) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a (1, 0) ID */
-    TEST_IS_SEED_ID(pt_OriginalId->pt_Left);
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Right);
+    TEST_ID_IS_SEED_ID(pt_OriginalId->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -582,16 +587,16 @@ void ITC_Id_Test_split01And10IdSubtreesSuccessful(void)
         ITC_Id_split(pt_OriginalId->pt_Right, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((0, (1, 0)), (0, (0, 1))) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Right);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a (0, 1) ID */
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Left);
-    TEST_IS_SEED_ID(pt_OriginalId->pt_Right->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Left);
+    TEST_ID_IS_SEED_ID(pt_OriginalId->pt_Right->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId1));
@@ -606,16 +611,16 @@ void ITC_Id_Test_split01And10IdSubtreesSuccessful(void)
         ITC_Id_split(pt_OriginalId->pt_Right, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((1, 0), 0), ((0, 1), 0)) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a (1, 0) ID */
-    TEST_IS_SEED_ID(pt_OriginalId->pt_Right->pt_Left);
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Right);
+    TEST_ID_IS_SEED_ID(pt_OriginalId->pt_Right->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -645,21 +650,21 @@ void ITC_Id_Test_split010RIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match ((0, ((1, 0), 0)), (0, ((0, 1), 0))) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1->pt_Right);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Right->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Right->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right->pt_Right);
 
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2->pt_Right);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Right->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Right->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Right->pt_Right);
 
     /* Test the original is still a (0, (1, 0)) ID */
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_ID_IS_SEED_NULL_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -689,21 +694,21 @@ void ITC_Id_Test_split010LIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((0, (1, 0)), 0), ((0, (0, 1)), 0)) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Left->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left->pt_Right);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Left->pt_Left);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Left->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right);
 
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Left->pt_Right);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Left->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a ((0, 1), 0) ID */
-    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Left);
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Right);
+    TEST_ID_IS_NULL_SEED_ID(pt_OriginalId->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -735,16 +740,16 @@ void ITC_Id_Test_split1001IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((1, 0), 0), (0, (0, 1))) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a ((1, 0), (0, 1)) ID */
-    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Right);
+    TEST_ID_IS_SEED_NULL_ID(pt_OriginalId->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_OriginalId->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -779,16 +784,16 @@ void ITC_Id_Test_split1001IdSubtreeSuccessful(void)
         ITC_Id_split(pt_OriginalId->pt_Left, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((1, 0), 0), (0, (0, 1))) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Right);
 
     /* Test the original is still a ((1, 0), (0, 1)) ID */
-    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Left->pt_Left);
-    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Left->pt_Right);
+    TEST_ID_IS_SEED_NULL_ID(pt_OriginalId->pt_Left->pt_Left);
+    TEST_ID_IS_NULL_SEED_ID(pt_OriginalId->pt_Left->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -824,23 +829,23 @@ void ITC_Id_Test_split010010IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
 
     /* Test the new IDs match (((0, (1, 0)), 0), (0, ((0, 1), 0))) */
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId1->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Left->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_SplitId1->pt_Left->pt_Right);
-    TEST_IS_NULL_ID(pt_SplitId1->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId1->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Left->pt_Left);
+    TEST_ID_IS_SEED_NULL_ID(pt_SplitId1->pt_Left->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_SplitId1->pt_Right);
 
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Left);
-    TEST_IS_NOT_LEAF_ID(pt_SplitId2->pt_Right);
-    TEST_IS_NULL_SEED_ID(pt_SplitId2->pt_Right->pt_Left);
-    TEST_IS_NULL_ID(pt_SplitId2->pt_Right->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Left);
+    TEST_ID_IS_NOT_LEAF_ID(pt_SplitId2->pt_Right);
+    TEST_ID_IS_NULL_SEED_ID(pt_SplitId2->pt_Right->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_SplitId2->pt_Right->pt_Right);
 
     /* Test the original is still a ((0, (1, 0)), ((0, 1), 0)) ID */
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Left->pt_Left);
-    TEST_IS_SEED_NULL_ID(pt_OriginalId->pt_Left->pt_Right);
-    TEST_IS_NULL_SEED_ID(pt_OriginalId->pt_Right->pt_Left);
-    TEST_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Right);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Left->pt_Left);
+    TEST_ID_IS_SEED_NULL_ID(pt_OriginalId->pt_Left->pt_Right);
+    TEST_ID_IS_NULL_SEED_ID(pt_OriginalId->pt_Right->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_OriginalId->pt_Right->pt_Right);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -887,7 +892,7 @@ void ITC_Id_Test_normaliseNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test this is still a NULL ID */
-    TEST_IS_NULL_ID(pt_Id);
+    TEST_ID_IS_NULL_ID(pt_Id);
 
     /* Change ID into a seed ID */
     pt_Id->b_IsOwner = true;
@@ -896,7 +901,7 @@ void ITC_Id_Test_normaliseNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test this is still a seed ID */
-    TEST_IS_SEED_ID(pt_Id);
+    TEST_ID_IS_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -916,13 +921,13 @@ void ITC_Id_Test_normaliseNullAndSeedIdSubtreesSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Right));
 
     /* Test the whole ID hasn't changed */
-    TEST_IS_SEED_NULL_ID(pt_Id);
+    TEST_ID_IS_SEED_NULL_ID(pt_Id);
 
     /* Normalise the seed ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
 
     /* Test the whole ID hasn't changed */
-    TEST_IS_SEED_NULL_ID(pt_Id);
+    TEST_ID_IS_SEED_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -942,7 +947,7 @@ void ITC_Id_Test_normalise10And01IdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test this is still a (1, 0) ID */
-    TEST_IS_SEED_NULL_ID(pt_Id);
+    TEST_ID_IS_SEED_NULL_ID(pt_Id);
 
     /* Switch the (1, 0) ID into a (0, 1) ID */
     pt_Id->pt_Left->b_IsOwner = false;
@@ -952,7 +957,7 @@ void ITC_Id_Test_normalise10And01IdsSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test this is still a (1, 0) ID */
-    TEST_IS_NULL_SEED_ID(pt_Id);
+    TEST_ID_IS_NULL_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -974,9 +979,9 @@ void ITC_Id_Test_normalise10And01IdSubtreesSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
 
     /* Test the whole ID hasn't changed */
-    TEST_IS_NOT_LEAF_ID(pt_Id);
-    TEST_IS_SEED_NULL_ID(pt_Id->pt_Left);
-    TEST_IS_NULL_ID(pt_Id->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_Id);
+    TEST_ID_IS_SEED_NULL_ID(pt_Id->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_Id->pt_Right);
 
     /* Switch the (1, 0) ID into a (0, 1) ID */
     pt_Id->pt_Left->pt_Left->b_IsOwner = false;
@@ -986,9 +991,9 @@ void ITC_Id_Test_normalise10And01IdSubtreesSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
 
     /* Test the whole ID hasn't changed */
-    TEST_IS_NOT_LEAF_ID(pt_Id);
-    TEST_IS_NULL_SEED_ID(pt_Id->pt_Left);
-    TEST_IS_NULL_ID(pt_Id->pt_Right);
+    TEST_ID_IS_NOT_LEAF_ID(pt_Id);
+    TEST_ID_IS_NULL_SEED_ID(pt_Id->pt_Left);
+    TEST_ID_IS_NULL_ID(pt_Id->pt_Right);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1008,7 +1013,7 @@ void ITC_Id_Test_normalise11And00IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a seed ID */
-    TEST_IS_SEED_ID(pt_Id);
+    TEST_ID_IS_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1022,7 +1027,7 @@ void ITC_Id_Test_normalise11And00IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a NULL ID */
-    TEST_IS_NULL_ID(pt_Id);
+    TEST_ID_IS_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1045,7 +1050,7 @@ void ITC_Id_Test_normalise11And00IdSubtreesSuccessful(void)
 
     /* Test the targeted subtree has been normalised but the rest of the tree
      * is untouched */
-    TEST_IS_SEED_SEED_ID(pt_Id);
+    TEST_ID_IS_SEED_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1062,7 +1067,7 @@ void ITC_Id_Test_normalise11And00IdSubtreesSuccessful(void)
 
     /* Test the targeted subtree has been normalised but the rest of the tree
      * is untouched */
-    TEST_IS_NULL_NULL_ID(pt_Id);
+    TEST_ID_IS_NULL_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1084,7 +1089,7 @@ void ITC_Id_Test_normalise011And110IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a (0, 1) ID */
-    TEST_IS_NULL_SEED_ID(pt_Id);
+    TEST_ID_IS_NULL_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1100,7 +1105,7 @@ void ITC_Id_Test_normalise011And110IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a (1, 0) ID */
-    TEST_IS_SEED_NULL_ID(pt_Id);
+    TEST_ID_IS_SEED_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1122,7 +1127,7 @@ void ITC_Id_Test_normalise111And111IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a seed ID */
-    TEST_IS_SEED_ID(pt_Id);
+    TEST_ID_IS_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1138,7 +1143,7 @@ void ITC_Id_Test_normalise111And111IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a seed ID */
-    TEST_IS_SEED_ID(pt_Id);
+    TEST_ID_IS_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1160,7 +1165,7 @@ void ITC_Id_Test_normalise100And001IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a (1, 0) ID */
-    TEST_IS_SEED_NULL_ID(pt_Id);
+    TEST_ID_IS_SEED_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1176,7 +1181,7 @@ void ITC_Id_Test_normalise100And001IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a (0, 1) ID */
-    TEST_IS_NULL_SEED_ID(pt_Id);
+    TEST_ID_IS_NULL_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1198,7 +1203,7 @@ void ITC_Id_Test_normalise000And000IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a NULL ID */
-    TEST_IS_NULL_ID(pt_Id);
+    TEST_ID_IS_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1214,7 +1219,7 @@ void ITC_Id_Test_normalise000And000IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a NULL ID */
-    TEST_IS_NULL_ID(pt_Id);
+    TEST_ID_IS_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1244,7 +1249,7 @@ void ITC_Id_Test_normalise11111IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a seed ID */
-    TEST_IS_SEED_ID(pt_Id);
+    TEST_ID_IS_SEED_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1274,7 +1279,7 @@ void ITC_Id_Test_normalise00000IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
 
     /* Test the ID is now a seed ID */
-    TEST_IS_NULL_ID(pt_Id);
+    TEST_ID_IS_NULL_ID(pt_Id);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -1339,7 +1344,7 @@ void ITC_Id_Test_sumId00Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a NULL ID */
-    TEST_IS_NULL_ID(pt_SumId);
+    TEST_ID_IS_NULL_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1362,7 +1367,7 @@ void ITC_Id_Test_sumId01And10Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1371,7 +1376,7 @@ void ITC_Id_Test_sumId01And10Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1398,7 +1403,7 @@ void ITC_Id_Test_sumId0000Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a NULL ID */
-    TEST_IS_NULL_ID(pt_SumId);
+    TEST_ID_IS_NULL_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1407,7 +1412,7 @@ void ITC_Id_Test_sumId0000Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a NULL ID */
-    TEST_IS_NULL_ID(pt_SumId);
+    TEST_ID_IS_NULL_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1432,7 +1437,7 @@ void ITC_Id_Test_sumId001And010Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a (0, 1) ID */
-    TEST_IS_NULL_SEED_ID(pt_SumId);
+    TEST_ID_IS_NULL_SEED_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1441,7 +1446,7 @@ void ITC_Id_Test_sumId001And010Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a (0, 1) ID */
-    TEST_IS_NULL_SEED_ID(pt_SumId);
+    TEST_ID_IS_NULL_SEED_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1466,7 +1471,7 @@ void ITC_Id_Test_sumId010And100Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a (1, 0) ID */
-    TEST_IS_SEED_NULL_ID(pt_SumId);
+    TEST_ID_IS_SEED_NULL_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1475,7 +1480,7 @@ void ITC_Id_Test_sumId010And100Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a (1, 0) ID */
-    TEST_IS_SEED_NULL_ID(pt_SumId);
+    TEST_ID_IS_SEED_NULL_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1502,7 +1507,7 @@ void ITC_Id_Test_sumId1001And0110Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1511,7 +1516,7 @@ void ITC_Id_Test_sumId1001And0110Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1526,6 +1531,7 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create the (1, 0), 1) and a ((0, 1), 0) IDs */
     TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
     TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
@@ -1538,12 +1544,13 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
     TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left->pt_Left, pt_OriginalId2->pt_Left));
     TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Left->pt_Right, pt_OriginalId2->pt_Left));
     TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1552,7 +1559,7 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
@@ -1567,6 +1574,7 @@ void ITC_Id_Test_sumId001110And110001Succeeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create the (1, (1, 0)) and a (0, (0, 1)) IDs */
     TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
     TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Left, pt_OriginalId1));
@@ -1579,12 +1587,13 @@ void ITC_Id_Test_sumId001110And110001Succeeds(void)
     TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
     TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Left, pt_OriginalId2->pt_Right));
     TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right->pt_Right, pt_OriginalId2->pt_Right));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
@@ -1593,7 +1602,7 @@ void ITC_Id_Test_sumId001110And110001Succeeds(void)
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
 
     /* Test the summed ID is a seed ID */
-    TEST_IS_SEED_ID(pt_SumId);
+    TEST_ID_IS_SEED_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
