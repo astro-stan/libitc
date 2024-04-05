@@ -13,4 +13,5 @@ libitc_test_link_args = [
 
 libitc_test_src = files([
     'ITC_Id_Test.c',
+    'ITC_Event_Test.c',
 ])
