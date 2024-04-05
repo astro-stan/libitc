@@ -7,9 +7,8 @@
  *
  */
 #include "ITC_Id.h"
+#include "ITC_Port.h"
 #include "ITC_Id_package.h"
-
-#include <stdlib.h>
 
 /******************************************************************************
  * Private functions
@@ -811,13 +810,7 @@ ITC_Status_t ITC_Id_new(
     }
     else
     {
-        pt_Alloc = malloc(sizeof(ITC_Id_t));
-    }
-
-    /* Allocation failed */
-    if (t_Status == ITC_STATUS_SUCCESS && !pt_Alloc)
-    {
-        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Id_t));
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -844,6 +837,7 @@ ITC_Status_t ITC_Id_destroy(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_FreeStatus = ITC_STATUS_SUCCESS; /* The last free status */
     ITC_Id_t *pt_CurrentId = NULL; /* The current element */
     ITC_Id_t *pt_ParentCurrentId = NULL;
     ITC_Id_t *pt_RootParent = NULL;
@@ -857,6 +851,7 @@ ITC_Status_t ITC_Id_destroy(
         pt_CurrentId = *ppt_Id;
         pt_RootParent = pt_CurrentId->pt_Parent;
 
+        /* Keep trying to free elements even if some frees fail */
         while(pt_CurrentId && pt_CurrentId != pt_RootParent)
         {
             /* Advance into left subtree */
@@ -888,7 +883,12 @@ ITC_Status_t ITC_Id_destroy(
                 }
 
                 /* Free the current element */
-                free(pt_CurrentId);
+                t_FreeStatus = ITC_Port_free(pt_CurrentId);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    t_Status = t_FreeStatus;
+                }
 
                 /* Go up the tree */
                 pt_CurrentId = pt_ParentCurrentId;
