@@ -105,7 +105,7 @@ static void newInvalidIdWithAsymmetricNestedParent(ITC_Id_t **ppt_Id)
 /**
  * @brief Create a new invalid ID with NULL parent pointer
  *
- * Use `destroyInvalidIdWithNullParentPointer` before deallocating the ID
+ * Use `destroyInvalidIdWithNullParentPointer` to deallocate the ID
  *
  * @param pt_Id (out) The pointer to the ID
  */
@@ -117,7 +117,8 @@ static void newInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
 }
 
 /**
- * @brief Fix an invalid ID created with `newInvalidIdWithNullParentPointer`
+ * @brief Deallocate an invalid ID created with
+ * `newInvalidIdWithNullParentPointer`
  *
  *
  * @param pt_Id (in) The pointer to the root if the ID.
@@ -132,7 +133,7 @@ static void destroyInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
 /**
  * @brief Create a new invalid ID with invalid parent pointer
  *
- * Use `destroyInvalidIdWithInvalidParentPointer` before deallocating the ID
+ * Use `destroyInvalidIdWithInvalidParentPointer` to deallocate the ID
  *
  * @param pt_Id (out) The pointer to the ID
  */
@@ -144,7 +145,8 @@ static void newInvalidIdWithInvalidParentPointer(ITC_Id_t **ppt_Id)
 }
 
 /**
- * @brief Fix an invalid ID created with `newInvalidIdWithInvalidParentPointer`
+ * @brief Deallocate an invalid ID created with
+ * `newInvalidIdWithInvalidParentPointer`
  *
  * @param pt_Id (in) The pointer to the root if the ID.
  */
