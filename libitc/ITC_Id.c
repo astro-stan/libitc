@@ -267,11 +267,11 @@ static ITC_Status_t splitId0(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = newId(ppt_Id1, pt_ParentId1, 0);
+    t_Status = newId(ppt_Id1, pt_ParentId1, false);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newId(ppt_Id2, pt_ParentId2, 0);
+        t_Status = newId(ppt_Id2, pt_ParentId2, false);
     }
 
     return t_Status;
@@ -298,32 +298,32 @@ static ITC_Status_t splitId1(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Allocate the first root */
-    t_Status = newId(ppt_Id1, pt_ParentId1, 0);
+    t_Status = newId(ppt_Id1, pt_ParentId1, false);
 
     /* Allocate the children for the first root: (1, 0) */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newId(&(*ppt_Id1)->pt_Left, *ppt_Id1, 1);
+        t_Status = newId(&(*ppt_Id1)->pt_Left, *ppt_Id1, true);
     }
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newId(&(*ppt_Id1)->pt_Right, *ppt_Id1, 0);
+        t_Status = newId(&(*ppt_Id1)->pt_Right, *ppt_Id1, false);
     }
 
     /* Allocate the second root */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newId(ppt_Id2, pt_ParentId2, 0);
+        t_Status = newId(ppt_Id2, pt_ParentId2, false);
     }
 
     /* Allocate the children for the second root: (0, 1) */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newId(&(*ppt_Id2)->pt_Left, *ppt_Id2, 0);
+        t_Status = newId(&(*ppt_Id2)->pt_Left, *ppt_Id2, false);
     }
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newId(&(*ppt_Id2)->pt_Right, *ppt_Id2, 1);
+        t_Status = newId(&(*ppt_Id2)->pt_Right, *ppt_Id2, true);
     }
 
     return t_Status;
@@ -422,7 +422,7 @@ static ITC_Status_t splitIdI(
             if(!(*ppt_CurrentId1))
             {
                 t_Status = newId(
-                    ppt_CurrentId1, pt_ParentCurrentId1, 0);
+                    ppt_CurrentId1, pt_ParentCurrentId1, false);
             }
 
             /* Create right child container.
@@ -430,7 +430,7 @@ static ITC_Status_t splitIdI(
             if(t_Status == ITC_STATUS_SUCCESS && !(*ppt_CurrentId2))
             {
                 t_Status = newId(
-                    ppt_CurrentId2, pt_ParentCurrentId2, 0);
+                    ppt_CurrentId2, pt_ParentCurrentId2, false);
             }
 
             if (t_Status == ITC_STATUS_SUCCESS)
@@ -445,14 +445,16 @@ static ITC_Status_t splitIdI(
                         ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
                         t_Status = newId(
-                            &(*ppt_CurrentId1)->pt_Left, *ppt_CurrentId1, 0);
+                            &(*ppt_CurrentId1)->pt_Left,
+                            *ppt_CurrentId1,
+                            false);
 
                         if(t_Status == ITC_STATUS_SUCCESS)
                         {
                             t_Status = newId(
                                 &(*ppt_CurrentId2)->pt_Left,
                                 *ppt_CurrentId2,
-                                0);
+                                false);
                         }
 
                         if (t_Status == ITC_STATUS_SUCCESS)
@@ -493,14 +495,16 @@ static ITC_Status_t splitIdI(
                         ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
                         t_Status = newId(
-                            &(*ppt_CurrentId1)->pt_Right, *ppt_CurrentId1, 0);
+                            &(*ppt_CurrentId1)->pt_Right,
+                            *ppt_CurrentId1,
+                            false);
 
                         if(t_Status == ITC_STATUS_SUCCESS)
                         {
                             t_Status = newId(
                                 &(*ppt_CurrentId2)->pt_Right,
                                 *ppt_CurrentId2,
-                                0);
+                                false);
                         }
 
                         if (t_Status == ITC_STATUS_SUCCESS)
@@ -538,7 +542,7 @@ static ITC_Status_t splitIdI(
                     t_Status = newId(
                         &(*ppt_CurrentId1)->pt_Right,
                         *ppt_CurrentId1,
-                        0);
+                        false);
 
                     if (t_Status == ITC_STATUS_SUCCESS)
                     {
@@ -553,7 +557,7 @@ static ITC_Status_t splitIdI(
                         t_Status = newId(
                             &(*ppt_CurrentId2)->pt_Left,
                             *ppt_CurrentId2,
-                            0);
+                            false);
                     }
 
                     if (t_Status == ITC_STATUS_SUCCESS)
@@ -727,7 +731,7 @@ static ITC_Status_t sumI(
              * This might exist from a previous iteration. This is fine. */
             if(!(*ppt_CurrentId))
             {
-                t_Status = newId(ppt_CurrentId, pt_ParentCurrentId, 0);
+                t_Status = newId(ppt_CurrentId, pt_ParentCurrentId, false);
             }
 
             if (t_Status == ITC_STATUS_SUCCESS)
