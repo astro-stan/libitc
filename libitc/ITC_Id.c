@@ -121,8 +121,8 @@ static ITC_Status_t validateId(
  */
 static ITC_Status_t newId(
     ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent,
-    bool b_IsOwner
+    ITC_Id_t *const pt_Parent,
+    const bool b_IsOwner
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -166,7 +166,7 @@ static ITC_Status_t newId(
 static ITC_Status_t cloneId(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId,
-    ITC_Id_t *pt_ParentId
+    ITC_Id_t *const pt_ParentId
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -260,9 +260,9 @@ static ITC_Status_t cloneId(
  */
 static ITC_Status_t splitId0(
     ITC_Id_t **ppt_Id1,
-    ITC_Id_t *pt_ParentId1,
+    ITC_Id_t *const pt_ParentId1,
     ITC_Id_t **ppt_Id2,
-    ITC_Id_t *pt_ParentId2
+    ITC_Id_t *const pt_ParentId2
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -290,9 +290,9 @@ static ITC_Status_t splitId0(
  */
 static ITC_Status_t splitId1(
     ITC_Id_t **ppt_Id1,
-    ITC_Id_t *pt_ParentId1,
+    ITC_Id_t *const pt_ParentId1,
     ITC_Id_t **ppt_Id2,
-    ITC_Id_t *pt_ParentId2
+    ITC_Id_t *const pt_ParentId2
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
