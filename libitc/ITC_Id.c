@@ -608,7 +608,7 @@ static ITC_Status_t splitIdI(
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t normI(
+static ITC_Status_t normIdI(
     ITC_Id_t *pt_Id
 )
 {
@@ -762,7 +762,7 @@ static ITC_Status_t sumI(
                     * This may destroy all child nodes stored under
                     * *ppt_CurrentId
                     */
-                    t_Status = normI(*ppt_CurrentId);
+                    t_Status = normIdI(*ppt_CurrentId);
 
                     if (t_Status == ITC_STATUS_SUCCESS)
                     {
@@ -788,7 +788,8 @@ static ITC_Status_t sumI(
                 /* Climb back to the parent node
                 * Use the parent pointer saved on the stack instead of
                 * `(*ppt_CurrentId)->pt_Parent` as that will be the child
-                * element on the next iteration and may get destroyed by `normI`
+                * element on the next iteration and may get destroyed by
+                * `normIdI`
                 */
                 ppt_CurrentId = &pt_ParentCurrentId;
                 pt_CurrentId1 = pt_CurrentId1->pt_Parent;
@@ -807,7 +808,8 @@ static ITC_Status_t sumI(
                 /* Climb back to the parent node
                 * Use the parent pointer saved on the stack instead of
                 * `(*ppt_CurrentId)->pt_Parent` as that will be the child
-                * element on the next iteration and may get destroyed by `normI`
+                * element on the next iteration and may get destroyed by
+                * `normIdI`
                 */
                 ppt_CurrentId = &pt_ParentCurrentId;
                 pt_CurrentId1 = pt_CurrentId1->pt_Parent;
@@ -992,7 +994,7 @@ ITC_Status_t ITC_Id_normalise(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = normI(pt_Id);
+        t_Status = normIdI(pt_Id);
     }
 
     return t_Status;
