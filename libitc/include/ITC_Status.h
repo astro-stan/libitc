@@ -30,6 +30,8 @@
 /** Operation failed due to the ITC ID being corrupted */
 #define ITC_STATUS_CORRUPT_ID                                                (4)
 
+/** Operation failed due to the ITC Event being corrupted */
+#define ITC_STATUS_CORRUPT_EVENT                                             (5)
 
 /******************************************************************************
  * Types
