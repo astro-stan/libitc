@@ -1,7 +1,7 @@
 /**
  * @file ITC_Id_private.h
  * @author Stan
- * @brief Package definitions for the Interval Tree Clock's ID mechanism
+ * @brief Private definitions for the Interval Tree Clock's ID mechanism
  *
  * @copyright Copyright (c) 2024
  *
@@ -47,7 +47,7 @@
  *  - Have 2 unique child node addresses
  *  - NOT own its interval (pt_Id->b_IsOwner == false)
  */
-#define ITC_IS_VALID_PARENT_ID(pt_Id)                                         \
+#define ITC_ID_IS_VALID_PARENT(pt_Id)                                         \
     ((pt_Id->pt_Left && pt_Id->pt_Right) &&                                   \
      (pt_Id->pt_Left != pt_Id->pt_Right) &&                                   \
      (!pt_Id->b_IsOwner))                                                     \

@@ -56,7 +56,7 @@ static ITC_Status_t validateId(
          */
         if (pt_ParentCurrentId != pt_CurrentId->pt_Parent ||
             (!ITC_ID_IS_LEAF_ID(pt_CurrentId) &&
-             !ITC_IS_VALID_PARENT_ID(pt_CurrentId)))
+             !ITC_ID_IS_VALID_PARENT(pt_CurrentId)))
         {
             t_Status = ITC_STATUS_CORRUPT_ID;
         }
