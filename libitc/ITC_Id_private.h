@@ -1,13 +1,13 @@
 /**
- * @file ITC_Id_package.h
+ * @file ITC_Id_private.h
  * @author Stan
  * @brief Package definitions for the Interval Tree Clock's ID mechanism
  *
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef ITC_ID_PACKAGE_H_
-#define ITC_ID_PACKAGE_H_
+#ifndef ITC_ID_PRIVATE_H_
+#define ITC_ID_PRIVATE_H_
 
 #include "ITC_Id.h"
 #include "ITC_Status.h"
@@ -52,4 +52,4 @@
      (pt_Id->pt_Left != pt_Id->pt_Right) &&                                   \
      (!pt_Id->b_IsOwner))                                                     \
 
-#endif /* ITC_ID_PACKAGE_H_ */
+#endif /* ITC_ID_PRIVATE_H_ */
