@@ -111,6 +111,48 @@ static ITC_Status_t validateId(
 }
 
 /**
+ * @brief Allocate a new ITC ID
+ *
+ * @param ppt_Id (out) The pointer to the new ID
+ * @param ppt_Parent The pointer to the parent ID in the tree. Otherwise NULL.
+ * @param b_IsOwner Whether the ID owns its interval or not.
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t newId(
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t *pt_Parent,
+    bool b_IsOwner
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_Alloc = NULL;
+
+    if (!ppt_Id)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Id_t));
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Initialise members */
+        pt_Alloc->b_IsOwner = b_IsOwner;
+        pt_Alloc->pt_Parent = pt_Parent;
+        pt_Alloc->pt_Left = NULL;
+        pt_Alloc->pt_Right = NULL;
+
+        /* Return the pointer to the allocated memory */
+        *ppt_Id = pt_Alloc;
+    }
+
+    return t_Status;
+}
+
+/**
  * @brief Clone an existing ITC ID
  *
  * @note Memory for the new ITC ID will be dynamically allocated.
@@ -142,7 +184,7 @@ static ITC_Status_t cloneId(
         pt_CurrentIdParent = pt_CurrentId->pt_Parent;
 
         /* Allocate the root */
-        t_Status = ITC_Id_new(
+        t_Status = newId(
             ppt_ClonedId, pt_ParentId, pt_CurrentId->b_IsOwner);
 
         if (t_Status == ITC_STATUS_SUCCESS)
@@ -157,7 +199,7 @@ static ITC_Status_t cloneId(
             if (pt_CurrentId->pt_Left && !pt_ClonedIdClone->pt_Left)
             {
                 /* Allocate left subtree */
-                t_Status = ITC_Id_new(
+                t_Status = newId(
                     &pt_ClonedIdClone->pt_Left,
                     pt_ClonedIdClone,
                     pt_CurrentId->pt_Left->b_IsOwner);
@@ -172,7 +214,7 @@ static ITC_Status_t cloneId(
             else if (pt_CurrentId->pt_Right && !pt_ClonedIdClone->pt_Right)
             {
                 /* Allocate right subtree */
-                t_Status = ITC_Id_new(
+                t_Status = newId(
                     &pt_ClonedIdClone->pt_Right,
                     pt_ClonedIdClone,
                     pt_CurrentId->pt_Right->b_IsOwner);
@@ -225,11 +267,11 @@ static ITC_Status_t splitId0(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = ITC_Id_new(ppt_Id1, pt_ParentId1, 0);
+    t_Status = newId(ppt_Id1, pt_ParentId1, 0);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_new(ppt_Id2, pt_ParentId2, 0);
+        t_Status = newId(ppt_Id2, pt_ParentId2, 0);
     }
 
     return t_Status;
@@ -256,32 +298,32 @@ static ITC_Status_t splitId1(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Allocate the first root */
-    t_Status = ITC_Id_new(ppt_Id1, pt_ParentId1, 0);
+    t_Status = newId(ppt_Id1, pt_ParentId1, 0);
 
     /* Allocate the children for the first root: (1, 0) */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_new(&(*ppt_Id1)->pt_Left, *ppt_Id1, 1);
+        t_Status = newId(&(*ppt_Id1)->pt_Left, *ppt_Id1, 1);
     }
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_new(&(*ppt_Id1)->pt_Right, *ppt_Id1, 0);
+        t_Status = newId(&(*ppt_Id1)->pt_Right, *ppt_Id1, 0);
     }
 
     /* Allocate the second root */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_new(ppt_Id2, pt_ParentId2, 0);
+        t_Status = newId(ppt_Id2, pt_ParentId2, 0);
     }
 
     /* Allocate the children for the second root: (0, 1) */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_new(&(*ppt_Id2)->pt_Left, *ppt_Id2, 0);
+        t_Status = newId(&(*ppt_Id2)->pt_Left, *ppt_Id2, 0);
     }
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_new(&(*ppt_Id2)->pt_Right, *ppt_Id2, 1);
+        t_Status = newId(&(*ppt_Id2)->pt_Right, *ppt_Id2, 1);
     }
 
     return t_Status;
@@ -379,7 +421,7 @@ static ITC_Status_t splitIdI(
              * This might exist from a previous iteration. This is fine. */
             if(!(*ppt_CurrentId1))
             {
-                t_Status = ITC_Id_new(
+                t_Status = newId(
                     ppt_CurrentId1, pt_ParentCurrentId1, 0);
             }
 
@@ -387,7 +429,7 @@ static ITC_Status_t splitIdI(
              * This might exist from a previous iteration. This is fine. */
             if(t_Status == ITC_STATUS_SUCCESS && !(*ppt_CurrentId2))
             {
-                t_Status = ITC_Id_new(
+                t_Status = newId(
                     ppt_CurrentId2, pt_ParentCurrentId2, 0);
             }
 
@@ -402,12 +444,12 @@ static ITC_Status_t splitIdI(
                     if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) &&
                         ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
-                        t_Status = ITC_Id_new(
+                        t_Status = newId(
                             &(*ppt_CurrentId1)->pt_Left, *ppt_CurrentId1, 0);
 
                         if(t_Status == ITC_STATUS_SUCCESS)
                         {
-                            t_Status = ITC_Id_new(
+                            t_Status = newId(
                                 &(*ppt_CurrentId2)->pt_Left,
                                 *ppt_CurrentId2,
                                 0);
@@ -450,12 +492,12 @@ static ITC_Status_t splitIdI(
                     if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1) &&
                         ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                     {
-                        t_Status = ITC_Id_new(
+                        t_Status = newId(
                             &(*ppt_CurrentId1)->pt_Right, *ppt_CurrentId1, 0);
 
                         if(t_Status == ITC_STATUS_SUCCESS)
                         {
-                            t_Status = ITC_Id_new(
+                            t_Status = newId(
                                 &(*ppt_CurrentId2)->pt_Right,
                                 *ppt_CurrentId2,
                                 0);
@@ -493,7 +535,7 @@ static ITC_Status_t splitIdI(
                 else if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1)
                          && ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
                 {
-                    t_Status = ITC_Id_new(
+                    t_Status = newId(
                         &(*ppt_CurrentId1)->pt_Right,
                         *ppt_CurrentId1,
                         0);
@@ -508,7 +550,7 @@ static ITC_Status_t splitIdI(
 
                     if (t_Status == ITC_STATUS_SUCCESS)
                     {
-                        t_Status = ITC_Id_new(
+                        t_Status = newId(
                             &(*ppt_CurrentId2)->pt_Left,
                             *ppt_CurrentId2,
                             0);
@@ -685,7 +727,7 @@ static ITC_Status_t sumI(
              * This might exist from a previous iteration. This is fine. */
             if(!(*ppt_CurrentId))
             {
-                t_Status = ITC_Id_new(ppt_CurrentId, pt_ParentCurrentId, 0);
+                t_Status = newId(ppt_CurrentId, pt_ParentCurrentId, 0);
             }
 
             if (t_Status == ITC_STATUS_SUCCESS)
@@ -792,40 +834,25 @@ static ITC_Status_t sumI(
  ******************************************************************************/
 
 /******************************************************************************
- * Allocate a new ITC ID
+ * Allocate a new ITC ID and initialise it as a seed ID (1)
  ******************************************************************************/
 
-ITC_Status_t ITC_Id_new(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent,
-    bool b_IsOwner
+ITC_Status_t ITC_Id_newSeed(
+    ITC_Id_t **ppt_Id
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_Alloc = NULL;
+    return newId(ppt_Id, NULL, 1);
+}
 
-    if (!ppt_Id)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Id_t));
-    }
+/******************************************************************************
+ * Allocate a new ITC ID and initialise it as a null ID (0)
+ ******************************************************************************/
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Initialise members */
-        pt_Alloc->b_IsOwner = b_IsOwner;
-        pt_Alloc->pt_Parent = pt_Parent;
-        pt_Alloc->pt_Left = NULL;
-        pt_Alloc->pt_Right = NULL;
-
-        /* Return the pointer to the allocated memory */
-        *ppt_Id = pt_Alloc;
-    }
-
-    return t_Status;
+ITC_Status_t ITC_Id_newNull(
+    ITC_Id_t **ppt_Id
+)
+{
+    return newId(ppt_Id, NULL, 0);
 }
 
 /******************************************************************************
@@ -924,28 +951,6 @@ ITC_Status_t ITC_Id_clone(
     }
 
     return t_Status;
-}
-
-/******************************************************************************
- * Allocate a new ITC ID and initialise it as a seed ID (1)
- ******************************************************************************/
-
-ITC_Status_t ITC_Id_newSeed(
-    ITC_Id_t **ppt_Id
-)
-{
-    return ITC_Id_new(ppt_Id, NULL, 1);
-}
-
-/******************************************************************************
- * Allocate a new ITC ID and initialise it as a null ID (0)
- ******************************************************************************/
-
-ITC_Status_t ITC_Id_newNull(
-    ITC_Id_t **ppt_Id
-)
-{
-    return ITC_Id_new(ppt_Id, NULL, 0);
 }
 
 /******************************************************************************

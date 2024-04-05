@@ -17,6 +17,28 @@
  ******************************************************************************/
 
 /**
+ * @brief Allocate a new ITC ID and initialise it as a seed ID (1)
+ *
+ * @param ppt_Id (out) The pointer to the seed ID
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Id_newSeed(
+    ITC_Id_t **ppt_Id
+);
+
+/**
+ * @brief Allocate a new ITC ID and initialise it as a null ID (0)
+ *
+ * @param ppt_Id (out) The pointer to the null ID
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Id_newNull(
+    ITC_Id_t **ppt_Id
+);
+
+/**
  * @brief Free an allocated ITC ID
  *
  * @param ppt_Id (in) The pointer to the ID to deallocate. (out) NULL
@@ -40,28 +62,6 @@ ITC_Status_t ITC_Id_destroy(
 ITC_Status_t ITC_Id_clone(
     const ITC_Id_t *const pt_Id,
     ITC_Id_t **ppt_ClonedId
-);
-
-/**
- * @brief Allocate a new ITC ID and initialise it as a seed ID (1)
- *
- * @param ppt_Id (out) The pointer to the seed ID
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
- */
-ITC_Status_t ITC_Id_newSeed(
-    ITC_Id_t **ppt_Id
-);
-
-/**
- * @brief Allocate a new ITC ID and initialise it as a null ID (0)
- *
- * @param ppt_Id (out) The pointer to the null ID
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
- */
-ITC_Status_t ITC_Id_newNull(
-    ITC_Id_t **ppt_Id
 );
 
 /**
