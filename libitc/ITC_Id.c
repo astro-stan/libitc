@@ -844,9 +844,9 @@ ITC_Status_t ITC_Id_destroy(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_Current = NULL; /* The current element */
+    ITC_Id_t *pt_CurrentId = NULL; /* The current element */
+    ITC_Id_t *pt_ParentCurrentId = NULL;
     ITC_Id_t *pt_RootParent = NULL;
-    ITC_Id_t *pt_Tmp = NULL;
 
     if (ppt_Id == NULL)
     {
@@ -854,44 +854,44 @@ ITC_Status_t ITC_Id_destroy(
     }
     else
     {
-        pt_Current = *ppt_Id;
-        pt_RootParent = pt_Current->pt_Parent;
+        pt_CurrentId = *ppt_Id;
+        pt_RootParent = pt_CurrentId->pt_Parent;
 
-        while(t_Status == ITC_STATUS_SUCCESS && pt_Current != pt_RootParent)
+        while(pt_CurrentId && pt_CurrentId != pt_RootParent)
         {
-            if(pt_Current->pt_Left)
+            /* Advance into left subtree */
+            if(pt_CurrentId->pt_Left)
             {
-                /* Advance into left subtree */
-                pt_Current = pt_Current->pt_Left;
+                pt_CurrentId = pt_CurrentId->pt_Left;
             }
-            else if(pt_Current->pt_Right)
+            /* Advance into right subtree */
+            else if(pt_CurrentId->pt_Right)
             {
-                /* Advance into right subtree */
-                pt_Current = pt_Current->pt_Right;
+                pt_CurrentId = pt_CurrentId->pt_Right;
             }
             else
             {
                 /* Remember the parent element */
-                pt_Tmp = pt_Current->pt_Parent;
+                pt_ParentCurrentId = pt_CurrentId->pt_Parent;
 
-                if(pt_Tmp)
+                if(pt_ParentCurrentId)
                 {
                     /* Remove the current element address from the parent */
-                    if(pt_Tmp->pt_Left == pt_Current)
+                    if(pt_ParentCurrentId->pt_Left == pt_CurrentId)
                     {
-                        pt_Tmp->pt_Left = NULL;
+                        pt_ParentCurrentId->pt_Left = NULL;
                     }
                     else
                     {
-                        pt_Tmp->pt_Right = NULL;
+                        pt_ParentCurrentId->pt_Right = NULL;
                     }
                 }
 
                 /* Free the current element */
-                free(pt_Current);
+                free(pt_CurrentId);
 
                 /* Go up the tree */
-                pt_Current = pt_Tmp;
+                pt_CurrentId = pt_ParentCurrentId;
             }
         }
     }
