@@ -628,10 +628,6 @@ static ITC_Status_t normI(
             /* Set the interval ownership */
             pt_CurrentId->b_IsOwner = ITC_ID_IS_SEED_SEED_ID(pt_CurrentId);
 
-            /* Dissociate the children from pt_CurrentId */
-            pt_CurrentId->pt_Left->pt_Parent = NULL;
-            pt_CurrentId->pt_Right->pt_Parent = NULL;
-
             /* Destroy the children */
             t_Status = ITC_Id_destroy(&pt_CurrentId->pt_Left);
             t_OpStatus = ITC_Id_destroy(&pt_CurrentId->pt_Right);
@@ -849,6 +845,7 @@ ITC_Status_t ITC_Id_destroy(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Id_t *pt_Current = NULL; /* The current element */
+    ITC_Id_t *pt_RootParent = NULL;
     ITC_Id_t *pt_Tmp = NULL;
 
     if (ppt_Id == NULL)
@@ -858,8 +855,9 @@ ITC_Status_t ITC_Id_destroy(
     else
     {
         pt_Current = *ppt_Id;
+        pt_RootParent = pt_Current->pt_Parent;
 
-        while(t_Status == ITC_STATUS_SUCCESS && pt_Current != NULL)
+        while(t_Status == ITC_STATUS_SUCCESS && pt_Current != pt_RootParent)
         {
             if(pt_Current->pt_Left)
             {
