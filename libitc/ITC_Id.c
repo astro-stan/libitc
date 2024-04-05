@@ -3,7 +3,7 @@
  * @author Stan
  * @brief Implementation of the Interval Tree Clock's ID mechanism
  *
- * @copypt_Right Copypt_Right (c) 2024
+ * @copyright Copyright (c) 2024
  *
  */
 #include "ITC_Id.h"

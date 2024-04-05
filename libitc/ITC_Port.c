@@ -3,7 +3,7 @@
  * @author Stan
  * @brief Port specific implementation
  *
- * @copypt_Right Copypt_Right (c) 2024
+ * @copyright Copyright (c) 2024
  *
  */
 #include "ITC_Port.h"
