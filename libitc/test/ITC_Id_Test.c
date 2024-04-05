@@ -1,12 +1,7 @@
-#include "unity.h"
-
 #include "ITC_Id.h"
 #include "ITC_Id_Test.h"
 
 #include "ITC_Test_package.h"
-
-#include <stdio.h>
-#include <inttypes.h>
 
 /******************************************************************************
  *  Private functions
