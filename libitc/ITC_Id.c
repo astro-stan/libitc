@@ -670,7 +670,7 @@ static ITC_Status_t normIdI(
              ITC_ID_IS_NULL_NULL_ID(pt_CurrentId)))
         {
             /* Set the interval ownership */
-            pt_CurrentId->b_IsOwner = ITC_ID_IS_SEED_SEED_ID(pt_CurrentId);
+            pt_CurrentId->b_IsOwner = pt_CurrentId->pt_Left->b_IsOwner;
 
             /* Destroy the children */
             t_Status = ITC_Id_destroy(&pt_CurrentId->pt_Left);
@@ -698,7 +698,7 @@ static ITC_Status_t normIdI(
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t sumI(
+static ITC_Status_t sumIdI(
     const ITC_Id_t *const pt_Id1,
     const ITC_Id_t *const pt_Id2,
     ITC_Id_t **ppt_Id
@@ -1021,7 +1021,7 @@ ITC_Status_t ITC_Id_sum(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = sumI(pt_Id1, pt_Id2, ppt_Id);
+        t_Status = sumIdI(pt_Id1, pt_Id2, ppt_Id);
     }
 
     return t_Status;
