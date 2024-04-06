@@ -115,13 +115,14 @@ static ITC_Status_t validateEvent(
  * @param ppt_Event (out) The pointer to the new Event
  * @param ppt_Parent The pointer to the parent Event in the tree.
  * Otherwise NULL.
+ * @param t_Count The number of events witnessed by the Event
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t newEvent(
     ITC_Event_t **ppt_Event,
     ITC_Event_t *const pt_Parent,
-    const uint32_t u32_Count
+    const ITC_Event_Counter_t t_Count
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -139,7 +140,7 @@ static ITC_Status_t newEvent(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Initialise members */
-        pt_Alloc->u32_Count = u32_Count;
+        pt_Alloc->t_Count = t_Count;
         pt_Alloc->pt_Parent = pt_Parent;
         pt_Alloc->pt_Left = NULL;
         pt_Alloc->pt_Right = NULL;
@@ -184,7 +185,7 @@ static ITC_Status_t cloneEvent(
 
         /* Allocate the root */
         t_Status = newEvent(
-            ppt_ClonedEvent, pt_ParentEvent, pt_CurrentEvent->u32_Count);
+            ppt_ClonedEvent, pt_ParentEvent, pt_CurrentEvent->t_Count);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
@@ -201,7 +202,7 @@ static ITC_Status_t cloneEvent(
                 t_Status = newEvent(
                     &pt_ClonedEventClone->pt_Left,
                     pt_ClonedEventClone,
-                    pt_CurrentEvent->pt_Left->u32_Count);
+                    pt_CurrentEvent->pt_Left->t_Count);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
@@ -217,7 +218,7 @@ static ITC_Status_t cloneEvent(
                 t_Status = newEvent(
                     &pt_ClonedEventClone->pt_Right,
                     pt_ClonedEventClone,
-                    pt_CurrentEvent->pt_Right->u32_Count);
+                    pt_CurrentEvent->pt_Right->t_Count);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
@@ -254,25 +255,25 @@ static ITC_Status_t cloneEvent(
  *  - lift((n, e1, e2), m) = (n + m, e1, e2)
  *
  * @param pt_Event The event to be lifted
- * @param u32_Count The number of events to be lifted with
+ * @param t_Count The number of events to be lifted with
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t liftEventE(
     ITC_Event_t *pt_Event,
-    uint32_t u32_Count
+    ITC_Event_Counter_t t_Count
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect overflow */
-    if (pt_Event->u32_Count + u32_Count < pt_Event->u32_Count)
+    if (pt_Event->t_Count + t_Count < pt_Event->t_Count)
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_OVERFLOW;
     }
     else
     {
-        pt_Event->u32_Count += u32_Count;
+        pt_Event->t_Count += t_Count;
     }
 
     return t_Status;
@@ -285,25 +286,25 @@ static ITC_Status_t liftEventE(
  *  - sink((n, e1, e2), m) = (n - m, e1, e2)
  *
  * @param pt_Event The Event to be sinked
- * @param u32_Count The number of events to be sinked with
+ * @param t_Count The number of events to be sinked with
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t sinkEventE(
     ITC_Event_t *pt_Event,
-    uint32_t u32_Count
+    ITC_Event_Counter_t t_Count
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect underflow */
-    if (pt_Event->u32_Count - u32_Count > pt_Event->u32_Count)
+    if (pt_Event->t_Count - t_Count > pt_Event->t_Count)
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_UNDERFLOW;
     }
     else
     {
-        pt_Event->u32_Count -= u32_Count;
+        pt_Event->t_Count -= t_Count;
     }
 
     return t_Status;
@@ -329,7 +330,7 @@ static ITC_Status_t liftSinkSinkEvent(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
     ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-    uint32_t u32_Count = 0;
+    ITC_Event_Counter_t t_Count = 0;
 
     if(ITC_EVENT_IS_LEAF_EVENT(pt_Event) ||
        !ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Left) ||
@@ -342,25 +343,25 @@ static ITC_Status_t liftSinkSinkEvent(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Remember the count */
-        u32_Count = MIN(
-            pt_Event->pt_Left->u32_Count, pt_Event->pt_Right->u32_Count);
+        t_Count = MIN(
+            pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
-        t_Status = liftEventE(pt_Event, u32_Count);
+        t_Status = liftEventE(pt_Event, t_Count);
     }
 
     /* Sink the children */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = sinkEventE(pt_Event->pt_Left, u32_Count);
+        t_Status = sinkEventE(pt_Event->pt_Left, t_Count);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
-            t_Status = sinkEventE(pt_Event->pt_Right, u32_Count);
+            t_Status = sinkEventE(pt_Event->pt_Right, t_Count);
 
             if (t_Status != ITC_STATUS_SUCCESS)
             {
                 /* Restore the other child */
-                t_OpStatus = liftEventE(pt_Event->pt_Left, u32_Count);
+                t_OpStatus = liftEventE(pt_Event->pt_Left, t_Count);
 
                 if (t_OpStatus != ITC_STATUS_SUCCESS)
                 {
@@ -373,7 +374,7 @@ static ITC_Status_t liftSinkSinkEvent(
         if (t_Status != ITC_STATUS_SUCCESS)
         {
             /* Restore the root count */
-            t_OpStatus = sinkEventE(pt_Event, u32_Count);
+            t_OpStatus = sinkEventE(pt_Event, t_Count);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
@@ -403,12 +404,12 @@ static ITC_Status_t liftDestroyDestroyEvent(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
     ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-    uint32_t u32_Count = 0;
+    ITC_Event_Counter_t t_Count = 0;
 
     if(ITC_EVENT_IS_LEAF_EVENT(pt_Event) ||
        !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) ||
        !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) ||
-       pt_Event->pt_Left->u32_Count != pt_Event->pt_Right->u32_Count)
+       pt_Event->pt_Left->t_Count != pt_Event->pt_Right->t_Count)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
@@ -416,10 +417,10 @@ static ITC_Status_t liftDestroyDestroyEvent(
     /* Lift the event counter of the root node */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Remember the lift count */
-        u32_Count = pt_Event->pt_Left->u32_Count;
+        /* Remember the count */
+        t_Count = pt_Event->pt_Left->t_Count;
 
-        t_Status = liftEventE(pt_Event, u32_Count);
+        t_Status = liftEventE(pt_Event, t_Count);
     }
 
     /* Destroy the children */
@@ -435,7 +436,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
             {
                 /* Restore the other child */
                 t_OpStatus = newEvent(
-                    &pt_Event->pt_Left, pt_Event, u32_Count);
+                    &pt_Event->pt_Left, pt_Event, t_Count);
 
                 if (t_OpStatus != ITC_STATUS_SUCCESS)
                 {
@@ -448,7 +449,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
         if (t_Status != ITC_STATUS_SUCCESS)
         {
             /* Restore the root count */
-            t_OpStatus = sinkEventE(pt_Event, u32_Count);
+            t_OpStatus = sinkEventE(pt_Event, t_Count);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
@@ -504,8 +505,8 @@ static ITC_Status_t normEventE(
             /* norm((n, m, m)) = lift(n, m) */
             else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left) &&
                      ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right) &&
-                     (pt_CurrentEvent->pt_Left->u32_Count ==
-                          pt_CurrentEvent->pt_Right->u32_Count))
+                     (pt_CurrentEvent->pt_Left->t_Count ==
+                          pt_CurrentEvent->pt_Right->t_Count))
             {
                 /* Lift the root, destroy the children */
                 t_Status = liftDestroyDestroyEvent(pt_CurrentEvent);

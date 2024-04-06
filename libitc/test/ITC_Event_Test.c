@@ -18,7 +18,7 @@
 static ITC_Status_t newEvent(
     ITC_Event_t **ppt_Event,
     ITC_Event_t *pt_Parent,
-    uint32_t u32_Count
+    ITC_Event_Counter_t t_Count
 )
 {
     ITC_Status_t t_Status;
@@ -27,7 +27,7 @@ static ITC_Status_t newEvent(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         (*ppt_Event)->pt_Parent = pt_Parent;
-        (*ppt_Event)->u32_Count = u32_Count;
+        (*ppt_Event)->t_Count = t_Count;
     }
 
     return t_Status;
@@ -400,7 +400,7 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildren(void)
     TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Make the children event count equal */
-    pt_Event->pt_Right->u32_Count = pt_Event->pt_Left->u32_Count;
+    pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
 
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
@@ -443,8 +443,8 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildren(void)
     TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Make the children event count equal */
-    pt_Event->pt_Left->pt_Right->u32_Count =
-        pt_Event->pt_Left->pt_Left->u32_Count;
+    pt_Event->pt_Left->pt_Right->t_Count =
+        pt_Event->pt_Left->pt_Left->t_Count;
 
     /* Normalise the event */
     ITC_Event_normalise(pt_Event->pt_Left);

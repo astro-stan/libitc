@@ -38,8 +38,8 @@
 */
 #define ITC_EVENT_IS_NORMALISED_EVENT(pt_Event)                               \
   ((ITC_EVENT_IS_VALID_PARENT(pt_Event) &&                                    \
-    (((pt_Event)->pt_Left->u32_Count == 0) ||                                 \
-    ((pt_Event)->pt_Right->u32_Count == 0))) ||                               \
+    (((pt_Event)->pt_Left->t_Count == 0) ||                                   \
+    ((pt_Event)->pt_Right->t_Count == 0))) ||                                 \
    (ITC_EVENT_IS_LEAF_EVENT(pt_Event)))
 
 #endif /* ITC_EVENT_PRIVATE_H_ */

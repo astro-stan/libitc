@@ -11,6 +11,9 @@
 
 #include <stdint.h>
 
+/* The ITC Event counter */
+typedef uint32_t ITC_Event_Counter_t;
+
 /* The ITC Event */
 typedef struct ITC_Event_t
 {
@@ -21,7 +24,7 @@ typedef struct ITC_Event_t
     /** A pointer to the parent Event subtree. NULL if root */
     struct ITC_Event_t *pt_Parent;
     /** Counts the number of events witnessed by this node in the event tree */
-    uint32_t u32_Count;
+    ITC_Event_Counter_t t_Count;
 } ITC_Event_t;
 
 /* Late include. We need to define the types first */
