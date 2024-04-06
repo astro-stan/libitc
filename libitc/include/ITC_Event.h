@@ -9,10 +9,17 @@
 #ifndef ITC_EVENT_H_
 #define ITC_EVENT_H_
 
+#include "ITC_config.h"
+
 #include <stdint.h>
 
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+/* The ITC Event counter */
+typedef uint64_t ITC_Event_Counter_t;
+#else
 /* The ITC Event counter */
 typedef uint32_t ITC_Event_Counter_t;
+#endif
 
 /* The ITC Event */
 typedef struct ITC_Event_t
