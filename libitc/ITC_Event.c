@@ -310,74 +310,149 @@ static ITC_Status_t sinkEventE(
 }
 
 /**
- * @brief Perform a `norm(n, m1, m2) = (lift(n, m), sink(m1, m), sink(m2, m))`
+ * @brief Perform a `norm(n, e1, e2) = (lift(n, m), sink(e1, m), sink(e2, m))`
  *
  * Performs the operation and tries to do damange control (revert to original
  * state) if any of the steps fail.
  *
+ * @note It is assumed e1 and e2 are normalised events, such that
+ * `min((n , e1, e2)) == n`, i.e one of the subtrees has an event counter
+ * equal to 0
+ *
  * @param pt_Event The Event on which to perform the operation
- * @param u32_Count The number of events to lift the root with and sink the
- * children
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t liftSinkSinkEvent(
-    ITC_Event_t *pt_Event,
-    uint32_t u32_Count
+    ITC_Event_t *pt_Event
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
     ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    uint32_t u32_Count = 0;
 
-    if(ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+    if(ITC_EVENT_IS_LEAF_EVENT(pt_Event) ||
+       !ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Left) ||
+       !ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Right))
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
+    /* Lift the event counter of the root node */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Lift the event counter of the root node */
+        /* Remember the count */
+        u32_Count = MIN(
+            pt_Event->pt_Left->u32_Count, pt_Event->pt_Right->u32_Count);
+
         t_Status = liftEventE(pt_Event, u32_Count);
     }
 
+    /* Sink the children */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = sinkEventE(pt_Event->pt_Left, u32_Count);
 
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            t_Status = sinkEventE(pt_Event->pt_Right, u32_Count);
+
+            if (t_Status != ITC_STATUS_SUCCESS)
+            {
+                /* Restore the other child */
+                t_OpStatus = liftEventE(pt_Event->pt_Left, u32_Count);
+
+                if (t_OpStatus != ITC_STATUS_SUCCESS)
+                {
+                    /* Return last error */
+                    t_Status = t_OpStatus;
+                }
+            }
+        }
+
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Try to revert what was done so far */
+            /* Restore the root count */
             t_OpStatus = sinkEventE(pt_Event, u32_Count);
 
-            /* Return last error */
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
+                /* Return last error */
                 t_Status = t_OpStatus;
             }
         }
     }
 
+    return t_Status;
+}
+
+/**
+ * @brief Perform a `norm(n, m, m) = lift(n, m)`
+ *
+ * Performs the operation and tries to do damange control (revert to original
+ * state) if any of the steps fail.
+ *
+ * @param pt_Event The Event on which to perform the operation
+ * children
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t liftDestroyDestroyEvent(
+    ITC_Event_t *pt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    uint32_t u32_Count = 0;
+
+    if(ITC_EVENT_IS_LEAF_EVENT(pt_Event) ||
+       !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) ||
+       !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) ||
+       pt_Event->pt_Left->u32_Count != pt_Event->pt_Right->u32_Count)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    /* Lift the event counter of the root node */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = sinkEventE(pt_Event->pt_Right, u32_Count);
+        /* Remember the lift count */
+        u32_Count = pt_Event->pt_Left->u32_Count;
+
+        t_Status = liftEventE(pt_Event, u32_Count);
+    }
+
+    /* Destroy the children */
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
+
+            if (t_Status != ITC_STATUS_SUCCESS)
+            {
+                /* Restore the other child */
+                t_OpStatus = newEvent(
+                    &pt_Event->pt_Left, pt_Event, u32_Count);
+
+                if (t_OpStatus != ITC_STATUS_SUCCESS)
+                {
+                    /* Return last error */
+                    t_Status = t_OpStatus;
+                }
+            }
+        }
 
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Try to revert what was done so far */
-
+            /* Restore the root count */
             t_OpStatus = sinkEventE(pt_Event, u32_Count);
 
-            /* Return last error */
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
-                t_Status = t_OpStatus;
-            }
-
-            t_OpStatus = sinkEventE(pt_Event->pt_Left, u32_Count);
-
-            /* Return last error */
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
+                /* Return last error */
                 t_Status = t_OpStatus;
             }
         }
@@ -393,154 +468,81 @@ static ITC_Status_t liftSinkSinkEvent(
  *  - norm(n, m, m) = lift(n, m)
  *  - norm((n, e1, e2)) = (lift(n, m), sink(e1, m), sink(e2, m)), where:
  *    - m = min(min(e1), min(e2))
- *    - For normalised trees:
+ *    - For normalised event trees (one subtree having an event counter == 0):
  *      - min(n) = n
  *      - min((n, e1, e2)) = n
  *
- *
- * @param pt_Event
- * @return ITC_Status_t
+ * @param pt_Event The Event to normalise
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t normEventE(
     ITC_Event_t *pt_Event
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current op status */
     ITC_Event_t *pt_CurrentEvent = pt_Event;
-    uint32_t u32_MinCounter = 0;
+    /* Remember the parent as this might be a subtree */
+    ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
 
-    while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentEvent)
+    while (t_Status == ITC_STATUS_SUCCESS &&
+           pt_CurrentEvent != pt_ParentRootEvent)
     {
-        /* norm(n) = n */
-        if(ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent))
+        /* norm((n, e1, e2)) */
+        if (!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent))
         {
-            /* Nothing to do, climb back to the parent node */
-            pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-        }
-        /* norm(n, m1, m2) */
-        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left) &&
-                 ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right))
-        {
-            /* norm(n, m, m) = lift(n, m) */
-            if (pt_CurrentEvent->pt_Left->u32_Count ==
-                    pt_CurrentEvent->pt_Right->u32_Count)
-            {
-                /* Lift the event counter */
-                t_Status = liftEventE(
-                    pt_CurrentEvent, pt_CurrentEvent->pt_Left->u32_Count);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    /* Destroy the children */
-                    t_Status = ITC_Event_destroy(&pt_CurrentEvent->pt_Left);
-                    t_OpStatus = ITC_Event_destroy(&pt_CurrentEvent->pt_Right);
-
-                    /* Return last error */
-                    if(t_OpStatus != ITC_STATUS_SUCCESS)
-                    {
-                        t_Status = t_OpStatus;
-                    }
-
-                    if (t_Status == ITC_STATUS_SUCCESS)
-                    {
-                        /* Climb back to the parent node */
-                        pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-                    }
-                }
-            }
-            /* norm(n, m1, m2) = lift(n, m), sink(m1, m), sink(m2, m), where:
-             *     m = min(m1, m2)
-             */
-            else
-            {
-                /* Find the min child counter */
-                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
-                                     pt_CurrentEvent->pt_Right->u32_Count);
-
-                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-                }
-            }
-        }
-        /* norm(n, m1, e2) = lift(n, m), sink(m1, m), sink(e2, m), where:
-         *     m = min(m1, e2)
-         */
-        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left))
-        {
-            if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Right))
-            {
-                /* Find the min child counter */
-                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
-                                     pt_CurrentEvent->pt_Right->u32_Count);
-
-                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-                }
-            }
-            else
-            {
-                pt_CurrentEvent = pt_CurrentEvent->pt_Right;
-            }
-        }
-        /* norm(n, e1, m2) = lift(n, m), sink(e1, m), sink(m2, m), where:
-         *     m = min(e1, m2)
-         */
-        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right))
-        {
-            if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Left))
-            {
-                /* Find the min child counter */
-                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
-                                     pt_CurrentEvent->pt_Right->u32_Count);
-
-                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-                }
-            }
-            else
+            /* Normalise e1 */
+            if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Left))
             {
                 pt_CurrentEvent = pt_CurrentEvent->pt_Left;
             }
+            /* Normalise e2 */
+            else if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Right))
+            {
+                pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+            }
+            /* norm((n, m, m)) = lift(n, m) */
+            else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left) &&
+                     ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right) &&
+                     (pt_CurrentEvent->pt_Left->u32_Count ==
+                          pt_CurrentEvent->pt_Right->u32_Count))
+            {
+                /* Lift the root, destroy the children */
+                t_Status = liftDestroyDestroyEvent(pt_CurrentEvent);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+            /*
+             * norm((n, e1, e2)) = (lift(n, m), sink(e1, m), sink(e2, m)),
+             *
+             * Where:
+             *    - e1 and e2 are normalised event trees or leafs
+             *    - min(n) = n
+             *    - min((n, e1, e2)) = n
+             */
+            else if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent))
+            {
+                /* Lift the root, sink the children */
+                t_Status = liftSinkSinkEvent(pt_CurrentEvent);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+            /* pt_CurrentEvent event is normalised. Nothing to do */
+            else
+            {
+                pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+            }
         }
-        /* norm((n, e1, e2)) = (lift(n, m), sink(e1, m), sink(e2, m)), where:
-         *    - m = min(min(e1), min(e2))
-         *    - For normalised trees:
-         *      - min(n) = n
-         *      - min((n, e1, e2)) = n
-         */
+        /* norm(n) = n */
         else
         {
-            if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent))
-            {
-                /* Find the min child counter */
-                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
-                                     pt_CurrentEvent->pt_Right->u32_Count);
-
-                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-                }
-            }
-            else if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Right))
-            {
-                pt_CurrentEvent = pt_CurrentEvent->pt_Left;
-            }
-            else
-            {
-                pt_CurrentEvent = pt_CurrentEvent->pt_Right;
-            }
+            pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
         }
     }
 
@@ -668,5 +670,14 @@ ITC_Status_t ITC_Event_normalise(
     ITC_Event_t *pt_Event
 )
 {
-    return normEventE(pt_Event);
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    t_Status = validateEvent(pt_Event);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = normEventE(pt_Event);
+    }
+
+    return t_Status;
 }
