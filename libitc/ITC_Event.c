@@ -9,6 +9,7 @@
 #include "ITC_Event.h"
 #include "ITC_Event_private.h"
 #include "ITC_Port.h"
+#include "ITC_package.h"
 
 /******************************************************************************
  * Private functions
@@ -246,6 +247,306 @@ static ITC_Status_t cloneEvent(
     return t_Status;
 }
 
+/**
+ * @brief Lift an Event fulfilling `lift(e)`
+ * Rules:
+ *  - lift(n, m) = (n + m)
+ *  - lift((n, e1, e2), m) = (n + m, e1, e2)
+ *
+ * @param pt_Event The event to be lifted
+ * @param u32_Count The number of events to be lifted with
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t liftEventE(
+    ITC_Event_t *pt_Event,
+    uint32_t u32_Count
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    /* Detect overflow */
+    if (pt_Event->u32_Count + u32_Count < pt_Event->u32_Count)
+    {
+        t_Status = ITC_STATUS_EVENT_COUNTER_OVERFLOW;
+    }
+    else
+    {
+        pt_Event->u32_Count += u32_Count;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Sink an Event fulfilling `sink(e)`
+ * Rules:
+ *  - sink(n, m) = (n - m)
+ *  - sink((n, e1, e2), m) = (n - m, e1, e2)
+ *
+ * @param pt_Event The Event to be sinked
+ * @param u32_Count The number of events to be sinked with
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t sinkEventE(
+    ITC_Event_t *pt_Event,
+    uint32_t u32_Count
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    /* Detect underflow */
+    if (pt_Event->u32_Count - u32_Count > pt_Event->u32_Count)
+    {
+        t_Status = ITC_STATUS_EVENT_COUNTER_UNDERFLOW;
+    }
+    else
+    {
+        pt_Event->u32_Count -= u32_Count;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Perform a `norm(n, m1, m2) = (lift(n, m), sink(m1, m), sink(m2, m))`
+ *
+ * Performs the operation and tries to do damange control (revert to original
+ * state) if any of the steps fail.
+ *
+ * @param pt_Event The Event on which to perform the operation
+ * @param u32_Count The number of events to lift the root with and sink the
+ * children
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t liftSinkSinkEvent(
+    ITC_Event_t *pt_Event,
+    uint32_t u32_Count
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+
+    if(ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Lift the event counter of the root node */
+        t_Status = liftEventE(pt_Event, u32_Count);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = sinkEventE(pt_Event->pt_Left, u32_Count);
+
+        if (t_Status != ITC_STATUS_SUCCESS)
+        {
+            /* Try to revert what was done so far */
+            t_OpStatus = sinkEventE(pt_Event, u32_Count);
+
+            /* Return last error */
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                t_Status = t_OpStatus;
+            }
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = sinkEventE(pt_Event->pt_Right, u32_Count);
+
+        if (t_Status != ITC_STATUS_SUCCESS)
+        {
+            /* Try to revert what was done so far */
+
+            t_OpStatus = sinkEventE(pt_Event, u32_Count);
+
+            /* Return last error */
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                t_Status = t_OpStatus;
+            }
+
+            t_OpStatus = sinkEventE(pt_Event->pt_Left, u32_Count);
+
+            /* Return last error */
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                t_Status = t_OpStatus;
+            }
+        }
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Normalise an Event fulfilling `norm(E)`
+ * Rules:
+ *  - norm(n) = n
+ *  - norm(n, m, m) = lift(n, m)
+ *  - norm((n, e1, e2)) = (lift(n, m), sink(e1, m), sink(e2, m)), where:
+ *    - m = min(min(e1), min(e2))
+ *    - For normalised trees:
+ *      - min(n) = n
+ *      - min((n, e1, e2)) = n
+ *
+ *
+ * @param pt_Event
+ * @return ITC_Status_t
+ */
+static ITC_Status_t normEventE(
+    ITC_Event_t *pt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current op status */
+    ITC_Event_t *pt_CurrentEvent = pt_Event;
+    uint32_t u32_MinCounter = 0;
+
+    while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentEvent)
+    {
+        /* norm(n) = n */
+        if(ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent))
+        {
+            /* Nothing to do, climb back to the parent node */
+            pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+        }
+        /* norm(n, m1, m2) */
+        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left) &&
+                 ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right))
+        {
+            /* norm(n, m, m) = lift(n, m) */
+            if (pt_CurrentEvent->pt_Left->u32_Count ==
+                    pt_CurrentEvent->pt_Right->u32_Count)
+            {
+                /* Lift the event counter */
+                t_Status = liftEventE(
+                    pt_CurrentEvent, pt_CurrentEvent->pt_Left->u32_Count);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    /* Destroy the children */
+                    t_Status = ITC_Event_destroy(&pt_CurrentEvent->pt_Left);
+                    t_OpStatus = ITC_Event_destroy(&pt_CurrentEvent->pt_Right);
+
+                    /* Return last error */
+                    if(t_OpStatus != ITC_STATUS_SUCCESS)
+                    {
+                        t_Status = t_OpStatus;
+                    }
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        /* Climb back to the parent node */
+                        pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                    }
+                }
+            }
+            /* norm(n, m1, m2) = lift(n, m), sink(m1, m), sink(m2, m), where:
+             *     m = min(m1, m2)
+             */
+            else
+            {
+                /* Find the min child counter */
+                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
+                                     pt_CurrentEvent->pt_Right->u32_Count);
+
+                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+        }
+        /* norm(n, m1, e2) = lift(n, m), sink(m1, m), sink(e2, m), where:
+         *     m = min(m1, e2)
+         */
+        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left))
+        {
+            if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Right))
+            {
+                /* Find the min child counter */
+                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
+                                     pt_CurrentEvent->pt_Right->u32_Count);
+
+                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+            else
+            {
+                pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+            }
+        }
+        /* norm(n, e1, m2) = lift(n, m), sink(e1, m), sink(m2, m), where:
+         *     m = min(e1, m2)
+         */
+        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right))
+        {
+            if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Left))
+            {
+                /* Find the min child counter */
+                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
+                                     pt_CurrentEvent->pt_Right->u32_Count);
+
+                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+            else
+            {
+                pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+            }
+        }
+        /* norm((n, e1, e2)) = (lift(n, m), sink(e1, m), sink(e2, m)), where:
+         *    - m = min(min(e1), min(e2))
+         *    - For normalised trees:
+         *      - min(n) = n
+         *      - min((n, e1, e2)) = n
+         */
+        else
+        {
+            if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent))
+            {
+                /* Find the min child counter */
+                u32_MinCounter = MIN(pt_CurrentEvent->pt_Left->u32_Count,
+                                     pt_CurrentEvent->pt_Right->u32_Count);
+
+                t_Status = liftSinkSinkEvent(pt_CurrentEvent, u32_MinCounter);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+            else if (ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Right))
+            {
+                pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+            }
+            else
+            {
+                pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+            }
+        }
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -357,4 +658,15 @@ ITC_Status_t ITC_Event_clone(
     }
 
     return t_Status;
+}
+
+/******************************************************************************
+ * Normalise an Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_normalise(
+    ITC_Event_t *pt_Event
+)
+{
+    return normEventE(pt_Event);
 }

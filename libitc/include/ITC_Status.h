@@ -33,6 +33,12 @@
 /** Operation failed due to the ITC Event being corrupted */
 #define ITC_STATUS_CORRUPT_EVENT                                             (5)
 
+/** Operation failed due to the ITC Event counter overflowing */
+#define ITC_STATUS_EVENT_COUNTER_OVERFLOW                                    (6)
+
+/** Operation failed due to the ITC Event counter underflowing */
+#define ITC_STATUS_EVENT_COUNTER_UNDERFLOW                                   (7)
+
 /******************************************************************************
  * Types
  ******************************************************************************/

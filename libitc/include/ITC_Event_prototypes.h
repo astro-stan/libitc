@@ -53,5 +53,15 @@ ITC_Status_t ITC_Event_clone(
     ITC_Event_t **ppt_ClonedEvent
 );
 
+/**
+ * @brief Normalise an Event
+ *
+ * @param pt_Id The Event to normalise
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Event_normalise(
+    ITC_Event_t *pt_Event
+);
 
 #endif /* ITC_EVENT_PROTOTYPES_H_ */
