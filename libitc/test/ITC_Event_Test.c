@@ -182,7 +182,7 @@ void ITC_Event_Test_createEventSuccessful(void)
 
     /* Test this is a leaf node with 0 events */
     TEST_ASSERT_FALSE(pt_Event->pt_Parent);
-    TEST_EVENT_IS_LEAF_0_EVENT(pt_Event);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -234,7 +234,7 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_EVENT_IS_LEAF_0_EVENT(pt_ClonedEvent);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 0);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 
     /* Test cloning a complex Event */
@@ -333,7 +333,7 @@ void ITC_Event_Test_normaliseLeafEvent(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
     /* Test this is still a 0 leaf event */
-    TEST_EVENT_IS_LEAF_0_EVENT(pt_Event);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 

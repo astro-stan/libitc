@@ -30,18 +30,6 @@
      ((pt_Event)->pt_Left && (pt_Event)->pt_Right) &&                         \
      ((pt_Event)->pt_Left != (pt_Event)->pt_Right))                           \
 
-/** Checks whether the given `ITC_Event_t` is a (0) Event */
-#define ITC_EVENT_IS_LEAF_0_EVENT(pt_Event)                                   \
-    (ITC_EVENT_IS_LEAF_EVENT(pt_Event) && !(pt_Event)->u32_Count)
-
-/** Test an Event is a (0) Event */
-#define TEST_EVENT_IS_LEAF_0_EVENT(pt_Event)                                  \
-    TEST_ASSERT_TRUE(ITC_EVENT_IS_LEAF_0_EVENT(pt_Event))
-
-/** Test an Event is not a leaf Event */
-#define TEST_EVENT_IS_NOT_LEAF_EVENT(pt_Event)                                \
-    TEST_ASSERT_TRUE(ITC_EVENT_IS_VALID_PARENT(pt_Event))
-
 /** Test the Event is a leaf node and has a specific event count */
 #define TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, u32_Count_)                      \
     TEST_ASSERT_TRUE(                                                         \
