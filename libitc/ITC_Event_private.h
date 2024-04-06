@@ -27,7 +27,8 @@
  *  - Have 2 unique child node addresses
  */
 #define ITC_EVENT_IS_VALID_PARENT(pt_Event)                                   \
-    (((pt_Event)->pt_Left && (pt_Event)->pt_Right) &&                         \
+    ((pt_Event) &&                                                            \
+     ((pt_Event)->pt_Left && (pt_Event)->pt_Right) &&                         \
      ((pt_Event)->pt_Left != (pt_Event)->pt_Right))
 
 /** Checks whether the given `ITC_Event_t` is a normalised event node
