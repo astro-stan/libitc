@@ -43,7 +43,7 @@
     TEST_ASSERT_TRUE(ITC_EVENT_IS_VALID_PARENT(pt_Event))
 
 /** Test the Event is a leaf node and has a specific event count */
-#define TEST_EVENT_IS_N_EVENT(pt_Event, u32_Count_)                           \
+#define TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, u32_Count_)                      \
     TEST_ASSERT_TRUE(                                                         \
         (ITC_EVENT_IS_LEAF_EVENT(pt_Event) &&                                 \
         (pt_Event)->u32_Count == (u32_Count_)))
