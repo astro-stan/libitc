@@ -163,7 +163,10 @@ void tearDown(void) {}
 /* Test destroying an Event fails with invalid param */
 void ITC_Event_Test_destroyEventFailInvalidParam(void)
 {
+    ITC_Event_t *pt_Dummy = NULL;
+
     TEST_FAILURE(ITC_Event_destroy(NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(ITC_Event_destroy(&pt_Dummy), ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test creating a NULL Event fails with invalid param */
@@ -300,7 +303,7 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
 /* Test normalising an Event fails with invalid param */
 void ITC_Event_Test_normaliseEventFailInvalidParam(void)
 {
-  TEST_FAILURE(ITC_Event_normalise(NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(ITC_Event_normalise(NULL), ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test normalising an Event fails with corrupt event */

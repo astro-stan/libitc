@@ -579,7 +579,7 @@ ITC_Status_t ITC_Event_destroy(
     ITC_Event_t *pt_ParentCurrentEvent = NULL;
     ITC_Event_t *pt_RootParent = NULL;
 
-    if (ppt_Event == NULL)
+    if (!ppt_Event || !(*ppt_Event))
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
