@@ -211,7 +211,10 @@ void tearDown(void) {}
 /* Test destroying an ID fails with invalid param */
 void ITC_Id_Test_destroyIdFailInvalidParam(void)
 {
+    ITC_Id_t *pt_Dummy = NULL;
+
     TEST_FAILURE(ITC_Id_destroy(NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(ITC_Id_destroy(&pt_Dummy), ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test creating a NULL ID fails with invalid param */

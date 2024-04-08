@@ -874,7 +874,7 @@ ITC_Status_t ITC_Id_destroy(
     ITC_Id_t *pt_ParentCurrentId = NULL;
     ITC_Id_t *pt_RootParent = NULL;
 
-    if (ppt_Id == NULL)
+    if (!ppt_Id || !(*ppt_Id))
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
