@@ -327,7 +327,8 @@ void ITC_Event_Test_normaliseEventFailWithCorruptEvent(void)
     }
 }
 
-void ITC_Event_Test_normaliseLeafEvent(void)
+/* Test normalising a leaf events succeeds */
+void ITC_Event_Test_normaliseLeafEventSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -350,7 +351,8 @@ void ITC_Event_Test_normaliseLeafEvent(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-void ITC_Event_Test_normaliseLeafEventSubtree(void)
+/* Test normalising a leaf event subtree succeeds */
+void ITC_Event_Test_normaliseLeafEventSubtreeSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -379,7 +381,8 @@ void ITC_Event_Test_normaliseLeafEventSubtree(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-void ITC_Event_Test_normaliseParentEventWithLeafChildren(void)
+/* Test normalising a parent event with leaf child event succeeds */
+void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -414,7 +417,8 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildren(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildren(void)
+/* Test normalising a parent event with leaf child event subtree succeeds */
+void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -461,7 +465,8 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildren(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-void ITC_Event_Test_normaliseComplexEvent(void)
+/* Test normalising a complex event succeeds */
+void ITC_Event_Test_normaliseComplexEventSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -504,7 +509,8 @@ void ITC_Event_Test_normaliseComplexEvent(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-void ITC_Event_Test_normaliseComplexEventSubtree(void)
+/* Test normalising a complex event subtree succeeds */
+void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -602,8 +608,8 @@ void ITC_Event_Test_joinEventFailWithCorruptEvent(void)
     }
 }
 
-/* Test joining two identical leaf events */
-void ITC_Event_Test_joinTwoIdenticalLeafEvents(void)
+/* Test joining two identical leaf events succeeds */
+void ITC_Event_Test_joinTwoIdenticalLeafEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -624,8 +630,8 @@ void ITC_Event_Test_joinTwoIdenticalLeafEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two identical leaf event subtrees */
-void ITC_Event_Test_joinTwoIdenticalLeafEventSubtrees(void)
+/* Test joining two identical leaf event subtrees succeeds */
+void ITC_Event_Test_joinTwoIdenticalLeafEventSubtreesSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -651,8 +657,8 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventSubtrees(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two different leaf events */
-void ITC_Event_Test_joinTwoDifferentLeafEvents(void)
+/* Test joining two different leaf events succeeds */
+void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -683,8 +689,8 @@ void ITC_Event_Test_joinTwoDifferentLeafEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two different leaf event subtrees */
-void ITC_Event_Test_joinTwoDifferentLeafEventSubtrees(void)
+/* Test joining two different leaf event subtrees succeeds */
+void ITC_Event_Test_joinTwoDifferentLeafEventSubtreesSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -721,8 +727,8 @@ void ITC_Event_Test_joinTwoDifferentLeafEventSubtrees(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining a leaf and a parent event */
-void ITC_Event_Test_joinALeafAndAParentEvents(void)
+/* Test joining a leaf and a parent event succeeds */
+void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -759,8 +765,8 @@ void ITC_Event_Test_joinALeafAndAParentEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining a leaf and a parent event subtrees */
-void ITC_Event_Test_joinALeafAndAParentEventSubtrees(void)
+/* Test joining a leaf and a parent event subtrees succeeds */
+void ITC_Event_Test_joinALeafAndAParentEventSubtreesSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -806,8 +812,8 @@ void ITC_Event_Test_joinALeafAndAParentEventSubtrees(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two identical parent events */
-void ITC_Event_Test_joinTwoIdenticalParentEvents(void)
+/* Test joining two identical parent events succeeds */
+void ITC_Event_Test_joinTwoIdenticalParentEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -835,8 +841,8 @@ void ITC_Event_Test_joinTwoIdenticalParentEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two mirrored parent events */
-void ITC_Event_Test_joinTwoMirroredParentEvents(void)
+/* Test joining two mirrored parent events succeeds */
+void ITC_Event_Test_joinTwoMirroredParentEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -871,8 +877,8 @@ void ITC_Event_Test_joinTwoMirroredParentEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two different parent events */
-void ITC_Event_Test_joinTwoDifferentParentEvents(void)
+/* Test joining two different parent events succeeds */
+void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -911,8 +917,8 @@ void ITC_Event_Test_joinTwoDifferentParentEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
-/* Test joining two complex events */
-void ITC_Event_Test_joinTwoComplexEvents(void)
+/* Test joining two complex events succeeds */
+void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
