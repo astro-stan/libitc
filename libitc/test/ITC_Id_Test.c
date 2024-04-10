@@ -1357,6 +1357,37 @@ void ITC_Id_Test_sumId00Succeeds(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
 }
 
+/* Test summing two NULL ID subtrees succeeds */
+void ITC_Id_Test_sumId00SubtreesSucceeds(void)
+{
+    ITC_Id_t *pt_OriginalId1;
+    ITC_Id_t *pt_OriginalId2;
+    ITC_Id_t *pt_SumId = NULL;
+
+    /* Create two NULL IDs */
+    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+
+    /* Sum the IDs */
+    TEST_SUCCESS(
+        ITC_Id_sum(
+            pt_OriginalId1->pt_Left,
+            pt_OriginalId2->pt_Right,
+            &pt_SumId));
+
+    /* Test the summed ID is a NULL ID */
+    TEST_ID_IS_NULL_ID(pt_SumId);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+}
+
 /* Test summing a NULL and a seed ID succeeds */
 void ITC_Id_Test_sumId01And10Succeeds(void)
 {
@@ -1379,6 +1410,50 @@ void ITC_Id_Test_sumId01And10Succeeds(void)
 
     /* Sum the IDs the other way around */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
+
+    /* Test the summed ID is a seed ID */
+    TEST_ID_IS_SEED_ID(pt_SumId);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+}
+
+/* Test summing a NULL and a seed ID subtrees succeeds */
+void ITC_Id_Test_sumId01And10SubtreesSucceeds(void)
+{
+    ITC_Id_t *pt_OriginalId1;
+    ITC_Id_t *pt_OriginalId2;
+    ITC_Id_t *pt_SumId = NULL;
+
+    /* Create the NULL and seed IDs */
+    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+
+    /* Sum the IDs */
+    TEST_SUCCESS(
+        ITC_Id_sum(
+            pt_OriginalId1->pt_Left,
+            pt_OriginalId2->pt_Right,
+            &pt_SumId));
+
+    /* Test the summed ID is a seed ID */
+    TEST_ID_IS_SEED_ID(pt_SumId);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+
+    /* Sum the IDs the other way around */
+    TEST_SUCCESS(
+        ITC_Id_sum(
+            pt_OriginalId2->pt_Right,
+            pt_OriginalId1->pt_Left,
+            &pt_SumId));
 
     /* Test the summed ID is a seed ID */
     TEST_ID_IS_SEED_ID(pt_SumId);
@@ -1415,6 +1490,57 @@ void ITC_Id_Test_sumId0000Succeeds(void)
 
     /* Sum the IDs the other way around */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
+
+    /* Test the summed ID is a NULL ID */
+    TEST_ID_IS_NULL_ID(pt_SumId);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+}
+
+/* Test summing two (0, 0) ID subtrees succeeds */
+void ITC_Id_Test_sumId0000SubtreesSucceeds(void)
+{
+    ITC_Id_t *pt_OriginalId1;
+    ITC_Id_t *pt_OriginalId2;
+    ITC_Id_t *pt_SumId = NULL;
+
+    /* clang-format off */
+    /* Create the two (0, 0) IDs */
+    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left->pt_Left, pt_OriginalId1->pt_Left));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left->pt_Right, pt_OriginalId1->pt_Left));
+    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+
+    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Left, pt_OriginalId2->pt_Right));
+    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Right, pt_OriginalId2->pt_Right));
+    /* clang-format on */
+
+    /* Sum the IDs */
+    TEST_SUCCESS(
+        ITC_Id_sum(
+            pt_OriginalId1->pt_Left,
+            pt_OriginalId2->pt_Right,
+            &pt_SumId));
+
+    /* Test the summed ID is a NULL ID */
+    TEST_ID_IS_NULL_ID(pt_SumId);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
+
+    /* Sum the IDs the other way around */
+    TEST_SUCCESS(
+        ITC_Id_sum(
+            pt_OriginalId2->pt_Right,
+            pt_OriginalId1->pt_Left,
+            &pt_SumId));
 
     /* Test the summed ID is a NULL ID */
     TEST_ID_IS_NULL_ID(pt_SumId);

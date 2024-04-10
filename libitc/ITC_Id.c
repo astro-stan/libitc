@@ -721,7 +721,9 @@ static ITC_Status_t sumIdI(
         *ppt_CurrentId = NULL;
     }
 
-    while(t_Status == ITC_STATUS_SUCCESS && pt_CurrentId1 && pt_CurrentId2)
+    while(t_Status == ITC_STATUS_SUCCESS &&
+          pt_CurrentId1 != pt_Id1->pt_Parent &&
+          pt_CurrentId2 != pt_Id2->pt_Parent)
     {
         /* sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2)) */
         if(!ITC_ID_IS_LEAF_ID(pt_CurrentId1) &&
