@@ -687,11 +687,12 @@ static ITC_Status_t normIdI(
 }
 
 /**
- * @brief Sum two IDs into a new ID fulfilling `sum(i)`
+ * @brief Sum two IDs into a new ID fulfilling `sum(i1, i2)`
  * Rules:
  *  - sum(0, i) = i
  *  - sum(i, 0) = i
  *  - sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2))
+ *
  * @param pt_Id1 The first ID
  * @param pt_Id2 The second ID
  * @param ppt_Id The new ID
