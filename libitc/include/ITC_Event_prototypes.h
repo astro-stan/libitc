@@ -56,12 +56,27 @@ ITC_Status_t ITC_Event_clone(
 /**
  * @brief Normalise an Event
  *
- * @param pt_Id The Event to normalise
+ * @param pt_Event The Event to normalise
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 ITC_Status_t ITC_Event_normalise(
     ITC_Event_t *pt_Event
+);
+
+/**
+ * @brief Join two existing Events into a single Event
+ *
+ * @param pt_Event1 The first Event
+ * @param pt_Event2 The second Event
+ * @param ppt_Event The new Event
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Event_join(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_t **ppt_Event
 );
 
 #endif /* ITC_EVENT_PROTOTYPES_H_ */

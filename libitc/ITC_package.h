@@ -19,4 +19,10 @@
 */
 #define MIN(a, b)                                      (((a) < (b)) ? (a) : (b))
 
+/** Returns the maximum of two values
+ * @note Non-idempotent expressions, such as `myVar++` or `myVar--` will
+ * execute multiple times and can cause undefined behaviour
+*/
+#define MAX(a, b)                                      (((a) > (b)) ? (a) : (b))
+
 #endif /* ITC_PACKAGE_H_ */

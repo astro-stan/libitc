@@ -550,6 +550,243 @@ static ITC_Status_t normEventE(
     return t_Status;
 }
 
+/**
+ * @brief Join two Events into a new Event fulfilling `join(e1, e2)`
+ * Rules:
+ *  - join(n1, n2) = max(n1, n2)
+ *  - join(n1, (n2, l2, r2)) = join((n1, 0, 0), (n2, l2, r2))
+ *  - join((n1, l1, r1), n2) = join((n1, l1, r1), (n2, 0, 0))
+ *  - join((n1, l1, r1), (n2, l2, r2)):
+ *    - If n1 > n2:
+ *         join((n2, l2, r2), (n1, l1, r1))
+ *    - If n1 <= n2:
+ *         norm((n1, join(l1, lift(l2, n2 - n1)), join(r1, lift(r2, n2 - n1))))
+ *
+ * @param pt_Event1 The first Event
+ * @param pt_Event2 The second Event
+ * @param ppt_Event The new Event
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t joinEventE(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_t **ppt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    ITC_Event_t *pt_CurrentEvent1 = NULL;
+    ITC_Event_t *pt_RootCurrentEvent1 = NULL;
+    ITC_Event_t *pt_CurrentEvent2 = NULL;
+    ITC_Event_t *pt_RootCurrentEvent2 = NULL;
+
+    ITC_Event_t *pt_SwapEvent = NULL;
+
+    ITC_Event_t **ppt_CurrentEvent = ppt_Event;
+    ITC_Event_t *pt_ParentCurrentEvent = NULL;
+
+    if (!pt_Event1 || !pt_Event2  || !ppt_Event)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        /* Init Event */
+        *ppt_CurrentEvent = NULL;
+
+        /* Clone the input events, as they will get modified during the
+         * joining process */
+        t_Status = cloneEvent(
+            pt_Event1, &pt_CurrentEvent1, pt_Event1->pt_Parent);
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Save the root so it can be easily deallocated */
+            pt_RootCurrentEvent1 = pt_CurrentEvent1;
+
+            t_Status = cloneEvent(
+                pt_Event2, &pt_CurrentEvent2, pt_Event2->pt_Parent);
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                pt_RootCurrentEvent2 = pt_CurrentEvent2;
+            }
+        }
+    }
+
+    while (t_Status == ITC_STATUS_SUCCESS &&
+           pt_CurrentEvent1 != pt_RootCurrentEvent1->pt_Parent &&
+           pt_CurrentEvent2 != pt_RootCurrentEvent2->pt_Parent)
+    {
+        /* join(n1, n2) = max(n1, n2) */
+        if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1) &&
+            ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
+        {
+            t_Status = newEvent(
+                ppt_CurrentEvent,
+                pt_ParentCurrentEvent,
+                MAX(pt_CurrentEvent1->t_Count, pt_CurrentEvent2->t_Count));
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                /* Climb back to the parent node
+                * Use the parent pointer saved on the stack instead of
+                * `(*ppt_CurrentEvent)->pt_Parent` as that will be the child
+                * element on the next iteration and may get destroyed by
+                * `normEventI`
+                */
+                ppt_CurrentEvent = &pt_ParentCurrentEvent;
+                pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+                pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
+            }
+        }
+        /* join((n1, l1, r1), (n2, l2, r2)):
+         * - If n1 > n2:
+         *      join((n2, l2, r2), (n1, l1, r1))
+         * - If n1 <= n2:
+         *      norm((n1, join(l1, lift(l2, n2 - n1)), join(r1, lift(r2, n2 - n1))))
+         */
+        else if(!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1) &&
+                !ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
+        {
+            /* Create the parent node.
+             * This might exist from a previous iteration. This is fine. */
+            if (!*ppt_CurrentEvent)
+            {
+                t_Status = newEvent(ppt_CurrentEvent, pt_ParentCurrentEvent, 0);
+            }
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                if (!(*ppt_CurrentEvent)->pt_Left ||
+                    !(*ppt_CurrentEvent)->pt_Right)
+                {
+                    /* Save the parent pointer on the stack */
+                    pt_ParentCurrentEvent = *ppt_CurrentEvent;
+
+                    /* If n1 > n2: flip them around */
+                    if (pt_CurrentEvent1->t_Count > pt_CurrentEvent2->t_Count)
+                    {
+                        pt_SwapEvent = pt_CurrentEvent1;
+                        pt_CurrentEvent1 = pt_CurrentEvent2;
+                        pt_CurrentEvent2 = pt_SwapEvent;
+                    }
+                }
+
+                /* Descend into left child */
+                if (!(*ppt_CurrentEvent)->pt_Left)
+                {
+                    ppt_CurrentEvent = &(*ppt_CurrentEvent)->pt_Left;
+                    pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
+                    pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
+
+                    t_Status = liftEventE(
+                        pt_CurrentEvent2,
+                        pt_CurrentEvent2->pt_Parent->t_Count -
+                            pt_CurrentEvent1->pt_Parent->t_Count);
+                }
+                /* Descend into right child */
+                else if (!(*ppt_CurrentEvent)->pt_Right)
+                {
+                    ppt_CurrentEvent = &(*ppt_CurrentEvent)->pt_Right;
+                    pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
+                    pt_CurrentEvent2 = pt_CurrentEvent2->pt_Right;
+
+                    t_Status = liftEventE(
+                        pt_CurrentEvent2,
+                        pt_CurrentEvent2->pt_Parent->t_Count -
+                            pt_CurrentEvent1->pt_Parent->t_Count);
+                }
+                else
+                {
+                    /* Copy n1. This is always the smaller of the two */
+                    (*ppt_CurrentEvent)->t_Count = pt_CurrentEvent1->t_Count;
+
+                    /* If the events were swapped during the descend (i.e
+                     * n1 was bigger than n2), swap them them back before
+                     * continuing */
+                    if (pt_CurrentEvent1->t_Count < pt_CurrentEvent2->t_Count)
+                    {
+                        pt_SwapEvent = pt_CurrentEvent1;
+                        pt_CurrentEvent1 = pt_CurrentEvent2;
+                        pt_CurrentEvent2 = pt_SwapEvent;
+                    }
+
+                    /* Normalise Event.
+                     * This may destroy all child nodes stored under
+                     * *ppt_CurrentEvent
+                     */
+                    t_Status = normEventE(*ppt_CurrentEvent);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        /* Save the parent pointer on the stack */
+                        pt_ParentCurrentEvent = (*ppt_CurrentEvent)->pt_Parent;
+
+                        /* Climb back to the parent node */
+                        ppt_CurrentEvent = &pt_ParentCurrentEvent;
+                        pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
+                        pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+                    }
+                }
+            }
+        }
+        /* join(n1, (n2, l2, r2)) = join((n1, 0, 0), (n2, l2, r2)) */
+        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1))
+        {
+            t_Status = newEvent(
+                &pt_CurrentEvent1->pt_Left, pt_CurrentEvent1, 0);
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                t_Status = newEvent(
+                    &pt_CurrentEvent1->pt_Right, pt_CurrentEvent1, 0);
+            }
+        }
+        /* join((n1, l1, r1), n2) = join((n1, l1, r1), (n2, 0, 0)) */
+        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
+        {
+            t_Status = newEvent(
+                &pt_CurrentEvent2->pt_Left, pt_CurrentEvent2, 0);
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                t_Status = newEvent(
+                    &pt_CurrentEvent2->pt_Right, pt_CurrentEvent2, 0);
+            }
+        }
+        else
+        {
+            t_Status = ITC_STATUS_CORRUPT_EVENT;
+        }
+    }
+
+    /* Destroy the copied input events */
+    if (pt_RootCurrentEvent1)
+    {
+        /* There is nothing else to do if the destroy fails. */
+        (void)ITC_Event_destroy(&pt_RootCurrentEvent1);
+    }
+
+    if (pt_RootCurrentEvent2)
+    {
+        /* There is nothing else to do if the destroy fails. */
+        (void)ITC_Event_destroy(&pt_RootCurrentEvent2);
+    }
+
+    /* If something goes wrong during the joining process - the Event is invalid
+     * and must not be used. */
+    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    {
+        /* There is nothing else to do if the destroy fails. Also it is more
+         * important to convey the join failed, rather than the destroy */
+        (void)ITC_Event_destroy(ppt_CurrentEvent);
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -678,6 +915,33 @@ ITC_Status_t ITC_Event_normalise(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = normEventE(pt_Event);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Join two existing Events into a single Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_join(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_t **ppt_Event
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateEvent(pt_Event1);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event2);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = joinEventE(pt_Event1, pt_Event2, ppt_Event);
     }
 
     return t_Status;
