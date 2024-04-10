@@ -624,6 +624,33 @@ void ITC_Event_Test_joinTwoIdenticalLeafEvents(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
+/* Test joining two identical leaf event subtrees */
+void ITC_Event_Test_joinTwoIdenticalLeafEventSubtrees(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    ITC_Event_t *pt_JoinEvent;
+
+    /* Construct the original Events */
+    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 1));
+    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+
+    /* Test joining the events */
+    TEST_SUCCESS(
+        ITC_Event_join(pt_Event1->pt_Right, pt_Event2->pt_Left, &pt_JoinEvent));
+    /* Test the joined event is a leaf with 1 counter */
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 1);
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+}
+
 /* Test joining two different leaf events */
 void ITC_Event_Test_joinTwoDifferentLeafEvents(void)
 {
@@ -646,6 +673,44 @@ void ITC_Event_Test_joinTwoDifferentLeafEvents(void)
 
     /* Test joining the events the other way around */
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
+
+    /* Test the joined event is a leaf with the bigger event counter */
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+}
+
+/* Test joining two different leaf event subtrees */
+void ITC_Event_Test_joinTwoDifferentLeafEventSubtrees(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    ITC_Event_t *pt_JoinEvent;
+
+    /* Construct the original Events */
+    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
+    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 2));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 2));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+
+    /* Test joining the events */
+    TEST_SUCCESS(
+        ITC_Event_join(pt_Event1->pt_Right, pt_Event2->pt_Left, &pt_JoinEvent));
+
+    /* Test the joined event is a leaf with the bigger event counter */
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+
+    /* Destroy the joined event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+
+    /* Test joining the events the other way around */
+    TEST_SUCCESS(
+        ITC_Event_join(pt_Event2->pt_Left, pt_Event1->pt_Right, &pt_JoinEvent));
 
     /* Test the joined event is a leaf with the bigger event counter */
     TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
@@ -682,6 +747,53 @@ void ITC_Event_Test_joinALeafAndAParentEvents(void)
 
     /* Test joining the events the other way around */
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
+
+    /* Test the joined event is a (4, 0, 6) event */
+    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+}
+
+/* Test joining a leaf and a parent event subtrees */
+void ITC_Event_Test_joinALeafAndAParentEventSubtrees(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    ITC_Event_t *pt_JoinEvent;
+
+    /* clang-format off */
+    /* Construct the original Events */
+    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 4));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 6));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+
+    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 2));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 2));
+    /* clang-format on */
+
+    /* Test joining the events */
+    TEST_SUCCESS(
+        ITC_Event_join(pt_Event1->pt_Left, pt_Event2->pt_Right, &pt_JoinEvent));
+
+    /* Test the joined event is a (4, 0, 6) event */
+    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
+
+    /* Destroy the joined event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+
+    /* Test joining the events the other way around */
+    TEST_SUCCESS(
+        ITC_Event_join(pt_Event2->pt_Right, pt_Event1->pt_Left, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
     TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);

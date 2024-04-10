@@ -597,16 +597,14 @@ static ITC_Status_t joinEventE(
 
         /* Clone the input events, as they will get modified during the
          * joining process */
-        t_Status = cloneEvent(
-            pt_Event1, &pt_CurrentEvent1, pt_Event1->pt_Parent);
+        t_Status = cloneEvent(pt_Event1, &pt_CurrentEvent1, NULL);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
             /* Save the root so it can be easily deallocated */
             pt_RootCurrentEvent1 = pt_CurrentEvent1;
 
-            t_Status = cloneEvent(
-                pt_Event2, &pt_CurrentEvent2, pt_Event2->pt_Parent);
+            t_Status = cloneEvent(pt_Event2, &pt_CurrentEvent2, NULL);
 
             if (t_Status == ITC_STATUS_SUCCESS)
             {
