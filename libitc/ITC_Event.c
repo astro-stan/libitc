@@ -11,6 +11,8 @@
 #include "ITC_Port.h"
 #include "ITC_package.h"
 
+#include <stdbool.h>
+
 /******************************************************************************
  * Private functions
  ******************************************************************************/
@@ -249,62 +251,56 @@ static ITC_Status_t cloneEvent(
 }
 
 /**
- * @brief Lift an Event fulfilling `lift(e)`
- * Rules:
- *  - lift(n, m) = (n + m)
- *  - lift((n, e1, e2), m) = (n + m, e1, e2)
+ * @brief Increment an `ITC_EventCounter_t` and detect overflows
  *
- * @param pt_Event The event to be lifted
- * @param t_Count The number of events to be lifted with
+ * @param pt_Counter The counter to increment
+ * @param t_IncCount The amount to increment with
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t liftEventE(
-    ITC_Event_t *pt_Event,
-    ITC_Event_Counter_t t_Count
+static ITC_Status_t incEventCounter(
+    ITC_Event_Counter_t *pt_Counter,
+    ITC_Event_Counter_t t_IncCount
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect overflow */
-    if (pt_Event->t_Count + t_Count < pt_Event->t_Count)
+    if (*pt_Counter + t_IncCount < *pt_Counter)
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_OVERFLOW;
     }
     else
     {
-        pt_Event->t_Count += t_Count;
+        *pt_Counter += t_IncCount;
     }
 
     return t_Status;
 }
 
 /**
- * @brief Sink an Event fulfilling `sink(e)`
- * Rules:
- *  - sink(n, m) = (n - m)
- *  - sink((n, e1, e2), m) = (n - m, e1, e2)
+ * @brief Decrement an `ITC_EventCounter_t` and detect underflows
  *
- * @param pt_Event The Event to be sinked
- * @param t_Count The number of events to be sinked with
+ * @param pt_Counter The counter to decrement
+ * @param t_IncCount The amount to decrement with
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t sinkEventE(
-    ITC_Event_t *pt_Event,
-    ITC_Event_Counter_t t_Count
+static ITC_Status_t decEventCounter(
+    ITC_Event_Counter_t *pt_Counter,
+    ITC_Event_Counter_t t_IncCount
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect underflow */
-    if (pt_Event->t_Count - t_Count > pt_Event->t_Count)
+    if (*pt_Counter - t_IncCount > *pt_Counter)
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_UNDERFLOW;
     }
     else
     {
-        pt_Event->t_Count -= t_Count;
+        *pt_Counter -= t_IncCount;
     }
 
     return t_Status;
@@ -346,22 +342,22 @@ static ITC_Status_t liftSinkSinkEvent(
         t_Count = MIN(
             pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
-        t_Status = liftEventE(pt_Event, t_Count);
+        t_Status = LIFT_EVENT_E(pt_Event, t_Count);
     }
 
     /* Sink the children */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = sinkEventE(pt_Event->pt_Left, t_Count);
+        t_Status = SINK_EVENT_E(pt_Event->pt_Left, t_Count);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
-            t_Status = sinkEventE(pt_Event->pt_Right, t_Count);
+            t_Status = SINK_EVENT_E(pt_Event->pt_Right, t_Count);
 
             if (t_Status != ITC_STATUS_SUCCESS)
             {
                 /* Restore the other child */
-                t_OpStatus = liftEventE(pt_Event->pt_Left, t_Count);
+                t_OpStatus = LIFT_EVENT_E(pt_Event->pt_Left, t_Count);
 
                 if (t_OpStatus != ITC_STATUS_SUCCESS)
                 {
@@ -374,7 +370,7 @@ static ITC_Status_t liftSinkSinkEvent(
         if (t_Status != ITC_STATUS_SUCCESS)
         {
             /* Restore the root count */
-            t_OpStatus = sinkEventE(pt_Event, t_Count);
+            t_OpStatus = SINK_EVENT_E(pt_Event, t_Count);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
@@ -420,7 +416,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
         /* Remember the count */
         t_Count = pt_Event->pt_Left->t_Count;
 
-        t_Status = liftEventE(pt_Event, t_Count);
+        t_Status = LIFT_EVENT_E(pt_Event, t_Count);
     }
 
     /* Destroy the children */
@@ -449,7 +445,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
         if (t_Status != ITC_STATUS_SUCCESS)
         {
             /* Restore the root count */
-            t_OpStatus = sinkEventE(pt_Event, t_Count);
+            t_OpStatus = SINK_EVENT_E(pt_Event, t_Count);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
@@ -679,7 +675,7 @@ static ITC_Status_t joinEventE(
                     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
                     pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
 
-                    t_Status = liftEventE(
+                    t_Status = LIFT_EVENT_E(
                         pt_CurrentEvent2,
                         pt_CurrentEvent2->pt_Parent->t_Count -
                             pt_CurrentEvent1->pt_Parent->t_Count);
@@ -691,7 +687,7 @@ static ITC_Status_t joinEventE(
                     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
                     pt_CurrentEvent2 = pt_CurrentEvent2->pt_Right;
 
-                    t_Status = liftEventE(
+                    t_Status = LIFT_EVENT_E(
                         pt_CurrentEvent2,
                         pt_CurrentEvent2->pt_Parent->t_Count -
                             pt_CurrentEvent1->pt_Parent->t_Count);
@@ -780,6 +776,577 @@ static ITC_Status_t joinEventE(
         /* There is nothing else to do if the destroy fails. Also it is more
          * important to convey the join failed, rather than the destroy */
         (void)ITC_Event_destroy(ppt_CurrentEvent);
+    }
+
+    return t_Status;
+}
+
+// static ITC_Status_t leqEventE(
+//     const ITC_Event_t *const pt_Event1,
+//     const ITC_Event_t *const pt_Event2,
+//     bool b_IsLeq
+// )
+// {
+//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+//     ITC_Event_t *pt_CurrentEvent1 = NULL;
+//     ITC_Event_t *pt_RootCurrentEvent1 = NULL;
+//     ITC_Event_t *pt_CurrentEvent2 = NULL;
+//     ITC_Event_t *pt_RootCurrentEvent2 = NULL;
+//     bool b_CurrentIsLeq = true;
+
+//     if(!pt_Event1 || !pt_Event2)
+//     {
+//         t_Status = ITC_STATUS_INVALID_PARAM;
+//     }
+//     else
+//     {
+//         /* Init comparison */
+//         b_IsLeq = false;
+
+//         /* Clone the input events, as they will get modified during the
+//          * joining process */
+//         t_Status = cloneEvent(pt_Event1, &pt_CurrentEvent1, NULL);
+
+//         if (t_Status == ITC_STATUS_SUCCESS)
+//         {
+//             /* Save the root so it can be easily deallocated */
+//             pt_RootCurrentEvent1 = pt_CurrentEvent1;
+
+//             t_Status = cloneEvent(pt_Event2, &pt_CurrentEvent2, NULL);
+
+//             if (t_Status == ITC_STATUS_SUCCESS)
+//             {
+//                 pt_RootCurrentEvent2 = pt_CurrentEvent2;
+//             }
+//         }
+//     }
+
+//     while (t_Status == ITC_STATUS_SUCCESS &&
+//            pt_CurrentEvent1 != pt_RootCurrentEvent1->pt_Parent &&
+//            pt_CurrentEvent2 != pt_RootCurrentEvent2->pt_Parent)
+//     {
+//         b_CurrentIsLeq &=
+//             pt_CurrentEvent1->t_Count <= pt_CurrentEvent2->t_Count;
+
+//         /* leq(n1, n2) = n1 <= n2
+//          * leq(n1, (n2, l2, r2)) = n1 <= n2
+//         */
+//         if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1))
+//         {
+//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+//             pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
+//         }
+//         else
+//         {
+//             /* leq((n1, l1, r1), n2):
+//             *     (n1 <= n2) && leq(lift(l1, n1), n2) && leq(lift(r1, n1), n2)
+//             */
+//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
+//             t_Status = LIFT_EVENT_E(
+//                 pt_CurrentEvent1,
+//                 pt_CurrentEvent1->pt_Parent->t_Count);
+
+//             /* leq((n1, l1, r1), (n2, l2, r2)):
+//             *     (n1 <= n2) && leq(lift(l1, n1), lift(l2, n2)) && leq(lift(r1, n1), lift(r2, n2)))
+//             */
+//             if(!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
+//             {
+//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
+//                 t_Status = LIFT_EVENT_E(
+//                     pt_CurrentEvent2,
+//                     pt_CurrentEvent2->pt_Parent->t_Count);
+
+//             }
+
+//         }
+//         else
+//         {
+
+//         }
+//     }
+
+//     return t_Status;
+// }
+
+// static ITC_Status_t leqEventE2(
+//     const ITC_Event_t *const pt_Event1,
+//     const ITC_Event_t *const pt_Event2
+// )
+// {
+//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+//     const ITC_Event_t *pt_CurrentEvent1 = pt_Event1;
+//     const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
+//     const ITC_Event_t *pt_CurrentEvent2 = pt_Event2;
+//     const ITC_Event_t *pt_ParentCurrentEvent2 = NULL;
+//     const ITC_Event_t *pt_ParentRootEvent1 = NULL;
+//     const ITC_Event_t *pt_ParentRootEvent2 = NULL;
+
+//     bool b_IsLeq = true;
+
+//     if(!pt_CurrentEvent1 || !pt_CurrentEvent2)
+//     {
+//         t_Status = ITC_STATUS_INVALID_PARAM;
+//     }
+//     else
+//     {
+//         /* Remember the root parent Event as this might be a subtree */
+//         pt_ParentRootEvent1 = pt_CurrentEvent1->pt_Parent;
+//         pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
+//         pt_ParentRootEvent2 = pt_CurrentEvent2->pt_Parent;
+//         pt_ParentCurrentEvent2 = pt_ParentRootEvent2;
+//     }
+
+//     /* Perform a pre-order traversal */
+//     while (t_Status == ITC_STATUS_SUCCESS &&
+//            b_IsLeq &&
+//            pt_CurrentEvent1 != pt_ParentRootEvent1 &&
+//            pt_CurrentEvent2 != pt_ParentRootEvent2)
+//     {
+//         /* visit node */
+
+//         if (pt_CurrentEvent1->pt_Left)
+//         {
+//             pt_ParentCurrentEvent1 = pt_CurrentEvent1;
+//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
+
+//             if (pt_CurrentEvent2->pt_Left)
+//             {
+//                 pt_ParentCurrentEvent2 = pt_CurrentEvent2;
+//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
+//             }
+//         }
+//         else if (pt_CurrentEvent1->pt_Right)
+//         {
+//             pt_ParentCurrentEvent1 = pt_CurrentEvent1;
+//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
+
+//             if (pt_CurrentEvent2->pt_Right)
+//             {
+//                 pt_ParentCurrentEvent2 = pt_CurrentEvent2;
+//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Right;
+//             }
+//         }
+//         else
+//         {
+//             pt_ParentCurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+
+//             /* Loop until the current element is no longer reachable
+//                 * through he parent's right child */
+//             while (pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
+//                 pt_ParentCurrentEvent1->pt_Right == pt_CurrentEvent1)
+//             {
+//                 pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+//                 pt_ParentCurrentEvent1 = pt_ParentCurrentEvent1->pt_Parent;
+//             }
+
+//             /* There is a right subtree that has not been explored yet */
+//             if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
+//             {
+//                 pt_CurrentEvent1 = pt_ParentCurrentEvent1->pt_Right;
+//             }
+//             else
+//             {
+//                 pt_CurrentEvent1 = NULL;
+//             }
+
+//             pt_ParentCurrentEvent2 = pt_CurrentEvent2->pt_Parent;
+
+//             /* Loop until the current element is no longer reachable
+//                 * through he parent's right child */
+//             while (pt_ParentCurrentEvent2 != pt_ParentRootEvent2 &&
+//                 pt_ParentCurrentEvent2->pt_Right == pt_CurrentEvent2)
+//             {
+//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
+//                 pt_ParentCurrentEvent2 = pt_ParentCurrentEvent2->pt_Parent;
+//             }
+
+//             /* There is a right subtree that has not been explored yet */
+//             if (pt_ParentCurrentEvent2 != pt_ParentRootEvent2)
+//             {
+//                 pt_CurrentEvent2 = pt_ParentCurrentEvent2->pt_Right;
+//             }
+//             else
+//             {
+//                 pt_CurrentEvent2 = NULL;
+//             }
+//         }
+
+//         /* Descend into left tree */
+//         if (!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1))
+//         {
+//             /* Remember the parent address */
+//             pt_ParentCurrentEvent1 = pt_CurrentEvent1;
+//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
+
+//             if(!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
+//             {
+//                 pt_ParentCurrentEvent2 = pt_CurrentEvent2;
+//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
+//             }
+//         }
+//         else
+//         {
+//             /* Trust the parent pointers.
+//              * They were validated on the way down */
+//             pt_ParentCurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+
+//             /* Loop until the current element is no longer reachable
+//                 * through he parent's right child */
+//             while (pt_ParentCurrentEvent != pt_ParentRootEvent &&
+//                 pt_ParentCurrentEvent->pt_Right == pt_CurrentEvent)
+//             {
+//                 pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+//                 pt_ParentCurrentEvent = pt_ParentCurrentEvent->pt_Parent;
+//             }
+
+//             /* There is a right subtree that has not been explored yet */
+//             if (pt_ParentCurrentEvent != pt_ParentRootEvent)
+//             {
+//                 pt_CurrentEvent = pt_ParentCurrentEvent->pt_Right;
+//             }
+//             else
+//             {
+//                 pt_CurrentEvent = NULL;
+//             }
+//         }
+
+//         /* Descend into right tree */
+//         else if (pt_CurrentEvent->pt_Right)
+//         {
+//             /* Remember the parent address */
+//             pt_ParentCurrentEvent = pt_CurrentEvent;
+
+//             pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+//         }
+//         else
+//         {
+//             /* Trust the parent pointers.
+//                 * They were validated on the way down */
+//             pt_ParentCurrentEvent = pt_CurrentEvent->pt_Parent;
+
+//             /* Loop until the current element is no longer reachable
+//                 * through he parent's right child */
+//             while (pt_ParentCurrentEvent != pt_ParentRootEvent &&
+//                 pt_ParentCurrentEvent->pt_Right == pt_CurrentEvent)
+//             {
+//                 pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+//                 pt_ParentCurrentEvent = pt_ParentCurrentEvent->pt_Parent;
+//             }
+
+//             /* There is a right subtree that has not been explored yet */
+//             if (pt_ParentCurrentEvent != pt_ParentRootEvent)
+//             {
+//                 pt_CurrentEvent = pt_ParentCurrentEvent->pt_Right;
+//             }
+//             else
+//             {
+//                 pt_CurrentEvent = NULL;
+//             }
+//         }
+
+//     }
+
+//     return t_Status;
+// }
+
+// /**
+//  * @brief Check if one Event is `<=` to another, fulfilling `leq(e1, e2)`
+//  * Rules:
+//  *  - leq(n1, n2) = n1 <= n2
+//  *  - leq(n1, (n2, l2, r2)) = n1 <= n2
+//  *  - leq((n1, l1, r1), n2):
+//  *       n1 <= n2 && leq(lift(l1, n1), n2) && leq(lift(r1, n1), n2)
+//  *  - leq((n1, l1, r1), (n2, l2, r2)):
+//  *       n1 <= n2 && leq(lift(l1, n1), lift(l2, n2)) && leq(lift(r1, n1), lift(r2, n2))
+//  *
+//  * @param pt_Event1 The first Event
+//  * @param pt_Event2 The second Event
+//  * @param pb_IsLeq (out) `true` if `*pt_Event1 <= *pt_Event2`. Otherwise `false`
+//  * @return ITC_Status_t The status of the operation
+//  * @retval ITC_STATUS_SUCCESS on success
+//  */
+// static ITC_Status_t leqEventE(
+//     const ITC_Event_t *const pt_Event1,
+//     const ITC_Event_t *const pt_Event2,
+//     bool *pb_IsLeq
+// )
+// {
+//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+//     const ITC_Event_t *pt_CurrentEvent1 = pt_Event1;
+//     const ITC_Event_t *pt_CurrentEvent2 = pt_Event2;
+//     const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
+//     const ITC_Event_t *pt_ParentRootEvent1 = NULL;
+//     const ITC_Event_t *pt_ParentRootEvent2 = NULL;
+//     uint32_t u32_CurrentEvent2DescendSkip = 0;
+//     ITC_Event_Counter_t t_ParentsCountEvent1 = 0;
+//     ITC_Event_Counter_t t_ParentsCountEvent2 = 0;
+//     ITC_Event_Counter_t t_CurrentCountEvent1 = 0;
+//     ITC_Event_Counter_t t_CurrentCountEvent2 = 0;
+
+//     if(!pt_CurrentEvent1 || !pt_CurrentEvent2)
+//     {
+//         t_Status = ITC_STATUS_INVALID_PARAM;
+//     }
+//     else
+//     {
+//         *pb_IsLeq = true;
+
+//         /* Remember the root parent Event as this might be a subtree */
+//         pt_ParentRootEvent1 = pt_CurrentEvent1->pt_Parent;
+//         pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
+
+//         pt_ParentRootEvent2 = pt_CurrentEvent2->pt_Parent;
+//     }
+
+//     if (t_Status == ITC_STATUS_SUCCESS)
+//     {
+//         /* Perform a pre-order traversal */
+//         while (*pb_IsLeq &&
+//                pt_CurrentEvent1 != pt_ParentRootEvent1 &&
+//                pt_CurrentEvent2 != pt_ParentRootEvent2)
+//         {
+//             t_CurrentCountEvent1 =
+//                 t_ParentsCountEvent1 + pt_CurrentEvent1->t_Count;
+//             t_CurrentCountEvent2 =
+//                 t_ParentsCountEvent2 + pt_CurrentEvent2->t_Count;
+
+//             *pb_IsLeq = t_CurrentCountEvent1 <= t_CurrentCountEvent2;
+
+//             if (*pb_IsLeq)
+//             {
+//                 /* Descend into left tree */
+//                 if (pt_CurrentEvent1->pt_Left)
+//                 {
+//                     /* Remember the parent address */
+//                     pt_ParentCurrentEvent1 = pt_CurrentEvent1;
+
+//                     /* Increment the height */
+//                     t_ParentsCountEvent1 += pt_CurrentEvent1->t_Count;
+
+//                     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
+
+//                     if (pt_CurrentEvent2->pt_Left)
+//                     {
+//                         /* Increment the height */
+//                         t_ParentsCountEvent2 += pt_CurrentEvent2->t_Count;
+
+//                         pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
+//                     }
+//                     else
+//                     {
+//                         u32_CurrentEvent2DescendSkip++;
+//                     }
+//                 }
+//                 // /* Descend into right tree */
+//                 // else if (pt_CurrentEvent1->pt_Right)
+//                 // {
+//                 //     /* Remember the parent address */
+//                 //     pt_ParentCurrentEvent1 = pt_CurrentEvent1;
+
+//                 //     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
+//                 // }
+//                 else
+//                 {
+//                     pt_ParentCurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+
+//                     /* Loop until the current element is no longer reachable
+//                     * through the parent's right child */
+//                     while (pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
+//                         pt_ParentCurrentEvent1->pt_Right == pt_CurrentEvent1)
+//                     {
+//                         pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
+//                         pt_ParentCurrentEvent1 =
+//                             pt_ParentCurrentEvent1->pt_Parent;
+
+//                         /* Decrement height */
+//                         t_ParentsCountEvent1 -= pt_CurrentEvent1->t_Count;
+
+//                         if (u32_CurrentEvent2DescendSkip)
+//                         {
+//                             u32_CurrentEvent2DescendSkip--;
+//                         }
+//                         else
+//                         {
+//                             if(pt_CurrentEvent2->pt_Parent != pt_ParentRootEvent2)
+//                             {
+//                                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
+//                                 /* Decrement height */
+//                                 t_ParentsCountEvent2 -= pt_CurrentEvent2->t_Count;
+//                             }
+//                         }
+//                     }
+
+//                     /* There is a right subtree that has not been explored
+//                      * yet */
+//                     if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
+//                     {
+//                         pt_CurrentEvent1 = pt_ParentCurrentEvent1->pt_Right;
+
+//                         if(!u32_CurrentEvent2DescendSkip &&
+//                            pt_CurrentEvent2->pt_Parent != pt_ParentRootEvent2)
+//                         {
+//                             pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent->pt_Right;
+//                         }
+//                         else
+//                         {
+//                             u32_CurrentEvent2DescendSkip++;
+//                         }
+//                     }
+//                     else
+//                     {
+//                         pt_CurrentEvent1 = NULL;
+//                         pt_CurrentEvent2 = NULL;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     return t_Status;
+// }
+
+/**
+ * @brief Check if one Event is `<=` to another, fulfilling `leq(e1, e2)`
+ * Rules:
+ *  - leq(n1, n2) = n1 <= n2
+ *  - leq(n1, (n2, l2, r2)) = n1 <= n2
+ *  - leq((n1, l1, r1), n2):
+ *       n1 <= n2 && leq(lift(l1, n1), n2) && leq(lift(r1, n1), n2)
+ *  - leq((n1, l1, r1), (n2, l2, r2)):
+ *       n1 <= n2 && leq(lift(l1, n1), lift(l2, n2)) && leq(lift(r1, n1), lift(r2, n2))
+ *
+ * @param pt_Event1 The first Event
+ * @param pt_Event2 The second Event
+ * @param pb_IsLeq (out) `true` if `*pt_Event1 <= *pt_Event2`. Otherwise `false`
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t leqEventE(
+    const ITC_Event_t *pt_Event1,
+    const ITC_Event_t *pt_Event2,
+    bool *pb_IsLeq
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
+    const ITC_Event_t *pt_ParentRootEvent1 = NULL;
+    uint32_t u32_CurrentEvent2DescendSkip = 0;
+    ITC_Event_Counter_t t_ParentsCountEvent1 = 0;
+    ITC_Event_Counter_t t_ParentsCountEvent2 = 0;
+    ITC_Event_Counter_t t_CurrentCountEvent1 = 0;
+    ITC_Event_Counter_t t_CurrentCountEvent2 = 0;
+
+    if(!pt_Event1 || !pt_Event2)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        *pb_IsLeq = true;
+
+        /* Remember the root parent Event as this might be a subtree */
+        pt_ParentRootEvent1 = pt_Event1->pt_Parent;
+        pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Perform a pre-order traversal */
+        while (*pb_IsLeq && pt_Event1 != pt_ParentRootEvent1)
+        {
+            t_CurrentCountEvent1 =
+                t_ParentsCountEvent1 + pt_Event1->t_Count;
+            t_CurrentCountEvent2 =
+                t_ParentsCountEvent2 + pt_Event2->t_Count;
+
+            *pb_IsLeq = t_CurrentCountEvent1 <= t_CurrentCountEvent2;
+
+            if (*pb_IsLeq)
+            {
+                /* Descend into left tree */
+                if (pt_Event1->pt_Left)
+                {
+                    /* Remember the parent address */
+                    pt_ParentCurrentEvent1 = pt_Event1;
+
+                    /* Increment the height */
+                    t_ParentsCountEvent1 += pt_Event1->t_Count;
+
+                    pt_Event1 = pt_Event1->pt_Left;
+
+                    if (pt_Event2->pt_Left)
+                    {
+                        /* Increment the height */
+                        t_ParentsCountEvent2 += pt_Event2->t_Count;
+
+                        pt_Event2 = pt_Event2->pt_Left;
+                    }
+                    else
+                    {
+                        u32_CurrentEvent2DescendSkip++;
+                    }
+                }
+                // /* Descend into right tree */
+                // else if (pt_CurrentEvent1->pt_Right)
+                // {
+                //     /* Remember the parent address */
+                //     pt_ParentCurrentEvent1 = pt_CurrentEvent1;
+
+                //     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
+                // }
+                else
+                {
+                    pt_ParentCurrentEvent1 = pt_Event1->pt_Parent;
+
+                    /* Loop until the current element is no longer reachable
+                    * through the parent's right child */
+                    while (pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
+                        pt_ParentCurrentEvent1->pt_Right == pt_Event1)
+                    {
+                        pt_Event1 = pt_Event1->pt_Parent;
+                        pt_ParentCurrentEvent1 =
+                            pt_ParentCurrentEvent1->pt_Parent;
+
+                        /* Decrement height */
+                        t_ParentsCountEvent1 -= pt_Event1->t_Count;
+
+                        if (u32_CurrentEvent2DescendSkip)
+                        {
+                            u32_CurrentEvent2DescendSkip--;
+                        }
+                        else
+                        {
+                            pt_Event2 = pt_Event2->pt_Parent;
+                            /* Decrement height */
+                            t_ParentsCountEvent2 -= pt_Event2->t_Count;
+                        }
+                    }
+
+                    /* There is a right subtree that has not been explored
+                     * yet */
+                    if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
+                    {
+                        pt_Event1 = pt_ParentCurrentEvent1->pt_Right;
+
+                        if(u32_CurrentEvent2DescendSkip)
+                        {
+                            // u32_CurrentEvent2DescendSkip++;
+                        }
+                        else
+                        {
+                            pt_Event2 = pt_Event2->pt_Parent->pt_Right;
+                        }
+                    }
+                    else
+                    {
+                        pt_Event1 = NULL;
+                    }
+                }
+            }
+        }
     }
 
     return t_Status;
@@ -940,6 +1507,81 @@ ITC_Status_t ITC_Event_join(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = joinEventE(pt_Event1, pt_Event2, ppt_Event);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Compare two existing Events
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_compare(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_Comparison_t *pt_Result
+
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    bool b_IsLeq12; /* `pt_Event1 <= pt_Event2` */
+    bool b_IsLeq21; /* `pt_Event2 <= pt_Event1` */
+
+    if (!pt_Result)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event1);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event2);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check if `pt_Event1 <= pt_Event2` */
+        t_Status = leqEventE(pt_Event1, pt_Event2, &b_IsLeq12);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check if `pt_Event2 <= pt_Event1` */
+        t_Status = leqEventE(pt_Event2, pt_Event1, &b_IsLeq21);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        if (b_IsLeq12)
+        {
+            /* (*pt_Event1 <= *pt_Event2) && (*pt_Event2 <= *pt_Event1) */
+            if (b_IsLeq21)
+            {
+                *pt_Result = ITC_EVENT_COMPARISON_EQUAL;
+            }
+            /* (*pt_Event1 <= *pt_Event2) && (*pt_Event2 >= *pt_Event1) */
+            else
+            {
+                *pt_Result = ITC_EVENT_COMPARISON_LESS_THAN;
+            }
+        }
+        else
+        {
+            /* (*pt_Event1 >= *pt_Event2) && (*pt_Event2 <= *pt_Event1) */
+            if (b_IsLeq21)
+            {
+                *pt_Result = ITC_EVENT_COMPARISON_GREATER_THAN;
+            }
+            /* (*pt_Event1 >= *pt_Event2) && (*pt_Event2 >= *pt_Event1) */
+            else
+            {
+                *pt_Result = ITC_EVENT_COMPARISON_CONCURRENT;
+            }
+        }
     }
 
     return t_Status;

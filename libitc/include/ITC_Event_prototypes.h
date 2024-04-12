@@ -79,4 +79,28 @@ ITC_Status_t ITC_Event_join(
     ITC_Event_t **ppt_Event
 );
 
+/**
+ * @brief Compare two existing Events
+ *
+ * - If `*pt_Event1 < *pt_Event2`:
+ *      `*pt_Result == ITC_EVENT_COMPARISON_LESS_THAN`
+ * - If `*pt_Event1 > *pt_Event2`:
+ *      `*pt_Result == ITC_EVENT_COMPARISON_GREATER_THAN`
+ * - If `*pt_Event1 == *pt_Event2`:
+ *      `*pt_Result == ITC_EVENT_COMPARISON_EQUAL`
+ * - If `*pt_Event1 <> *pt_Event2`:
+ *      `*pt_Result == ITC_EVENT_COMPARISON_CONCURRENT`
+ *
+ * @param pt_Event1 The first Event
+ * @param pt_Event2 The second Event
+ * @param pt_Result The result of the comparison
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Event_compare(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_Comparison_t *pt_Result
+);
+
 #endif /* ITC_EVENT_PROTOTYPES_H_ */
