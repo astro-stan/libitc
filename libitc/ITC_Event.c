@@ -840,9 +840,7 @@ static ITC_Status_t leqEventE(
      *
      * For `pt_Event1 <= pt_Event2` all `<=` checks must pass.
      * If a check fails - exit early */
-    while (t_Status == ITC_STATUS_SUCCESS &&
-           *pb_IsLeq &&
-           pt_Event1 != pt_ParentRootEvent1)
+    while (t_Status == ITC_STATUS_SUCCESS && *pb_IsLeq && pt_Event1)
     {
         /* Calculate the total current event count for both Event trees
          *

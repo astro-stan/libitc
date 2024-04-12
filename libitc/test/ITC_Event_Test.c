@@ -1067,6 +1067,47 @@ void ITC_Event_Test_compareLeafEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
 }
 
+/* Test comparing leaf Event subtrees succeeds */
+void ITC_Event_Test_compareLeafEventSubtreesSucceeds(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    ITC_Event_Comparison_t t_Result;
+
+    /* Create the Events */
+    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 1));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+
+    /* Compare Events */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event1->pt_Left, pt_Event2->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
+    /* Compare the other way around */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event2->pt_Left, pt_Event1->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
+
+    /* Make the events different */
+    pt_Event1->pt_Left->t_Count += 2;
+
+    /* Compare Events */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event1->pt_Left, pt_Event2->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_GREATER_THAN, t_Result);
+    /* Compare the other way around */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event2->pt_Left, pt_Event1->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_LESS_THAN, t_Result);
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
+}
+
 /* Test comparing leaf and parent Event succeeds */
 void ITC_Event_Test_compareLeafAndParentEventsSucceeds(void)
 {
@@ -1101,6 +1142,57 @@ void ITC_Event_Test_compareLeafAndParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_compare(pt_Event1, pt_Event1, &t_Result));
     TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
     TEST_SUCCESS(ITC_Event_compare(pt_Event2, pt_Event2, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
+}
+
+/* Test comparing leaf and parent Event subtrees succeeds */
+void ITC_Event_Test_compareLeafAndParentEventSubtreesSucceeds(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    ITC_Event_Comparison_t t_Result;
+
+    /* Create the Events */
+    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 1));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 0));
+    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
+    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+
+    /* Compare Events */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event1->pt_Left, pt_Event2->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_GREATER_THAN, t_Result);
+    /* Compare the other way around */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event2->pt_Left, pt_Event1->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_LESS_THAN, t_Result);
+
+    /* Make Event 2 bigger */
+    pt_Event2->pt_Left->t_Count += 1;
+
+    /* Compare Events */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event1->pt_Left, pt_Event2->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_LESS_THAN, t_Result);
+    /* Compare the other way around */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event2->pt_Left, pt_Event1->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_GREATER_THAN, t_Result);
+
+    /* Check events are equal to themselves */
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event1->pt_Left, pt_Event1->pt_Left, &t_Result));
+    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
+    TEST_SUCCESS(
+        ITC_Event_compare(pt_Event2->pt_Left, pt_Event2->pt_Left, &t_Result));
     TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
 
     /* Destroy the Events */
