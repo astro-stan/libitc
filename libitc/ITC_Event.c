@@ -781,432 +781,6 @@ static ITC_Status_t joinEventE(
     return t_Status;
 }
 
-// static ITC_Status_t leqEventE(
-//     const ITC_Event_t *const pt_Event1,
-//     const ITC_Event_t *const pt_Event2,
-//     bool b_IsLeq
-// )
-// {
-//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-//     ITC_Event_t *pt_CurrentEvent1 = NULL;
-//     ITC_Event_t *pt_RootCurrentEvent1 = NULL;
-//     ITC_Event_t *pt_CurrentEvent2 = NULL;
-//     ITC_Event_t *pt_RootCurrentEvent2 = NULL;
-//     bool b_CurrentIsLeq = true;
-
-//     if(!pt_Event1 || !pt_Event2)
-//     {
-//         t_Status = ITC_STATUS_INVALID_PARAM;
-//     }
-//     else
-//     {
-//         /* Init comparison */
-//         b_IsLeq = false;
-
-//         /* Clone the input events, as they will get modified during the
-//          * joining process */
-//         t_Status = cloneEvent(pt_Event1, &pt_CurrentEvent1, NULL);
-
-//         if (t_Status == ITC_STATUS_SUCCESS)
-//         {
-//             /* Save the root so it can be easily deallocated */
-//             pt_RootCurrentEvent1 = pt_CurrentEvent1;
-
-//             t_Status = cloneEvent(pt_Event2, &pt_CurrentEvent2, NULL);
-
-//             if (t_Status == ITC_STATUS_SUCCESS)
-//             {
-//                 pt_RootCurrentEvent2 = pt_CurrentEvent2;
-//             }
-//         }
-//     }
-
-//     while (t_Status == ITC_STATUS_SUCCESS &&
-//            pt_CurrentEvent1 != pt_RootCurrentEvent1->pt_Parent &&
-//            pt_CurrentEvent2 != pt_RootCurrentEvent2->pt_Parent)
-//     {
-//         b_CurrentIsLeq &=
-//             pt_CurrentEvent1->t_Count <= pt_CurrentEvent2->t_Count;
-
-//         /* leq(n1, n2) = n1 <= n2
-//          * leq(n1, (n2, l2, r2)) = n1 <= n2
-//         */
-//         if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1))
-//         {
-//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
-//             pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
-//         }
-//         else
-//         {
-//             /* leq((n1, l1, r1), n2):
-//             *     (n1 <= n2) && leq(lift(l1, n1), n2) && leq(lift(r1, n1), n2)
-//             */
-//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
-//             t_Status = LIFT_EVENT_E(
-//                 pt_CurrentEvent1,
-//                 pt_CurrentEvent1->pt_Parent->t_Count);
-
-//             /* leq((n1, l1, r1), (n2, l2, r2)):
-//             *     (n1 <= n2) && leq(lift(l1, n1), lift(l2, n2)) && leq(lift(r1, n1), lift(r2, n2)))
-//             */
-//             if(!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
-//             {
-//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
-//                 t_Status = LIFT_EVENT_E(
-//                     pt_CurrentEvent2,
-//                     pt_CurrentEvent2->pt_Parent->t_Count);
-
-//             }
-
-//         }
-//         else
-//         {
-
-//         }
-//     }
-
-//     return t_Status;
-// }
-
-// static ITC_Status_t leqEventE2(
-//     const ITC_Event_t *const pt_Event1,
-//     const ITC_Event_t *const pt_Event2
-// )
-// {
-//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
-//     const ITC_Event_t *pt_CurrentEvent1 = pt_Event1;
-//     const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
-//     const ITC_Event_t *pt_CurrentEvent2 = pt_Event2;
-//     const ITC_Event_t *pt_ParentCurrentEvent2 = NULL;
-//     const ITC_Event_t *pt_ParentRootEvent1 = NULL;
-//     const ITC_Event_t *pt_ParentRootEvent2 = NULL;
-
-//     bool b_IsLeq = true;
-
-//     if(!pt_CurrentEvent1 || !pt_CurrentEvent2)
-//     {
-//         t_Status = ITC_STATUS_INVALID_PARAM;
-//     }
-//     else
-//     {
-//         /* Remember the root parent Event as this might be a subtree */
-//         pt_ParentRootEvent1 = pt_CurrentEvent1->pt_Parent;
-//         pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
-//         pt_ParentRootEvent2 = pt_CurrentEvent2->pt_Parent;
-//         pt_ParentCurrentEvent2 = pt_ParentRootEvent2;
-//     }
-
-//     /* Perform a pre-order traversal */
-//     while (t_Status == ITC_STATUS_SUCCESS &&
-//            b_IsLeq &&
-//            pt_CurrentEvent1 != pt_ParentRootEvent1 &&
-//            pt_CurrentEvent2 != pt_ParentRootEvent2)
-//     {
-//         /* visit node */
-
-//         if (pt_CurrentEvent1->pt_Left)
-//         {
-//             pt_ParentCurrentEvent1 = pt_CurrentEvent1;
-//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
-
-//             if (pt_CurrentEvent2->pt_Left)
-//             {
-//                 pt_ParentCurrentEvent2 = pt_CurrentEvent2;
-//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
-//             }
-//         }
-//         else if (pt_CurrentEvent1->pt_Right)
-//         {
-//             pt_ParentCurrentEvent1 = pt_CurrentEvent1;
-//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
-
-//             if (pt_CurrentEvent2->pt_Right)
-//             {
-//                 pt_ParentCurrentEvent2 = pt_CurrentEvent2;
-//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Right;
-//             }
-//         }
-//         else
-//         {
-//             pt_ParentCurrentEvent1 = pt_CurrentEvent1->pt_Parent;
-
-//             /* Loop until the current element is no longer reachable
-//                 * through he parent's right child */
-//             while (pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
-//                 pt_ParentCurrentEvent1->pt_Right == pt_CurrentEvent1)
-//             {
-//                 pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
-//                 pt_ParentCurrentEvent1 = pt_ParentCurrentEvent1->pt_Parent;
-//             }
-
-//             /* There is a right subtree that has not been explored yet */
-//             if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
-//             {
-//                 pt_CurrentEvent1 = pt_ParentCurrentEvent1->pt_Right;
-//             }
-//             else
-//             {
-//                 pt_CurrentEvent1 = NULL;
-//             }
-
-//             pt_ParentCurrentEvent2 = pt_CurrentEvent2->pt_Parent;
-
-//             /* Loop until the current element is no longer reachable
-//                 * through he parent's right child */
-//             while (pt_ParentCurrentEvent2 != pt_ParentRootEvent2 &&
-//                 pt_ParentCurrentEvent2->pt_Right == pt_CurrentEvent2)
-//             {
-//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
-//                 pt_ParentCurrentEvent2 = pt_ParentCurrentEvent2->pt_Parent;
-//             }
-
-//             /* There is a right subtree that has not been explored yet */
-//             if (pt_ParentCurrentEvent2 != pt_ParentRootEvent2)
-//             {
-//                 pt_CurrentEvent2 = pt_ParentCurrentEvent2->pt_Right;
-//             }
-//             else
-//             {
-//                 pt_CurrentEvent2 = NULL;
-//             }
-//         }
-
-//         /* Descend into left tree */
-//         if (!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1))
-//         {
-//             /* Remember the parent address */
-//             pt_ParentCurrentEvent1 = pt_CurrentEvent1;
-//             pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
-
-//             if(!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
-//             {
-//                 pt_ParentCurrentEvent2 = pt_CurrentEvent2;
-//                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
-//             }
-//         }
-//         else
-//         {
-//             /* Trust the parent pointers.
-//              * They were validated on the way down */
-//             pt_ParentCurrentEvent1 = pt_CurrentEvent1->pt_Parent;
-
-//             /* Loop until the current element is no longer reachable
-//                 * through he parent's right child */
-//             while (pt_ParentCurrentEvent != pt_ParentRootEvent &&
-//                 pt_ParentCurrentEvent->pt_Right == pt_CurrentEvent)
-//             {
-//                 pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-//                 pt_ParentCurrentEvent = pt_ParentCurrentEvent->pt_Parent;
-//             }
-
-//             /* There is a right subtree that has not been explored yet */
-//             if (pt_ParentCurrentEvent != pt_ParentRootEvent)
-//             {
-//                 pt_CurrentEvent = pt_ParentCurrentEvent->pt_Right;
-//             }
-//             else
-//             {
-//                 pt_CurrentEvent = NULL;
-//             }
-//         }
-
-//         /* Descend into right tree */
-//         else if (pt_CurrentEvent->pt_Right)
-//         {
-//             /* Remember the parent address */
-//             pt_ParentCurrentEvent = pt_CurrentEvent;
-
-//             pt_CurrentEvent = pt_CurrentEvent->pt_Right;
-//         }
-//         else
-//         {
-//             /* Trust the parent pointers.
-//                 * They were validated on the way down */
-//             pt_ParentCurrentEvent = pt_CurrentEvent->pt_Parent;
-
-//             /* Loop until the current element is no longer reachable
-//                 * through he parent's right child */
-//             while (pt_ParentCurrentEvent != pt_ParentRootEvent &&
-//                 pt_ParentCurrentEvent->pt_Right == pt_CurrentEvent)
-//             {
-//                 pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
-//                 pt_ParentCurrentEvent = pt_ParentCurrentEvent->pt_Parent;
-//             }
-
-//             /* There is a right subtree that has not been explored yet */
-//             if (pt_ParentCurrentEvent != pt_ParentRootEvent)
-//             {
-//                 pt_CurrentEvent = pt_ParentCurrentEvent->pt_Right;
-//             }
-//             else
-//             {
-//                 pt_CurrentEvent = NULL;
-//             }
-//         }
-
-//     }
-
-//     return t_Status;
-// }
-
-// /**
-//  * @brief Check if one Event is `<=` to another, fulfilling `leq(e1, e2)`
-//  * Rules:
-//  *  - leq(n1, n2) = n1 <= n2
-//  *  - leq(n1, (n2, l2, r2)) = n1 <= n2
-//  *  - leq((n1, l1, r1), n2):
-//  *       n1 <= n2 && leq(lift(l1, n1), n2) && leq(lift(r1, n1), n2)
-//  *  - leq((n1, l1, r1), (n2, l2, r2)):
-//  *       n1 <= n2 && leq(lift(l1, n1), lift(l2, n2)) && leq(lift(r1, n1), lift(r2, n2))
-//  *
-//  * @param pt_Event1 The first Event
-//  * @param pt_Event2 The second Event
-//  * @param pb_IsLeq (out) `true` if `*pt_Event1 <= *pt_Event2`. Otherwise `false`
-//  * @return ITC_Status_t The status of the operation
-//  * @retval ITC_STATUS_SUCCESS on success
-//  */
-// static ITC_Status_t leqEventE(
-//     const ITC_Event_t *const pt_Event1,
-//     const ITC_Event_t *const pt_Event2,
-//     bool *pb_IsLeq
-// )
-// {
-//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
-//     const ITC_Event_t *pt_CurrentEvent1 = pt_Event1;
-//     const ITC_Event_t *pt_CurrentEvent2 = pt_Event2;
-//     const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
-//     const ITC_Event_t *pt_ParentRootEvent1 = NULL;
-//     const ITC_Event_t *pt_ParentRootEvent2 = NULL;
-//     uint32_t u32_CurrentEvent2DescendSkip = 0;
-//     ITC_Event_Counter_t t_ParentsCountEvent1 = 0;
-//     ITC_Event_Counter_t t_ParentsCountEvent2 = 0;
-//     ITC_Event_Counter_t t_CurrentCountEvent1 = 0;
-//     ITC_Event_Counter_t t_CurrentCountEvent2 = 0;
-
-//     if(!pt_CurrentEvent1 || !pt_CurrentEvent2)
-//     {
-//         t_Status = ITC_STATUS_INVALID_PARAM;
-//     }
-//     else
-//     {
-//         *pb_IsLeq = true;
-
-//         /* Remember the root parent Event as this might be a subtree */
-//         pt_ParentRootEvent1 = pt_CurrentEvent1->pt_Parent;
-//         pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
-
-//         pt_ParentRootEvent2 = pt_CurrentEvent2->pt_Parent;
-//     }
-
-//     if (t_Status == ITC_STATUS_SUCCESS)
-//     {
-//         /* Perform a pre-order traversal */
-//         while (*pb_IsLeq &&
-//                pt_CurrentEvent1 != pt_ParentRootEvent1 &&
-//                pt_CurrentEvent2 != pt_ParentRootEvent2)
-//         {
-//             t_CurrentCountEvent1 =
-//                 t_ParentsCountEvent1 + pt_CurrentEvent1->t_Count;
-//             t_CurrentCountEvent2 =
-//                 t_ParentsCountEvent2 + pt_CurrentEvent2->t_Count;
-
-//             *pb_IsLeq = t_CurrentCountEvent1 <= t_CurrentCountEvent2;
-
-//             if (*pb_IsLeq)
-//             {
-//                 /* Descend into left tree */
-//                 if (pt_CurrentEvent1->pt_Left)
-//                 {
-//                     /* Remember the parent address */
-//                     pt_ParentCurrentEvent1 = pt_CurrentEvent1;
-
-//                     /* Increment the height */
-//                     t_ParentsCountEvent1 += pt_CurrentEvent1->t_Count;
-
-//                     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
-
-//                     if (pt_CurrentEvent2->pt_Left)
-//                     {
-//                         /* Increment the height */
-//                         t_ParentsCountEvent2 += pt_CurrentEvent2->t_Count;
-
-//                         pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
-//                     }
-//                     else
-//                     {
-//                         u32_CurrentEvent2DescendSkip++;
-//                     }
-//                 }
-//                 // /* Descend into right tree */
-//                 // else if (pt_CurrentEvent1->pt_Right)
-//                 // {
-//                 //     /* Remember the parent address */
-//                 //     pt_ParentCurrentEvent1 = pt_CurrentEvent1;
-
-//                 //     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
-//                 // }
-//                 else
-//                 {
-//                     pt_ParentCurrentEvent1 = pt_CurrentEvent1->pt_Parent;
-
-//                     /* Loop until the current element is no longer reachable
-//                     * through the parent's right child */
-//                     while (pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
-//                         pt_ParentCurrentEvent1->pt_Right == pt_CurrentEvent1)
-//                     {
-//                         pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
-//                         pt_ParentCurrentEvent1 =
-//                             pt_ParentCurrentEvent1->pt_Parent;
-
-//                         /* Decrement height */
-//                         t_ParentsCountEvent1 -= pt_CurrentEvent1->t_Count;
-
-//                         if (u32_CurrentEvent2DescendSkip)
-//                         {
-//                             u32_CurrentEvent2DescendSkip--;
-//                         }
-//                         else
-//                         {
-//                             if(pt_CurrentEvent2->pt_Parent != pt_ParentRootEvent2)
-//                             {
-//                                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
-//                                 /* Decrement height */
-//                                 t_ParentsCountEvent2 -= pt_CurrentEvent2->t_Count;
-//                             }
-//                         }
-//                     }
-
-//                     /* There is a right subtree that has not been explored
-//                      * yet */
-//                     if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
-//                     {
-//                         pt_CurrentEvent1 = pt_ParentCurrentEvent1->pt_Right;
-
-//                         if(!u32_CurrentEvent2DescendSkip &&
-//                            pt_CurrentEvent2->pt_Parent != pt_ParentRootEvent2)
-//                         {
-//                             pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent->pt_Right;
-//                         }
-//                         else
-//                         {
-//                             u32_CurrentEvent2DescendSkip++;
-//                         }
-//                     }
-//                     else
-//                     {
-//                         pt_CurrentEvent1 = NULL;
-//                         pt_CurrentEvent2 = NULL;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-
-//     return t_Status;
-// }
-
 /**
  * @brief Check if one Event is `<=` to another, fulfilling `leq(e1, e2)`
  * Rules:
@@ -1233,11 +807,19 @@ static ITC_Status_t leqEventE(
 
     const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
     const ITC_Event_t *pt_ParentRootEvent1 = NULL;
-    uint32_t u32_CurrentEvent2DescendSkip = 0;
+
+    /* Holds the event count from the root to the current parent node */
     ITC_Event_Counter_t t_ParentsCountEvent1 = 0;
     ITC_Event_Counter_t t_ParentsCountEvent2 = 0;
+
+    /* Holds the total current event count
+     * (pt_EventX->t_Count + t_ParentsCountEventX) */
     ITC_Event_Counter_t t_CurrentCountEvent1 = 0;
     ITC_Event_Counter_t t_CurrentCountEvent2 = 0;
+
+    /* Keeps track of how many descends have been skipped by pt_Event2 due
+     * to its tree branch being shallower than the one in pt_Event1 */
+    uint32_t u32_CurrentEvent2DescendSkips = 0;
 
     if(!pt_Event1 || !pt_Event2)
     {
@@ -1245,23 +827,40 @@ static ITC_Status_t leqEventE(
     }
     else
     {
+        /* Init flag */
         *pb_IsLeq = true;
 
         /* Remember the root parent Event as this might be a subtree */
         pt_ParentRootEvent1 = pt_Event1->pt_Parent;
+
         pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
     }
 
-    if (t_Status == ITC_STATUS_SUCCESS)
+    /* Perform a pre-order traversal.
+     *
+     * For `pt_Event1 <= pt_Event2` all `<=` checks must pass.
+     * If a check fails - exit early */
+    while (t_Status == ITC_STATUS_SUCCESS &&
+           *pb_IsLeq &&
+           pt_Event1 != pt_ParentRootEvent1)
     {
-        /* Perform a pre-order traversal */
-        while (*pb_IsLeq && pt_Event1 != pt_ParentRootEvent1)
-        {
-            t_CurrentCountEvent1 =
-                t_ParentsCountEvent1 + pt_Event1->t_Count;
-            t_CurrentCountEvent2 =
-                t_ParentsCountEvent2 + pt_Event2->t_Count;
+        /* Calculate the total current event count for both Event trees
+         *
+         * Essentially this is a `lift([lr]X, nX)` operation but
+         * doesn't modify the original Event trees */
+        t_CurrentCountEvent1 = pt_Event1->t_Count;
+        t_Status = incEventCounter(&t_CurrentCountEvent1, t_ParentsCountEvent1);
 
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            t_CurrentCountEvent2 = pt_Event2->t_Count;
+            t_Status = incEventCounter(
+                &t_CurrentCountEvent2, t_ParentsCountEvent2);
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* n1 <= n2 */
             *pb_IsLeq = t_CurrentCountEvent1 <= t_CurrentCountEvent2;
 
             if (*pb_IsLeq)
@@ -1269,77 +868,99 @@ static ITC_Status_t leqEventE(
                 /* Descend into left tree */
                 if (pt_Event1->pt_Left)
                 {
-                    /* Remember the parent address */
-                    pt_ParentCurrentEvent1 = pt_Event1;
+                    /* Increment the parent height */
+                    t_Status = incEventCounter(
+                        &t_ParentsCountEvent1, pt_Event1->t_Count);
 
-                    /* Increment the height */
-                    t_ParentsCountEvent1 += pt_Event1->t_Count;
-
-                    pt_Event1 = pt_Event1->pt_Left;
-
-                    if (pt_Event2->pt_Left)
+                    if (t_Status == ITC_STATUS_SUCCESS)
                     {
-                        /* Increment the height */
-                        t_ParentsCountEvent2 += pt_Event2->t_Count;
+                        pt_Event1 = pt_Event1->pt_Left;
 
-                        pt_Event2 = pt_Event2->pt_Left;
-                    }
-                    else
-                    {
-                        u32_CurrentEvent2DescendSkip++;
+                        /* If pt_Event2 has a left node - descend down */
+                        if (pt_Event2->pt_Left)
+                        {
+                            /* Increment the parent height */
+                            t_Status = incEventCounter(
+                                &t_ParentsCountEvent2,
+                                pt_Event2->t_Count);
+
+                            if (t_Status == ITC_STATUS_SUCCESS)
+                            {
+                                pt_Event2 = pt_Event2->pt_Left;
+                            }
+                        }
+                        /* Otherwise, keep track of how many times the descend
+                        * was skipped due to a shallow tree */
+                        else
+                        {
+                            u32_CurrentEvent2DescendSkips++;
+                        }
                     }
                 }
-                // /* Descend into right tree */
-                // else if (pt_CurrentEvent1->pt_Right)
-                // {
-                //     /* Remember the parent address */
-                //     pt_ParentCurrentEvent1 = pt_CurrentEvent1;
-
-                //     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
-                // }
+                /* Valid parent ITC Event trees always have both left and right
+                * nodes. Thus, there is no need to check if the current node
+                * doesn't have a left child but has a right one.
+                *
+                * Instead directly start backtracking up the tree */
                 else
                 {
+                    /* Get the current parent node */
                     pt_ParentCurrentEvent1 = pt_Event1->pt_Parent;
 
-                    /* Loop until the current element is no longer reachable
-                    * through the parent's right child */
-                    while (pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
-                        pt_ParentCurrentEvent1->pt_Right == pt_Event1)
+                    /* Loop until the current node is no longer its
+                     * parent's right child node */
+                    while (t_Status == ITC_STATUS_SUCCESS &&
+                           pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
+                           pt_ParentCurrentEvent1->pt_Right == pt_Event1)
                     {
                         pt_Event1 = pt_Event1->pt_Parent;
                         pt_ParentCurrentEvent1 =
                             pt_ParentCurrentEvent1->pt_Parent;
 
-                        /* Decrement height */
-                        t_ParentsCountEvent1 -= pt_Event1->t_Count;
+                        /* Decrement the parent height */
+                        t_Status = decEventCounter(
+                            &t_ParentsCountEvent1, pt_Event1->t_Count);
 
-                        if (u32_CurrentEvent2DescendSkip)
+                        if (t_Status == ITC_STATUS_SUCCESS)
                         {
-                            u32_CurrentEvent2DescendSkip--;
-                        }
-                        else
-                        {
-                            pt_Event2 = pt_Event2->pt_Parent;
-                            /* Decrement height */
-                            t_ParentsCountEvent2 -= pt_Event2->t_Count;
+                            /* Decrement the amount of skipped descends */
+                            if (u32_CurrentEvent2DescendSkips)
+                            {
+                                u32_CurrentEvent2DescendSkips--;
+                            }
+                            /* If no descends were skipped - start backtracking
+                            * up the pt_Event2 tree.
+                            * There is no need to check if the current pt_Event2
+                            * is it's parent's right child, because its descend
+                            * is tied to the descends of pt_Event1 */
+                            else
+                            {
+                                pt_Event2 = pt_Event2->pt_Parent;
+
+                                /* Decrement the parent height */
+                                t_Status = decEventCounter(
+                                    &t_ParentsCountEvent2,
+                                    pt_Event2->t_Count);
+                            }
                         }
                     }
 
                     /* There is a right subtree that has not been explored
-                     * yet */
+                    * yet */
                     if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
                     {
+                        /* Jump from the left node of the current parent to
+                         * right one */
                         pt_Event1 = pt_ParentCurrentEvent1->pt_Right;
 
-                        if(u32_CurrentEvent2DescendSkip)
-                        {
-                            // u32_CurrentEvent2DescendSkip++;
-                        }
-                        else
+                        /* Do the same for pt_Event2 if it hasn't skipped
+                         * any descends due to its tree being shallow */
+                        if(!u32_CurrentEvent2DescendSkips)
                         {
                             pt_Event2 = pt_Event2->pt_Parent->pt_Right;
                         }
                     }
+                    /* The tree has been fully explored. Exit loop */
                     else
                     {
                         pt_Event1 = NULL;
