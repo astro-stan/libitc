@@ -31,13 +31,13 @@
      ((pt_Event)->pt_Left != (pt_Event)->pt_Right))                           \
 
 /** Test the Event is a leaf node and has a specific event count */
-#define TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, t_Count_)                        \
+#define TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, t_Count_)                    \
     TEST_ASSERT_TRUE(                                                         \
         (ITC_EVENT_IS_LEAF_EVENT(pt_Event) &&                                 \
         (pt_Event)->t_Count == (t_Count_)))
 
 /** Test the Event is a parent node and has a specific event count */
-#define TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, t_Count_)                      \
+#define TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, t_Count_)                  \
     TEST_ASSERT_TRUE(                                                         \
         (ITC_EVENT_IS_VALID_PARENT(pt_Event) &&                               \
         (pt_Event)->t_Count == (t_Count_)))

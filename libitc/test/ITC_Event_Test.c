@@ -184,7 +184,7 @@ void ITC_Event_Test_createEventSuccessful(void)
 
     /* Test this is a leaf node with 0 events */
     TEST_ASSERT_FALSE(pt_Event->pt_Parent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -236,7 +236,7 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 0);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 
     /* Test cloning a complex Event */
@@ -245,15 +245,15 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 2));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent != pt_ClonedEvent);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 0);
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent->pt_Left);
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Right != pt_ClonedEvent->pt_Right);
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 1);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Left->pt_Parent == pt_ClonedEvent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 2);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Right->pt_Parent == pt_ClonedEvent);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 }
@@ -273,7 +273,7 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 1);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 
     /* clang-format off */
@@ -285,16 +285,16 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 4));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 1);
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left->pt_Left != pt_ClonedEvent->pt_Left);
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left->pt_Right != pt_ClonedEvent->pt_Right);
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
     /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 2);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Left->pt_Parent == pt_ClonedEvent);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 3);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Right->pt_Parent == pt_ClonedEvent);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 }
@@ -336,7 +336,7 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
     /* Test this is still a 0 leaf event */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 
@@ -345,7 +345,7 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
     /* Test this is still a 1 leaf event */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
@@ -365,16 +365,16 @@ void ITC_Event_Test_normaliseLeafEventSubtreeSucceeds(void)
     /* Normalise the event subtree */
     ITC_Event_normalise(pt_Event->pt_Left);
     /* Test the whole event tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the event subtree */
     ITC_Event_normalise(pt_Event->pt_Right);
     /* Test the whole event tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -393,16 +393,16 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
     /* Test the event has been normalised */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the normalised event */
     ITC_Event_normalise(pt_Event);
     /* Test the event hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Make the children event count equal */
     pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
@@ -410,7 +410,7 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
     /* Test the event has been normalised */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 3);
 
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -431,22 +431,22 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
     /* Normalise the event subtree */
     ITC_Event_normalise(pt_Event->pt_Left);
     /* Test the event subtree has been normalised */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
     /* Test the rest of the tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the normalised event subtree*/
     ITC_Event_normalise(pt_Event->pt_Left);
     /* Test the event subtree has been normalised */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
     /* Test the rest of the tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Make the children event count equal */
     pt_Event->pt_Left->pt_Right->t_Count =
@@ -455,10 +455,10 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event->pt_Left);
     /* Test the event has been normalised */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
     /* Test the rest of the tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -485,24 +485,24 @@ void ITC_Event_Test_normaliseComplexEventSucceeds(void)
     /* Normalise the event */
     ITC_Event_normalise(pt_Event);
     /* Test the event has been normalised */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 5);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 5);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
 
     /* Normalise the normalised event */
     ITC_Event_normalise(pt_Event);
     /* Test the event hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 5);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 3);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 5);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
 
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -530,31 +530,31 @@ void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
     /* Normalise the event subtree */
     ITC_Event_normalise(pt_Event->pt_Left);
     /* Test the event subtree has been normalised */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
     /* Test the rest of the tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the normalised event subtree */
     ITC_Event_normalise(pt_Event->pt_Left);
     /* Test the event subtree hasn't changed */
     /* Test the event subtree has been normalised */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
     /* Test the rest of the tree hasn't changed */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
     /* clang-format on */
 
     /* Destroy the event*/
@@ -621,7 +621,7 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventsSucceeds(void)
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
     /* Test the joined event is a leaf with 1 counter */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 1);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -648,7 +648,7 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventSubtreesSucceeds(void)
     TEST_SUCCESS(
         ITC_Event_join(pt_Event1->pt_Right, pt_Event2->pt_Left, &pt_JoinEvent));
     /* Test the joined event is a leaf with 1 counter */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 1);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -671,7 +671,7 @@ void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
 
     /* Test the joined event is a leaf with the bigger event counter */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -680,7 +680,7 @@ void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
 
     /* Test the joined event is a leaf with the bigger event counter */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -708,7 +708,7 @@ void ITC_Event_Test_joinTwoDifferentLeafEventSubtreesSucceeds(void)
         ITC_Event_join(pt_Event1->pt_Right, pt_Event2->pt_Left, &pt_JoinEvent));
 
     /* Test the joined event is a leaf with the bigger event counter */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -718,7 +718,7 @@ void ITC_Event_Test_joinTwoDifferentLeafEventSubtreesSucceeds(void)
         ITC_Event_join(pt_Event2->pt_Left, pt_Event1->pt_Right, &pt_JoinEvent));
 
     /* Test the joined event is a leaf with the bigger event counter */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -743,9 +743,9 @@ void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -754,9 +754,9 @@ void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -789,9 +789,9 @@ void ITC_Event_Test_joinALeafAndAParentEventSubtreesSucceeds(void)
         ITC_Event_join(pt_Event1->pt_Left, pt_Event2->pt_Right, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -801,9 +801,9 @@ void ITC_Event_Test_joinALeafAndAParentEventSubtreesSucceeds(void)
         ITC_Event_join(pt_Event2->pt_Right, pt_Event1->pt_Left, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 6);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -830,9 +830,9 @@ void ITC_Event_Test_joinTwoIdenticalParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 3);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -859,7 +859,7 @@ void ITC_Event_Test_joinTwoMirroredParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
 
     /* Test the joined event is a leaf event with 4 events */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -868,7 +868,7 @@ void ITC_Event_Test_joinTwoMirroredParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
 
     /* Test the joined event is a leaf event with 4 events */
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent, 4);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -895,9 +895,9 @@ void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
 
     /* Test the joined event is a (2, 5, 0) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 1);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -906,9 +906,9 @@ void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
 
     /* Test the joined event is a (4, 0, 6) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right, 1);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -948,15 +948,15 @@ void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
 
     /* Test the joined event is (6, (0, (0, 2, 0), 0), (1, 0, 2)) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Left, 2);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right, 2);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Left, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right, 2);
 
     /* Destroy the joined event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
@@ -965,15 +965,15 @@ void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
 
     /* Test the joined event is (6, (0, (0, 2, 0), 0), (1, 0, 2)) event */
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Left, 2);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Right, 0);
-    TEST_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right, 1);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Left, 0);
-    TEST_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right, 2);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 6);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Left, 2);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right, 2);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));

@@ -65,31 +65,31 @@
      ITC_ID_IS_SEED_ID((pt_Id)->pt_Right))
 
 /** Test an ID is a NULL ID */
-#define TEST_ID_IS_NULL_ID(pt_Id)                                             \
+#define TEST_ITC_ID_IS_NULL_ID(pt_Id)                                         \
     TEST_ASSERT_TRUE(ITC_ID_IS_NULL_ID(pt_Id))
 
 /** Test an ID is a seed ID */
-#define TEST_ID_IS_SEED_ID(pt_Id)                                             \
+#define TEST_ITC_ID_IS_SEED_ID(pt_Id)                                         \
     TEST_ASSERT_TRUE(ITC_ID_IS_SEED_ID(pt_Id))
 
 /** Test an ID is not a leaf ID */
-#define TEST_ID_IS_NOT_LEAF_ID(pt_Id)                                         \
+#define TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id)                                     \
     TEST_ASSERT_TRUE(ITC_ID_IS_VALID_PARENT(pt_Id))
 
 /** Test an ID represents (1, 0) */
-#define TEST_ID_IS_SEED_NULL_ID(pt_Id)                                        \
+#define TEST_ITC_ID_IS_SEED_NULL_ID(pt_Id)                                    \
     TEST_ASSERT_TRUE(ITC_ID_IS_SEED_NULL_ID(pt_Id))
 
 /** Test an ID represents (0, 1) */
-#define TEST_ID_IS_NULL_SEED_ID(pt_Id)                                        \
+#define TEST_ITC_ID_IS_NULL_SEED_ID(pt_Id)                                    \
     TEST_ASSERT_TRUE(ITC_ID_IS_NULL_SEED_ID(pt_Id))
 
 /** Test an ID represents (0, 0) */
-#define TEST_ID_IS_NULL_NULL_ID(pt_Id)                                        \
+#define TEST_ITC_ID_IS_NULL_NULL_ID(pt_Id)                                    \
     TEST_ASSERT_TRUE(ITC_ID_IS_NULL_NULL_ID(pt_Id))
 
 /** Test an ID represents (1, 1) */
-#define TEST_ID_IS_SEED_SEED_ID(pt_Id)                                        \
+#define TEST_ITC_ID_IS_SEED_SEED_ID(pt_Id)                                    \
     TEST_ASSERT_TRUE(ITC_ID_IS_SEED_SEED_ID(pt_Id))
 
 #endif /* ITC_ID_TEST_PACKAGE_H_ */
