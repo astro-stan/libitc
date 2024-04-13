@@ -120,6 +120,86 @@ static ITC_Status_t newStamp(
     return t_Status;
 }
 
+/**
+ * @brief Compare two existing Stamps
+ *
+ * - If `*pt_Stamp1 < *pt_Stamp2`:
+ *      `*pt_Result == ITC_STAMP_COMPARISON_LESS_THAN`
+ * - If `*pt_Stamp1 > *pt_Stamp2`:
+ *      `*pt_Result == ITC_STAMP_COMPARISON_GREATER_THAN`
+ * - If `*pt_Stamp1 == *pt_Stamp2`:
+ *      `*pt_Result == ITC_STAMP_COMPARISON_EQUAL`
+ * - If `*pt_Stamp1 <> *pt_Stamp2`:
+ *      `*pt_Result == ITC_STAMP_COMPARISON_CONCURRENT`
+ *
+ * @param pt_Stamp1 The first Stamp
+ * @param pt_Stamp2 The second Stamp
+ * @param pt_Result The result of the comparison
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t compareStamps(
+    const ITC_Stamp_t *const pt_Stamp1,
+    const ITC_Stamp_t *const pt_Stamp2,
+    ITC_Stamp_Comparison_t *pt_Result
+
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    bool b_IsLeq12; /* `pt_Stamp1->pt_Event <= pt_Stamp2->pt_Event` */
+    bool b_IsLeq21; /* `pt_Stamp2->pt_Event <= pt_Stamp1->pt_Event` */
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check if `pt_Stamp1->pt_Event <= pt_Stamp2->pt_Event` */
+        t_Status = ITC_Event_leq(
+            pt_Stamp1->pt_Event, pt_Stamp2->pt_Event, &b_IsLeq12);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check if `pt_Stamp2->pt_Event <= pt_Stamp1->pt_Event` */
+        t_Status = ITC_Event_leq(
+            pt_Stamp2->pt_Event, pt_Stamp1->pt_Event, &b_IsLeq21);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        if (b_IsLeq12)
+        {
+            /* (*pt_Stamp1->pt_Event <= *pt_Stamp2->pt_Event) &&
+             * (*pt_Stamp2->pt_Event <= *pt_Stamp1->pt_Event) */
+            if (b_IsLeq21)
+            {
+                *pt_Result = ITC_STAMP_COMPARISON_EQUAL;
+            }
+            /* (*pt_Stamp1->pt_Event <= *pt_Stamp2->pt_Event) &&
+             * (*pt_Stamp2->pt_Event >= *pt_Stamp1->pt_Event) */
+            else
+            {
+                *pt_Result = ITC_STAMP_COMPARISON_LESS_THAN;
+            }
+        }
+        else
+        {
+            /* (*pt_Stamp1->pt_Event >= *pt_Stamp2->pt_Event) &&
+             * (*pt_Stamp2->pt_Event <= *pt_Stamp1->pt_Event) */
+            if (b_IsLeq21)
+            {
+                *pt_Result = ITC_STAMP_COMPARISON_GREATER_THAN;
+            }
+            /* (*pt_Stamp1->pt_Event >= *pt_Stamp2->pt_Event) &&
+             * (*pt_Stamp2->pt_Event >= *pt_Stamp1->pt_Event) */
+            else
+            {
+                *pt_Result = ITC_STAMP_COMPARISON_CONCURRENT;
+            }
+        }
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -247,7 +327,7 @@ ITC_Status_t ITC_Stamp_clone(
 ITC_Status_t ITC_Stamp_compare(
     const ITC_Stamp_t *const pt_Stamp1,
     const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Event_Comparison_t *pt_Result
+    ITC_Stamp_Comparison_t *pt_Result
 
 )
 {
@@ -271,8 +351,7 @@ ITC_Status_t ITC_Stamp_compare(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Compare *pt_Stamp1 to *pt_Stamp2 */
-        t_Status = ITC_Event_compare(
-            pt_Stamp1->pt_Event, pt_Stamp2->pt_Event, pt_Result);
+        t_Status = compareStamps(pt_Stamp1, pt_Stamp2, pt_Result);
     }
 
     return t_Status;

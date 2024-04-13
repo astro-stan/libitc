@@ -244,7 +244,7 @@ void ITC_Stamp_Test_cloneStampSuccessful(void)
 void ITC_Stamp_Test_compareStampsFailInvalidParam(void)
 {
     ITC_Stamp_t *pt_DummyStamp = NULL;
-    ITC_Event_Comparison_t t_DummyResult;
+    ITC_Stamp_Comparison_t t_DummyResult;
 
     TEST_FAILURE(
         ITC_Stamp_compare(pt_DummyStamp, NULL, NULL), ITC_STATUS_INVALID_PARAM);
@@ -263,7 +263,7 @@ void ITC_Stamp_Test_compareStampFailWithCorruptStamp(void)
 {
     ITC_Stamp_t *pt_Stamp1;
     ITC_Stamp_t *pt_Stamp2;
-    ITC_Event_Comparison_t t_Result;
+    ITC_Stamp_Comparison_t t_Result;
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
@@ -296,7 +296,7 @@ void ITC_Stamp_Test_compareStampsSucceeds(void)
 {
     ITC_Stamp_t *pt_Stamp1;
     ITC_Stamp_t *pt_Stamp2;
-    ITC_Event_Comparison_t t_Result;
+    ITC_Stamp_Comparison_t t_Result;
 
     /* Create the Stamps */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp1));
@@ -315,26 +315,26 @@ void ITC_Stamp_Test_compareStampsSucceeds(void)
 
     /* Compare Stamps */
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_LESS_THAN, t_Result);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_LESS_THAN, t_Result);
     /* Compare the other way around */
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_GREATER_THAN, t_Result);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
 
     /* Make the 2 Stamps concurrent */
     pt_Stamp2->pt_Event->pt_Right->t_Count -= 1;
 
     /* Compare Stamps */
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_CONCURRENT, t_Result);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_CONCURRENT, t_Result);
     /* Compare the other way around */
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_CONCURRENT, t_Result);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_CONCURRENT, t_Result);
 
     /* Check stamps are equal to themselves */
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp1, pt_Stamp1, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_EQUAL, t_Result);
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp2, pt_Stamp2, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_EVENT_COMPARISON_EQUAL, t_Result);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_EQUAL, t_Result);
 
     /* Destroy the Stamps */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp1));

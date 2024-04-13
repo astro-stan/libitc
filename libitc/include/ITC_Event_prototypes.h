@@ -12,6 +12,8 @@
 #include "ITC_Event.h"
 #include "ITC_Status.h"
 
+#include <stdbool.h>
+
 /******************************************************************************
  * Functions
  ******************************************************************************/
@@ -80,27 +82,18 @@ ITC_Status_t ITC_Event_join(
 );
 
 /**
- * @brief Compare two existing Events
- *
- * - If `*pt_Event1 < *pt_Event2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_LESS_THAN`
- * - If `*pt_Event1 > *pt_Event2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_GREATER_THAN`
- * - If `*pt_Event1 == *pt_Event2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_EQUAL`
- * - If `*pt_Event1 <> *pt_Event2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_CONCURRENT`
+ * @brief Check if an Event is `less than or equal` (`<=`) to another Event
  *
  * @param pt_Event1 The first Event
  * @param pt_Event2 The second Event
- * @param pt_Result The result of the comparison
+ * @param pb_IsLeq (out) `true` if `*pt_Event1 <= *pt_Event2`. Otherwise `false`
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-ITC_Status_t ITC_Event_compare(
+ITC_Status_t ITC_Event_leq(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
-    ITC_Event_Comparison_t *pt_Result
+    bool *pb_IsLeq
 );
 
 #endif /* ITC_EVENT_PROTOTYPES_H_ */

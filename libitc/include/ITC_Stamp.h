@@ -12,6 +12,19 @@
 #include "ITC_Id.h"
 #include "ITC_Event.h"
 
+/* The Stamp comparison enum */
+typedef enum
+{
+    /* The Stamp smaller than the other Stamp */
+    ITC_STAMP_COMPARISON_LESS_THAN,
+    /* The Stamp bigger than the other Stamp */
+    ITC_STAMP_COMPARISON_GREATER_THAN,
+    /* The Stamp is equal to the other Stamp */
+    ITC_STAMP_COMPARISON_EQUAL,
+    /* The Stamp is concurrent to the other Stamp */
+    ITC_STAMP_COMPARISON_CONCURRENT,
+} ITC_Stamp_Comparison_t;
+
 /* The ITC Stamp */
 typedef struct
 {

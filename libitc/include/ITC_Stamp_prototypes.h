@@ -70,13 +70,13 @@ ITC_Status_t ITC_Stamp_clone(
  * @brief Compare two existing Stamps
  *
  * - If `*pt_Stamp1 < *pt_Stamp2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_LESS_THAN`
+ *      `*pt_Result == ITC_STAMP_COMPARISON_LESS_THAN`
  * - If `*pt_Stamp1 > *pt_Stamp2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_GREATER_THAN`
+ *      `*pt_Result == ITC_STAMP_COMPARISON_GREATER_THAN`
  * - If `*pt_Stamp1 == *pt_Stamp2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_EQUAL`
+ *      `*pt_Result == ITC_STAMP_COMPARISON_EQUAL`
  * - If `*pt_Stamp1 <> *pt_Stamp2`:
- *      `*pt_Result == ITC_EVENT_COMPARISON_CONCURRENT`
+ *      `*pt_Result == ITC_STAMP_COMPARISON_CONCURRENT`
  *
  * @param pt_Stamp1 The first Stamp
  * @param pt_Stamp2 The second Stamp
@@ -87,7 +87,7 @@ ITC_Status_t ITC_Stamp_clone(
 ITC_Status_t ITC_Stamp_compare(
     const ITC_Stamp_t *const pt_Stamp1,
     const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Event_Comparison_t *pt_Result
+    ITC_Stamp_Comparison_t *pt_Result
 );
 
 #endif /* ITC_STAMP_PROTOTYPES_H_ */

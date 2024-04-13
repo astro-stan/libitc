@@ -21,18 +21,6 @@ typedef uint64_t ITC_Event_Counter_t;
 typedef uint32_t ITC_Event_Counter_t;
 #endif
 
-typedef enum
-{
-    /* The Event smaller than the other Event */
-    ITC_EVENT_COMPARISON_LESS_THAN,
-    /* The Event bigger than the other Event */
-    ITC_EVENT_COMPARISON_GREATER_THAN,
-    /* The Event is equal to the other Event */
-    ITC_EVENT_COMPARISON_EQUAL,
-    /* The Event is concurrent to the other Event */
-    ITC_EVENT_COMPARISON_CONCURRENT,
-} ITC_Event_Comparison_t;
-
 /* The ITC Event */
 typedef struct ITC_Event_t
 {

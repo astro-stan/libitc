@@ -11,8 +11,6 @@
 #include "ITC_Port.h"
 #include "ITC_package.h"
 
-#include <stdbool.h>
-
 /******************************************************************************
  * Private functions
  ******************************************************************************/
@@ -1132,21 +1130,19 @@ ITC_Status_t ITC_Event_join(
 }
 
 /******************************************************************************
- * Compare two existing Events
+ * Check if an Event is `less than or equal` (`<=`) to another Event
  ******************************************************************************/
 
-ITC_Status_t ITC_Event_compare(
+ITC_Status_t ITC_Event_leq(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
-    ITC_Event_Comparison_t *pt_Result
+    bool *pb_IsLeq
 
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    bool b_IsLeq12; /* `pt_Event1 <= pt_Event2` */
-    bool b_IsLeq21; /* `pt_Event2 <= pt_Event1` */
 
-    if (!pt_Result)
+    if (!pb_IsLeq)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
@@ -1164,43 +1160,7 @@ ITC_Status_t ITC_Event_compare(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Check if `pt_Event1 <= pt_Event2` */
-        t_Status = leqEventE(pt_Event1, pt_Event2, &b_IsLeq12);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Check if `pt_Event2 <= pt_Event1` */
-        t_Status = leqEventE(pt_Event2, pt_Event1, &b_IsLeq21);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        if (b_IsLeq12)
-        {
-            /* (*pt_Event1 <= *pt_Event2) && (*pt_Event2 <= *pt_Event1) */
-            if (b_IsLeq21)
-            {
-                *pt_Result = ITC_EVENT_COMPARISON_EQUAL;
-            }
-            /* (*pt_Event1 <= *pt_Event2) && (*pt_Event2 >= *pt_Event1) */
-            else
-            {
-                *pt_Result = ITC_EVENT_COMPARISON_LESS_THAN;
-            }
-        }
-        else
-        {
-            /* (*pt_Event1 >= *pt_Event2) && (*pt_Event2 <= *pt_Event1) */
-            if (b_IsLeq21)
-            {
-                *pt_Result = ITC_EVENT_COMPARISON_GREATER_THAN;
-            }
-            /* (*pt_Event1 >= *pt_Event2) && (*pt_Event2 >= *pt_Event1) */
-            else
-            {
-                *pt_Result = ITC_EVENT_COMPARISON_CONCURRENT;
-            }
-        }
+        t_Status = leqEventE(pt_Event1, pt_Event2, pb_IsLeq);
     }
 
     return t_Status;
