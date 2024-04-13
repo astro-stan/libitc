@@ -13,5 +13,6 @@ libitc_inc = include_directories([
 libitc_src = files([
     'ITC_Id.c',
     'ITC_Event.c',
+    'ITC_Stamp.c',
     'ITC_Port.c',
 ])
