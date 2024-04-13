@@ -1,13 +1,13 @@
 /**
- * @file ITC_Id_Test_private.h
+ * @file ITC_Id_Test_package.h
  * @author Stan
- * @brief Private testing definitions for Interval Tree Clock's ID mechanism
+ * @brief Package testing definitions for Interval Tree Clock's ID mechanism
  *
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef ITC_ID_TEST_PRIVATE_H_
-#define ITC_ID_TEST_PRIVATE_H_
+#ifndef ITC_ID_TEST_PACKAGE_H_
+#define ITC_ID_TEST_PACKAGE_H_
 
 #include "unity.h"
 #include "ITC_Status.h"
@@ -92,4 +92,4 @@
 #define TEST_ID_IS_SEED_SEED_ID(pt_Id)                                        \
     TEST_ASSERT_TRUE(ITC_ID_IS_SEED_SEED_ID(pt_Id))
 
-#endif /* ITC_ID_TEST_PRIVATE_H_ */
+#endif /* ITC_ID_TEST_PACKAGE_H_ */

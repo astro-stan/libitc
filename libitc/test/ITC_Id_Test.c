@@ -1,6 +1,5 @@
 #include "ITC_Id.h"
 #include "ITC_Id_Test.h"
-#include "ITC_Id_Test_private.h"
 
 #include "ITC_Test_package.h"
 

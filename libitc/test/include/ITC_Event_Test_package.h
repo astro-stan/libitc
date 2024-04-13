@@ -1,13 +1,13 @@
 /**
- * @file ITC_Event_Test_private.h
+ * @file ITC_Event_Test_package.h
  * @author Stan
- * @brief Private testing definitions for Interval Tree Clock's Event mechanism
+ * @brief Package testing definitions for Interval Tree Clock's Event mechanism
  *
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef ITC_EVENT_TEST_PRIVATE_H_
-#define ITC_EVENT_TEST_PRIVATE_H_
+#ifndef ITC_EVENT_TEST_PACKAGE_H_
+#define ITC_EVENT_TEST_PACKAGE_H_
 
 #include "unity.h"
 #include "ITC_Status.h"
@@ -42,4 +42,4 @@
         (ITC_EVENT_IS_VALID_PARENT(pt_Event) &&                               \
         (pt_Event)->t_Count == (t_Count_)))
 
-#endif /* ITC_EVENT_TEST_PRIVATE_H_ */
+#endif /* ITC_EVENT_TEST_PACKAGE_H_ */
