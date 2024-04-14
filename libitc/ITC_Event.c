@@ -441,7 +441,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
 }
 
 /**
- * @brief Normalise an Event fulfilling `norm(E)`
+ * @brief Normalise an Event fulfilling `norm(e)`
  * Rules:
  *  - norm(n) = n
  *  - norm(n, m, m) = lift(n, m)
@@ -953,6 +953,61 @@ static ITC_Status_t leqEventE(
     return t_Status;
 }
 
+/**
+ * @brief Maximise an Event fulfilling `max(e)`
+ * Rules:
+ *  - max(n) = n
+ *  - max(n, e1, e2) = n + max(max(e1), max(e2))
+ *
+ * @param pt_Event The Event to maximise
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t maxEventE(
+    ITC_Event_t *pt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Event_t *pt_ParentRootEvent;
+
+    if (!pt_Event)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else
+    {
+        /* Remember the parent as this might be a subtree */
+        pt_ParentRootEvent = pt_Event->pt_Parent;
+    }
+
+    while (t_Status == ITC_STATUS_SUCCESS && pt_Event != pt_ParentRootEvent)
+    {
+        if (ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+        {
+            /* The Event is maximised. Nothing to do. */
+            pt_Event = pt_Event->pt_Parent;
+        }
+        else if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
+        {
+            /* Explore left subtree */
+            pt_Event = pt_Event->pt_Left;
+        }
+        else if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
+        {
+            /* Explore right subtree */
+            pt_Event = pt_Event->pt_Right;
+        }
+        /* Both Event subtrees are leafs */
+        else
+        {
+            /* Maximise the Event count */
+            t_Status = liftDestroyDestroyEvent(pt_Event);
+        }
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -1081,6 +1136,26 @@ ITC_Status_t ITC_Event_normalise(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = normEventE(pt_Event);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Maximise an Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_maximise(
+    ITC_Event_t *pt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    t_Status = validateEvent(pt_Event);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = maxEventE(pt_Event);
     }
 
     return t_Status;

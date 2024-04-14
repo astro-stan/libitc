@@ -629,6 +629,190 @@ void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
+/* Test maximising an Event fails with invalid param */
+void ITC_Event_Test_maximiseEventFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Event_maximise(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test maximising an Event fails with corrupt event */
+void ITC_Event_Test_maximiseEventFailWithCorruptEvent(void)
+{
+    ITC_Event_t *pt_Event;
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Event_maximise(pt_Event), ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+}
+
+/* Test maximising a leaf Event succeeds */
+void ITC_Event_Test_maximisingLeafEventSucceeds(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Create the 0 leaf event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event);
+    /* Test this is still a 0 leaf event */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+
+    /* Create the 1 leaf event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event);
+    /* Test this is still a 1 leaf event */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test maximising a leaf Event subtree succeeds */
+void ITC_Event_Test_maximisingLeafEventSubtreeSucceeds(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Create the 0 leaf event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event->pt_Left);
+    /* Test this is still a 0 leaf event */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    /* Test the rest of the Event tree hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event->pt_Right);
+    /* Test this is still a 1 leaf event */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    /* Test the rest of the Event tree hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test maximising a parent Event succeeds */
+void ITC_Event_Test_maximisingParentEventSucceeds(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Create the event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event);
+    /* Test this is a leaf event with 5 events */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 5);
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+
+    /* Create the event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event);
+    /* Test this is a leaf event with 6 events */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 6);
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test maximising a parent Event subtree succeeds */
+void ITC_Event_Test_maximisingParentEventSubtreeSucceeds(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+
+    /* clang-format off */
+    /* Create the event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 10));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 5));
+    /* clang-format on */
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event->pt_Right);
+    /* Test this is a leaf event with 5 events */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 5);
+    /* Test the rest of the Event tree hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 10);
+
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+
+    /* Create the event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 10));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 5));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event->pt_Left);
+    /* Test this is a leaf event with 6 events */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
+    /* Test the rest of the Event tree hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 10);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
+
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test maximising a complex Event succeeds */
+void ITC_Event_Test_maximisingComplexEventSucceeds(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+
+    /* clang-format off */
+    /* Create the event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 6));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 0));
+
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 2));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 3));
+    /* clang-format on */
+
+    /* Maximise the event */
+    ITC_Event_maximise(pt_Event);
+    /* Test this is a leaf event with 8 events */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 8);
+
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
 /* Test joining Events fails with invalid param */
 void ITC_Event_Test_joinEventFailInvalidParam(void)
 {
