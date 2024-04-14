@@ -251,6 +251,13 @@ static ITC_Status_t cloneEvent(
 /**
  * @brief Increment an `ITC_EventCounter_t` and detect overflows
  *
+ * Essentially this performs a lift operation on a given Event,
+ * fulfilling `lift(e)`.
+ *
+ * The rules for a `lift` operation are:
+ *  - lift(n, m) = (n + m)
+ *  - lift((n, e1, e2), m) = (n + m, e1, e2)
+ *
  * @param pt_Counter The counter to increment
  * @param t_IncCount The amount to increment with
  * @return ITC_Status_t The status of the operation
@@ -279,39 +286,48 @@ static ITC_Status_t incEventCounter(
 /**
  * @brief Decrement an `ITC_EventCounter_t` and detect underflows
  *
+ * Essentially this performs a sink operation on a given Event,
+ * fulfilling `sink(e)`.
+ *
+ * The rules for a `sink` operation are:
+ *  - sink(n, m) = (n - m)
+ *  - sink((n, e1, e2), m) = (n - m, e1, e2)
+ *
  * @param pt_Counter The counter to decrement
- * @param t_IncCount The amount to decrement with
+ * @param t_DecCount The amount to decrement with
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t decEventCounter(
     ITC_Event_Counter_t *pt_Counter,
-    ITC_Event_Counter_t t_IncCount
+    ITC_Event_Counter_t t_DecCount
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect underflow */
-    if (*pt_Counter - t_IncCount > *pt_Counter)
+    if (*pt_Counter - t_DecCount > *pt_Counter)
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_UNDERFLOW;
     }
     else
     {
-        *pt_Counter -= t_IncCount;
+        *pt_Counter -= t_DecCount;
     }
 
     return t_Status;
 }
 
 /**
- * @brief Perform a `norm(n, e1, e2) = (lift(n, m), sink(e1, m), sink(e2, m))`
+ * @brief Given an event `(n, e1, e2)` performs:
+ *     `(n, e1, e2) = (lift(n, m), sink(e1, m), sink(e2, m))`,
+ *     where `m = min(e1, e2)`.
  *
  * Performs the operation and tries to do damange control (revert to original
  * state) if any of the steps fail.
  *
- * @note It is assumed e1 and e2 are normalised events, such that
- * `min((n , e1, e2)) == n`, i.e one of the subtrees has an event counter
+ * @note It is assumed `e1` and `e2` are normalised Events, such that
+ * `min((n, e1, e2)) == n`, i.e one of the subtrees has an event counter
  * equal to 0
  *
  * @param pt_Event The Event on which to perform the operation
@@ -326,36 +342,23 @@ static ITC_Status_t liftSinkSinkEvent(
     ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
     ITC_Event_Counter_t t_Count = 0;
 
-    if(ITC_EVENT_IS_LEAF_EVENT(pt_Event) ||
-       !ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Left) ||
-       !ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Right))
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-
-    /* Lift the event counter of the root node */
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Remember the count */
-        t_Count = MIN(
-            pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
-
-        t_Status = LIFT_EVENT_E(pt_Event, t_Count);
-    }
+    /* Remember the count */
+    t_Count = MIN(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
     /* Sink the children */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = SINK_EVENT_E(pt_Event->pt_Left, t_Count);
+        t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
-            t_Status = SINK_EVENT_E(pt_Event->pt_Right, t_Count);
+            t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
 
             if (t_Status != ITC_STATUS_SUCCESS)
             {
                 /* Restore the other child */
-                t_OpStatus = LIFT_EVENT_E(pt_Event->pt_Left, t_Count);
+                t_OpStatus = incEventCounter(
+                    &pt_Event->pt_Left->t_Count, t_Count);
 
                 if (t_OpStatus != ITC_STATUS_SUCCESS)
                 {
@@ -364,28 +367,27 @@ static ITC_Status_t liftSinkSinkEvent(
                 }
             }
         }
+    }
 
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the root count */
-            t_OpStatus = SINK_EVENT_E(pt_Event, t_Count);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Lift the event counter of the root node */
+        t_Status = incEventCounter(&pt_Event->t_Count, t_Count);
     }
 
     return t_Status;
 }
 
 /**
- * @brief Perform a `norm(n, m, m) = lift(n, m)`
+ * @brief Given an event `(n, e1, e2)` performs:
+ *     `(n, e1, e2) = lift(n, m)`,
+ *     where `m = max(e1, e2)`.
  *
  * Performs the operation and tries to do damange control (revert to original
  * state) if any of the steps fail.
+ *
+ * @note It is assumed `e1` and `e2` are leaf Events, such that
+ * `max((n, e1, e2)) == n + max(e1, e2)`
  *
  * @param pt_Event The Event on which to perform the operation
  * children
@@ -398,24 +400,12 @@ static ITC_Status_t liftDestroyDestroyEvent(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
     ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-    ITC_Event_Counter_t t_Count = 0;
+    ITC_Event_Counter_t t_LeftCount = 0;
+    ITC_Event_Counter_t t_MaxCount = 0;
 
-    if(ITC_EVENT_IS_LEAF_EVENT(pt_Event) ||
-       !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) ||
-       !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) ||
-       pt_Event->pt_Left->t_Count != pt_Event->pt_Right->t_Count)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-
-    /* Lift the event counter of the root node */
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Remember the count */
-        t_Count = pt_Event->pt_Left->t_Count;
-
-        t_Status = LIFT_EVENT_E(pt_Event, t_Count);
-    }
+    /* Remember the counts */
+    t_LeftCount = pt_Event->pt_Left->t_Count;
+    t_MaxCount = MAX(t_LeftCount, pt_Event->pt_Right->t_Count);
 
     /* Destroy the children */
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -430,7 +420,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
             {
                 /* Restore the other child */
                 t_OpStatus = newEvent(
-                    &pt_Event->pt_Left, pt_Event, t_Count);
+                    &pt_Event->pt_Left, pt_Event, t_LeftCount);
 
                 if (t_OpStatus != ITC_STATUS_SUCCESS)
                 {
@@ -439,18 +429,12 @@ static ITC_Status_t liftDestroyDestroyEvent(
                 }
             }
         }
+    }
 
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the root count */
-            t_OpStatus = SINK_EVENT_E(pt_Event, t_Count);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Lift the event counter of the root node */
+        t_Status = incEventCounter(&pt_Event->t_Count, t_MaxCount);
     }
 
     return t_Status;
@@ -673,8 +657,8 @@ static ITC_Status_t joinEventE(
                     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Left;
                     pt_CurrentEvent2 = pt_CurrentEvent2->pt_Left;
 
-                    t_Status = LIFT_EVENT_E(
-                        pt_CurrentEvent2,
+                    t_Status = incEventCounter(
+                        &pt_CurrentEvent2->t_Count,
                         pt_CurrentEvent2->pt_Parent->t_Count -
                             pt_CurrentEvent1->pt_Parent->t_Count);
                 }
@@ -685,8 +669,8 @@ static ITC_Status_t joinEventE(
                     pt_CurrentEvent1 = pt_CurrentEvent1->pt_Right;
                     pt_CurrentEvent2 = pt_CurrentEvent2->pt_Right;
 
-                    t_Status = LIFT_EVENT_E(
-                        pt_CurrentEvent2,
+                    t_Status = incEventCounter(
+                        &pt_CurrentEvent2->t_Count,
                         pt_CurrentEvent2->pt_Parent->t_Count -
                             pt_CurrentEvent1->pt_Parent->t_Count);
                 }

@@ -42,38 +42,4 @@
     ((pt_Event)->pt_Right->t_Count == 0))) ||                                 \
    (ITC_EVENT_IS_LEAF_EVENT(pt_Event)))
 
-/**
- * @brief Lift an Event fulfilling `lift(e)`
- * Rules:
- *  - lift(n, m) = (n + m)
- *  - lift((n, e1, e2), m) = (n + m, e1, e2)
- *
- * Effective signature:
- *      ITC_Status_t LIFT_EVENT_E(pt_Event, t_Count)
- *
- * @param pt_Event The event to be lifted
- * @param t_Count_ The number of events to be lifted with
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
- */
-#define LIFT_EVENT_E(pt_Event, t_Count_)                                      \
-    incEventCounter(&(pt_Event)->t_Count, (t_Count_))
-
-/**
- * @brief Sink an Event fulfilling `sink(e)`
- * Rules:
- *  - sink(n, m) = (n - m)
- *  - sink((n, e1, e2), m) = (n - m, e1, e2)
- *
- * Effective signature:
- *      ITC_Status_t SINK_EVENT_E(pt_Event, t_Count)
- *
- * @param pt_Event The Event to be sinked
- * @param t_Count The number of events to be sinked with
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
- */
-#define SINK_EVENT_E(pt_Event, t_Count_)                                      \
-    decEventCounter(&(pt_Event)->t_Count, (t_Count_))
-
 #endif /* ITC_EVENT_PRIVATE_H_ */
