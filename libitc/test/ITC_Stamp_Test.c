@@ -240,6 +240,152 @@ void ITC_Stamp_Test_cloneStampSuccessful(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_ClonedStamp));
 }
 
+/* Test forking a Stamp fails with invalid param */
+void ITC_Stamp_Test_forkStampFailInvalidParam(void)
+{
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+
+    TEST_FAILURE(
+        ITC_Stamp_fork(pt_DummyStamp, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_fork(NULL, &pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_fork(NULL, NULL, &pt_DummyStamp), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test forking a Stamp fails with corrupt stamp */
+void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_ForkedStamp1;
+    ITC_Stamp_t *pt_ForkedStamp2;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+}
+
+/* Test forking a Stamp succeeds */
+void ITC_Stamp_Test_forkStampSuccessful(void)
+{
+    ITC_Stamp_t *pt_OriginalStamp;
+    ITC_Stamp_t *pt_ForkedStamp1;
+    ITC_Stamp_t *pt_ForkedStamp2;
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_OriginalStamp));
+
+    /* Fork the Stamp */
+    TEST_SUCCESS(
+        ITC_Stamp_fork(pt_OriginalStamp, &pt_ForkedStamp1, &pt_ForkedStamp2));
+
+    /* Destroy the original Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OriginalStamp));
+
+    /* Test the ID was cloned and split and the Event history was cloned */
+    TEST_ITC_ID_IS_SEED_NULL_ID(pt_ForkedStamp1->pt_Id);
+    TEST_ITC_ID_IS_NULL_SEED_ID(pt_ForkedStamp2->pt_Id);
+    TEST_ASSERT_TRUE(pt_ForkedStamp1->pt_Event != pt_ForkedStamp2->pt_Event);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ForkedStamp1->pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ForkedStamp2->pt_Event, 0);
+
+    /* Destroy the forked Stamps */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp1));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp2));
+}
+
+/* Test joining two Stamps fails with invalid param */
+void ITC_Stamp_Test_joinStampsFailInvalidParam(void)
+{
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+
+    TEST_FAILURE(
+        ITC_Stamp_join(pt_DummyStamp, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_join(NULL, pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_join(NULL, NULL, &pt_DummyStamp), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test joining two Stamps fails with corrupt stamp */
+void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
+{
+    ITC_Stamp_t *pt_Stamp1;
+    ITC_Stamp_t *pt_Stamp2;
+    ITC_Stamp_t *pt_JoinedStamp;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp1);
+
+        /* Construct the other Stamp */
+        TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_join(pt_Stamp1, pt_Stamp2, &pt_JoinedStamp),
+            ITC_STATUS_CORRUPT_STAMP);
+        /* And the other way around */
+        TEST_FAILURE(
+            ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamps */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp1);
+        TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
+    }
+}
+
+/* Test joining two Stamps succeeds */
+void ITC_Stamp_Test_joinStampsSuccessful(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_ForkedStamp1;
+    ITC_Stamp_t *pt_ForkedStamp2;
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Fork the Stamp */
+    TEST_SUCCESS(
+        ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2));
+
+    /* Destroy the original Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+
+    /* Join the Stamps */
+    TEST_SUCCESS(
+        ITC_Stamp_join(pt_ForkedStamp1, pt_ForkedStamp2, &pt_Stamp));
+
+    /* Destroy the forked Stamps */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp1));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp2));
+
+    /* Test the ID is a seed ID and the Event history is a leaf with 0 events */
+    TEST_ITC_ID_IS_SEED_ID(pt_Stamp->pt_Id);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 0);
+
+    /* Destroy the original Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
 /* Test comparing Stamps fails with invalid param */
 void ITC_Stamp_Test_compareStampsFailInvalidParam(void)
 {
