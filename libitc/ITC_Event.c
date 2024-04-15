@@ -961,6 +961,8 @@ static ITC_Status_t leqEventE(
  *  - max(n) = n
  *  - max(n, e1, e2) = n + max(max(e1), max(e2))
  *
+ * The resulting Event is always a leaf Event
+ *
  * @param pt_Event The Event to maximise
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
@@ -1182,61 +1184,287 @@ static ITC_Status_t maxEventE(
 //     return t_Status;
 // }
 
+// /**
+//  * @brief Fill an Event, fulfilling `fill(i, e)`
+//  * Rules:
+//  *  - fill(0, e) = e
+//  *  - fill(1, e) = max(e)
+//  *  - fill(i, n) = n
+//  *  - fill((1, ir), (n, el, er)):
+//  *        norm((n, max(max(el), min(er')), er')), where er' = fill(ir, er)
+//  *  - fill((il, 1), (n, el, er)):
+//  *        norm((n, el', max(max(er), min(el')))), where el' = fill(il, el)
+//  *  - fill((il, ir), (n, el, er)):
+//  *        norm((n, fill(il, el), fill(ir, er)))
+//  *
+//  * @param pt_Event The Event to fill
+//  * @param pt_Id The ID showing the ownership information for the interval
+//  * @param pb_WasFilled (out) Whether the event was filled or not. In some cases
+//  * filling an Event (simplifying + inflating) is not possible
+//  * @return ITC_Status_t The status of the operation
+//  * @retval ITC_STATUS_SUCCESS on success
+//  */
+// static ITC_Status_t fillEventE(
+//     ITC_Event_t *pt_Event,
+//     const ITC_Id_t *pt_Id,
+//     bool *pb_WasFilled
+// )
+// {
+//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+//     ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
+//     ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+//     const ITC_Id_t *pt_PrevId = NULL;
+
+//     *pb_WasFilled = false;
+
+//     while (t_Status == ITC_STATUS_SUCCESS &&
+//            pt_Event != pt_ParentRootEvent &&
+//            pt_Id != pt_ParentRootId)
+//     {
+//         if(ITC_ID_IS_NULL_ID(pt_Id) ||
+//            ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+//         {
+//             pt_PrevId = pt_Id;
+
+//             /* Nothing to inflate. */
+//             pt_Id = pt_Id->pt_Parent;
+//             pt_Event = pt_Event->pt_Parent;
+//         }
+//         else if (ITC_ID_IS_SEED_ID(pt_Id))
+//         {
+//             pt_PrevId = pt_Id;
+
+//             /* Maximise Event */
+//             t_Status = maxEventE(pt_Event);
+
+//             pt_Id = pt_Id->pt_Parent;
+//             pt_Event = pt_Event->pt_Parent;
+
+//             *pb_WasFilled = true;
+//         }
+//         else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Left))
+//         {
+//             if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+//                 // u32_CurrentNest >= u32_MaxNestRight
+//                 pt_PrevId != pt_Id->pt_Right
+//                 )
+//             {
+//                 pt_PrevId = pt_Id;
+
+//                 pt_Id = pt_Id->pt_Right;
+//                 pt_Event = pt_Event->pt_Right;
+//             }
+//             else
+//             {
+//                 if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
+//                 {
+//                     t_Status = maxEventE(pt_Event->pt_Left);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         *pb_WasFilled = true;
+//                     }
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS &&
+//                     (pt_Event->pt_Left->t_Count <
+//                      pt_Event->pt_Right->t_Count))
+//                 {
+//                     pt_Event->pt_Left->t_Count = pt_Event->pt_Right->t_Count;
+//                     *pb_WasFilled = true;
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS)
+//                 {
+//                     t_Status = normEventE(pt_Event);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         pt_PrevId = pt_Id;
+
+//                         pt_Id = pt_Id->pt_Parent;
+//                         pt_Event = pt_Event->pt_Parent;
+//                     }
+//                 }
+//             }
+//         }
+//         else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
+//         {
+//             if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+//                 // u32_CurrentNest >= u32_MaxNestLeft
+//                 pt_PrevId != pt_Id->pt_Left
+//                 )
+//             {
+//                 pt_PrevId = pt_Id;
+
+//                 pt_Id = pt_Id->pt_Left;
+//                 pt_Event = pt_Event->pt_Left;
+//             }
+//             else
+//             {
+//                 if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
+//                 {
+//                     t_Status = maxEventE(pt_Event->pt_Right);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         *pb_WasFilled = true;
+//                     }
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS &&
+//                     (pt_Event->pt_Right->t_Count <
+//                      pt_Event->pt_Left->t_Count))
+//                 {
+//                     pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
+//                     *pb_WasFilled = true;
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS)
+//                 {
+//                     t_Status = normEventE(pt_Event);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         pt_PrevId = pt_Id;
+
+//                         pt_Id = pt_Id->pt_Parent;
+//                         pt_Event = pt_Event->pt_Parent;
+//                     }
+//                 }
+//             }
+//         }
+//         else
+//         {
+//             if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+//                 // u32_CurrentNest >= u32_MaxNestLeft
+//                 pt_PrevId != pt_Id->pt_Left &&
+//                 pt_PrevId != pt_Id->pt_Right
+
+//                 )
+//             {
+//                 pt_PrevId = pt_Id;
+
+//                 pt_Id = pt_Id->pt_Left;
+//                 pt_Event = pt_Event->pt_Left;
+//             }
+//             else if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+//                     //  u32_CurrentNest >= u32_MaxNestRight
+//                 pt_PrevId != pt_Id->pt_Right
+//                      )
+//             {
+//                 pt_PrevId = pt_Id;
+
+//                 pt_Id = pt_Id->pt_Right;
+//                 pt_Event = pt_Event->pt_Right;
+//             }
+//             else
+//             {
+//                 t_Status = normEventE(pt_Event);
+
+//                 if (t_Status == ITC_STATUS_SUCCESS)
+//                 {
+//                     pt_PrevId = pt_Id;
+
+//                     pt_Id = pt_Id->pt_Parent;
+//                     pt_Event = pt_Event->pt_Parent;
+//                 }
+//             }
+//         }
+//     }
+
+//     return t_Status;
+// }
+
+
+/**
+ * @brief Fill an Event, fulfilling `fill(i, e)`
+ * Rules:
+ *  - fill(0, e) = e
+ *  - fill(1, e) = max(e)
+ *  - fill(i, n) = n
+ *  - fill((1, ir), (n, el, er)):
+ *        norm((n, max(max(el), min(er')), er')), where er' = fill(ir, er)
+ *  - fill((il, 1), (n, el, er)):
+ *        norm((n, el', max(max(er), min(el')))), where el' = fill(il, el)
+ *  - fill((il, ir), (n, el, er)):
+ *        norm((n, fill(il, el), fill(ir, er)))
+ *
+ * @param pt_Event The Event to fill
+ * @param pt_Id The ID showing the ownership information for the interval
+ * @param pb_WasFilled (out) Whether the event was filled or not. In some cases
+ * filling an Event (simplifying + inflating) is not possible
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
 static ITC_Status_t fillEventE(
     ITC_Event_t *pt_Event,
     const ITC_Id_t *pt_Id,
     bool *pb_WasFilled
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
     ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+
+    /* The previously iterated ID subtree.
+     * Used to keep track of which nodes have been explored */
     const ITC_Id_t *pt_PrevId = NULL;
 
+    /* Init the flag */
     *pb_WasFilled = false;
 
     while (t_Status == ITC_STATUS_SUCCESS &&
            pt_Event != pt_ParentRootEvent &&
            pt_Id != pt_ParentRootId)
     {
+        /* fill(0, e) = e || fill(i, n) = n */
         if(ITC_ID_IS_NULL_ID(pt_Id) ||
            ITC_EVENT_IS_LEAF_EVENT(pt_Event))
         {
             pt_PrevId = pt_Id;
 
-            /* Nothing to inflate. */
+            /* Nothing to inflate. Go up the tree */
             pt_Id = pt_Id->pt_Parent;
             pt_Event = pt_Event->pt_Parent;
         }
+        /* fill(1, e) = max(e) */
         else if (ITC_ID_IS_SEED_ID(pt_Id))
         {
             pt_PrevId = pt_Id;
 
-            /* Maximise Event */
+            /* Maximise Event (turn it into a leaf) */
             t_Status = maxEventE(pt_Event);
+
+            *pb_WasFilled = true;
 
             pt_Id = pt_Id->pt_Parent;
             pt_Event = pt_Event->pt_Parent;
-
-            *pb_WasFilled = true;
         }
+        /* fill((1, ir), (n, el, er)):
+         *     norm((n, max(max(el), min(er')), er')), where er' = fill(ir, er)
+         */
         else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Left))
         {
-            if (
-                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
-                // u32_CurrentNest >= u32_MaxNestRight
-                pt_PrevId != pt_Id->pt_Right
-                )
+            /* er' = fill(ir, er) */
+            if (pt_PrevId != pt_Id->pt_Right)
             {
                 pt_PrevId = pt_Id;
 
                 pt_Id = pt_Id->pt_Right;
                 pt_Event = pt_Event->pt_Right;
             }
+            /* norm((n, max(max(el), min(er')), er')) */
             else
             {
+                /* el = max(el) */
                 if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
                 {
+                    /* Turn el into a leaf Event */
                     t_Status = maxEventE(pt_Event->pt_Left);
 
                     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1245,14 +1473,18 @@ static ITC_Status_t fillEventE(
                     }
                 }
 
+                /* el = max(el, min(er')) */
                 if (t_Status == ITC_STATUS_SUCCESS &&
                     (pt_Event->pt_Left->t_Count <
                      pt_Event->pt_Right->t_Count))
                 {
+                    /* For a normalised Event: min((n, el, er)) = n */
                     pt_Event->pt_Left->t_Count = pt_Event->pt_Right->t_Count;
+
                     *pb_WasFilled = true;
                 }
 
+                /* norm((n, el, er')) */
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
                     t_Status = normEventE(pt_Event);
@@ -1267,23 +1499,26 @@ static ITC_Status_t fillEventE(
                 }
             }
         }
+        /* fill((il, 1), (n, el, er)):
+         *     norm((n, el', max(max(er), min(el')))), where el' = fill(il, el)
+         */
         else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
         {
-            if (
-                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
-                // u32_CurrentNest >= u32_MaxNestLeft
-                pt_PrevId != pt_Id->pt_Left
-                )
+            /* el' = fill(il, el) */
+            if (pt_PrevId != pt_Id->pt_Left)
             {
                 pt_PrevId = pt_Id;
 
                 pt_Id = pt_Id->pt_Left;
                 pt_Event = pt_Event->pt_Left;
             }
+            /* norm((n, el', max(max(er), min(el')))) */
             else
             {
+                /* er = max(er) */
                 if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
                 {
+                    /* Turn er into a leaf Event */
                     t_Status = maxEventE(pt_Event->pt_Right);
 
                     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1292,14 +1527,18 @@ static ITC_Status_t fillEventE(
                     }
                 }
 
+                /* er = max(er, min(el')) */
                 if (t_Status == ITC_STATUS_SUCCESS &&
                     (pt_Event->pt_Right->t_Count <
                      pt_Event->pt_Left->t_Count))
                 {
+                    /* For a normalised Event: min((n, el, er)) = n */
                     pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
+
                     *pb_WasFilled = true;
                 }
 
+                /* norm((n, el', er)) */
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
                     t_Status = normEventE(pt_Event);
@@ -1314,32 +1553,28 @@ static ITC_Status_t fillEventE(
                 }
             }
         }
+        /* fill((il, ir), (n, el, er)):
+         *     norm((n, fill(il, el), fill(ir, er)))
+         */
         else
         {
-            if (
-                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
-                // u32_CurrentNest >= u32_MaxNestLeft
-                pt_PrevId != pt_Id->pt_Left &&
-                pt_PrevId != pt_Id->pt_Right
-
-                )
+            /* fill(il, el) */
+            if (pt_PrevId != pt_Id->pt_Left && pt_PrevId != pt_Id->pt_Right)
             {
                 pt_PrevId = pt_Id;
 
                 pt_Id = pt_Id->pt_Left;
                 pt_Event = pt_Event->pt_Left;
             }
-            else if (
-                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
-                    //  u32_CurrentNest >= u32_MaxNestRight
-                pt_PrevId != pt_Id->pt_Right
-                     )
+            /* fill(ir, er) */
+            else if (pt_PrevId != pt_Id->pt_Right)
             {
                 pt_PrevId = pt_Id;
 
                 pt_Id = pt_Id->pt_Right;
                 pt_Event = pt_Event->pt_Right;
             }
+            /* norm((n, el, er) */
             else
             {
                 t_Status = normEventE(pt_Event);

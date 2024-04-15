@@ -1669,7 +1669,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with seed ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_SeedId, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1681,7 +1681,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with null ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_NullId, &b_WasFilled));
 
-    /* Test the Event wasn't changed */
+    /* Test the Event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1689,7 +1689,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with seed ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_SeedId, &b_WasFilled));
 
-    /* Test the Event wasn't changed */
+    /* Test the Event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1727,7 +1727,7 @@ void ITC_Event_Test_fillLeafEvenSubtreeWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with null ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_NullId, &b_WasFilled));
 
-    /* Test the Event wasn't changed */
+    /* Test the Event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
@@ -1738,7 +1738,7 @@ void ITC_Event_Test_fillLeafEvenSubtreeWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with seed ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_SeedId, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
@@ -1753,7 +1753,7 @@ void ITC_Event_Test_fillLeafEvenSubtreeWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with null ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_NullId, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
@@ -1764,7 +1764,7 @@ void ITC_Event_Test_fillLeafEvenSubtreeWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with seed ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_SeedId, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
@@ -1803,7 +1803,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdSubtreesSucceeds(void)
     /* Fill Event with null ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Left, &b_WasFilled));
 
-    /* Test the Event wasn't changed */
+    /* Test the Event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1811,7 +1811,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdSubtreesSucceeds(void)
     /* Fill Event with seed ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Right, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1823,7 +1823,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdSubtreesSucceeds(void)
     /* Fill Event with null ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Left, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1831,7 +1831,7 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdSubtreesSucceeds(void)
     /* Fill Event with seed ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Right, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     TEST_ASSERT_FALSE(b_WasFilled);
     checkEventEqual(pt_OriginalEvent, pt_Event);
@@ -1843,6 +1843,59 @@ void ITC_Event_Test_fillLeafEvenWithNullAndSeedIdSubtreesSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 }
+
+// static void debugPrintIdTree(ITC_Id_t *pt_Root)
+// {
+//     if(ITC_ID_IS_LEAF_ID(pt_Root))
+//     {
+//         printf("%d", pt_Root->b_IsOwner);
+//     }
+//     else
+//     {
+//         printf("(");
+//     }
+
+//     if(pt_Root->pt_Left)
+//     {
+//         debugPrintIdTree(pt_Root->pt_Left);
+//         printf(", ");
+//     }
+//     if(pt_Root->pt_Right)
+//     {
+//         debugPrintIdTree(pt_Root->pt_Right);
+//     }
+
+//     if(!ITC_ID_IS_LEAF_ID(pt_Root))
+//     {
+//         printf(")");
+//     }
+// }
+
+// static void debugPrintEventTree(ITC_Event_t *pt_Root)
+// {
+//     if(!ITC_EVENT_IS_LEAF_EVENT(pt_Root))
+//     {
+//         printf("(");
+//     }
+
+//     printf("%d", pt_Root->t_Count);
+
+//     if(pt_Root->pt_Left)
+//     {
+//         printf(", ");
+//         debugPrintEventTree(pt_Root->pt_Left);
+//     }
+//     if(pt_Root->pt_Right)
+//     {
+//         printf(", ");
+//         debugPrintEventTree(pt_Root->pt_Right);
+//     }
+
+//     if(!ITC_EVENT_IS_LEAF_EVENT(pt_Root))
+//     {
+//         printf(")");
+//     }
+// }
 
 /* Test filling leaf Event with ((1, 0), (0, 1)) ID succeeds */
 void ITC_Event_Test_fillLeafEvenWith1001IdSucceeds(void)
@@ -1919,7 +1972,7 @@ void ITC_Event_Test_fillParentEvenWithNullAndSeedIdsSucceeds(void)
     /* Fill Event with null ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_NullId, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 4);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
@@ -1967,7 +2020,7 @@ void ITC_Event_Test_fill010And001EventsWith10IdSucceeds(void)
     /* Fill the ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
@@ -2046,7 +2099,7 @@ void ITC_Event_Test_fill010And001EventsWith01IdSucceeds(void)
     /* Fill the ID */
     TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled));
 
-    /* Test the event wasn't changed */
+    /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
@@ -2605,7 +2658,7 @@ void ITC_Event_Test_fill120030500403010EvenWith01101001IdSucceeds(void)
     ITC_Event_t *pt_Event;
     ITC_Event_t *pt_OriginalEvent;
     ITC_Id_t *pt_Id;
-    // ITC_Id_t *pt_TmpId;
+    ITC_Id_t *pt_TmpId;
     bool b_WasFilled;
 
     /* clang-format off */
@@ -2678,32 +2731,70 @@ void ITC_Event_Test_fill120030500403010EvenWith01101001IdSucceeds(void)
     TEST_ASSERT_TRUE(b_WasFilled);
     checkEventLessThan(pt_OriginalEvent, pt_Event);
 
-    // /* Switch ID subtrees */
-    // pt_TmpId = pt_Id->pt_Left;
-    // pt_Id->pt_Left = pt_Id->pt_Right;
-    // pt_Id->pt_Right = pt_TmpId;
+    /* Fill the Event again */
+    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled));
 
-    // /* Destroy the Event */
-    // TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+    /* Test it hasn't changed this time */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right->pt_Left, 5);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left, 6);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
+    TEST_ASSERT_FALSE(b_WasFilled);
+    checkEventLessThan(pt_OriginalEvent, pt_Event);
 
-    // /* Copy the original */
-    // TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent, &pt_Event));
+    /* Switch ID subtrees */
+    pt_TmpId = pt_Id->pt_Left;
+    pt_Id->pt_Left = pt_Id->pt_Right;
+    pt_Id->pt_Right = pt_TmpId;
 
-    // /* Fill the ID */
-    // TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled));
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 
-    // /* Test the event has changed */
-    // TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    // TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 2);
-    // TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 0);
-    // TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 0);
-    // TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 3);
-    // TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 2);
-    // TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 0);
-    // TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left, 7);
-    // TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
-    // TEST_ASSERT_TRUE(b_WasFilled);
-    // checkEventLessThan(pt_OriginalEvent, pt_Event);
+    /* Copy the original */
+    TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent, &pt_Event));
+
+    /* Fill the Event */
+    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled));
+
+    /* Test the event has changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 2);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Left, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
+    TEST_ASSERT_TRUE(b_WasFilled);
+    checkEventLessThan(pt_OriginalEvent, pt_Event);
+
+    /* Fill the Event again */
+    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled));
+
+    /* Test it hasn't changed this time */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 2);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Left, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
+    TEST_ASSERT_FALSE(b_WasFilled);
+    checkEventLessThan(pt_OriginalEvent, pt_Event);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
