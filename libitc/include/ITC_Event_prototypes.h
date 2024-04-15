@@ -10,6 +10,8 @@
 #define ITC_EVENT_PROTOTYPES_H_
 
 #include "ITC_Event.h"
+
+#include "ITC_Id.h"
 #include "ITC_Status.h"
 
 #include <stdbool.h>
@@ -108,6 +110,23 @@ ITC_Status_t ITC_Event_leq(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
     bool *pb_IsLeq
+);
+
+/**
+ * @brief Fill an Event
+ *
+ * Tries to add a new event that will result in simplifying the Event tree
+ *
+ * @param pt_Event The Event to fill
+ * @param pt_Id The ID showing the ownership information for the interval
+ * @param pb_WasFilled Whether filling the Event was successful or not
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Event_fill(
+    ITC_Event_t *pt_Event,
+    const ITC_Id_t *const pt_Id,
+    bool *pb_WasFilled
 );
 
 #endif /* ITC_EVENT_PROTOTYPES_H_ */

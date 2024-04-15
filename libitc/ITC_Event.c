@@ -11,6 +11,8 @@
 #include "ITC_Port.h"
 #include "ITC_package.h"
 
+#include "ITC_Id_private.h"
+
 /******************************************************************************
  * Private functions
  ******************************************************************************/
@@ -1008,6 +1010,354 @@ static ITC_Status_t maxEventE(
     return t_Status;
 }
 
+// static ITC_Status_t fillEventE(
+//     ITC_Event_t *pt_Event,
+//     const ITC_Id_t *pt_Id,
+//     bool *pb_WasFilled
+// )
+// {
+//     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+//     ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
+//     ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+//     uint32_t u32_MaxNestLeft = 1;
+//     uint32_t u32_MaxNestRight = 1;
+//     uint32_t u32_CurrentNest = 1;
+
+//     *pb_WasFilled = false;
+
+//     while (t_Status == ITC_STATUS_SUCCESS &&
+//            pt_Event != pt_ParentRootEvent &&
+//            pt_Id != pt_ParentRootId)
+//     {
+//         if(ITC_ID_IS_NULL_ID(pt_Id) ||
+//            ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+//         {
+//             /* Nothing to inflate. */
+//             pt_Id = pt_Id->pt_Parent;
+//             pt_Event = pt_Event->pt_Parent;
+
+//             u32_CurrentNest--;
+//         }
+//         else if (ITC_ID_IS_SEED_ID(pt_Id))
+//         {
+//             /* Maximise Event */
+//             t_Status = maxEventE(pt_Event);
+
+//             pt_Id = pt_Id->pt_Parent;
+//             pt_Event = pt_Event->pt_Parent;
+
+//             u32_CurrentNest--;
+
+//             *pb_WasFilled = true;
+//         }
+//         else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Left))
+//         {
+//             if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+//                 u32_CurrentNest >= u32_MaxNestRight)
+//             {
+//                 pt_Id = pt_Id->pt_Right;
+//                 pt_Event = pt_Event->pt_Right;
+
+//                 u32_CurrentNest++;
+//                 u32_MaxNestRight = u32_CurrentNest;
+//             }
+//             else
+//             {
+//                 if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
+//                 {
+//                     t_Status = maxEventE(pt_Event->pt_Left);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         *pb_WasFilled = true;
+//                     }
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS &&
+//                     (pt_Event->pt_Left->t_Count <
+//                      pt_Event->pt_Right->t_Count))
+//                 {
+//                     pt_Event->pt_Left->t_Count = pt_Event->pt_Right->t_Count;
+//                     *pb_WasFilled = true;
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS)
+//                 {
+//                     t_Status = normEventE(pt_Event);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         pt_Id = pt_Id->pt_Parent;
+//                         pt_Event = pt_Event->pt_Parent;
+
+//                         u32_CurrentNest--;
+//                     }
+//                 }
+//             }
+//         }
+//         else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
+//         {
+//             if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+//                 u32_CurrentNest >= u32_MaxNestLeft)
+//             {
+//                 pt_Id = pt_Id->pt_Left;
+//                 pt_Event = pt_Event->pt_Left;
+
+//                 u32_CurrentNest++;
+//                 u32_MaxNestLeft = u32_CurrentNest;
+//             }
+//             else
+//             {
+//                 if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
+//                 {
+//                     t_Status = maxEventE(pt_Event->pt_Right);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         *pb_WasFilled = true;
+//                     }
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS &&
+//                     (pt_Event->pt_Right->t_Count <
+//                      pt_Event->pt_Left->t_Count))
+//                 {
+//                     pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
+//                     *pb_WasFilled = true;
+//                 }
+
+//                 if (t_Status == ITC_STATUS_SUCCESS)
+//                 {
+//                     t_Status = normEventE(pt_Event);
+
+//                     if (t_Status == ITC_STATUS_SUCCESS)
+//                     {
+//                         pt_Id = pt_Id->pt_Parent;
+//                         pt_Event = pt_Event->pt_Parent;
+
+//                         u32_CurrentNest--;
+//                     }
+//                 }
+//             }
+//         }
+//         else
+//         {
+//             if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+//                 u32_CurrentNest >= u32_MaxNestLeft)
+//             {
+//                 pt_Id = pt_Id->pt_Left;
+//                 pt_Event = pt_Event->pt_Left;
+
+//                 u32_CurrentNest++;
+//                 u32_MaxNestLeft = u32_CurrentNest;
+//             }
+//             else if (
+//                 // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+//                      u32_CurrentNest >= u32_MaxNestRight)
+//             {
+//                 pt_Id = pt_Id->pt_Right;
+//                 pt_Event = pt_Event->pt_Right;
+
+//                 u32_CurrentNest++;
+//                 u32_MaxNestRight = u32_CurrentNest;
+//             }
+//             else
+//             {
+//                 t_Status = normEventE(pt_Event);
+
+//                 if (t_Status == ITC_STATUS_SUCCESS)
+//                 {
+//                     pt_Id = pt_Id->pt_Parent;
+//                     pt_Event = pt_Event->pt_Parent;
+
+//                     u32_CurrentNest--;
+//                 }
+//             }
+//         }
+//     }
+
+//     return t_Status;
+// }
+
+static ITC_Status_t fillEventE(
+    ITC_Event_t *pt_Event,
+    const ITC_Id_t *pt_Id,
+    bool *pb_WasFilled
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
+    ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+    const ITC_Id_t *pt_PrevId = NULL;
+
+    *pb_WasFilled = false;
+
+    while (t_Status == ITC_STATUS_SUCCESS &&
+           pt_Event != pt_ParentRootEvent &&
+           pt_Id != pt_ParentRootId)
+    {
+        if(ITC_ID_IS_NULL_ID(pt_Id) ||
+           ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+        {
+            pt_PrevId = pt_Id;
+
+            /* Nothing to inflate. */
+            pt_Id = pt_Id->pt_Parent;
+            pt_Event = pt_Event->pt_Parent;
+        }
+        else if (ITC_ID_IS_SEED_ID(pt_Id))
+        {
+            pt_PrevId = pt_Id;
+
+            /* Maximise Event */
+            t_Status = maxEventE(pt_Event);
+
+            pt_Id = pt_Id->pt_Parent;
+            pt_Event = pt_Event->pt_Parent;
+
+            *pb_WasFilled = true;
+        }
+        else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Left))
+        {
+            if (
+                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+                // u32_CurrentNest >= u32_MaxNestRight
+                pt_PrevId != pt_Id->pt_Right
+                )
+            {
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Right;
+                pt_Event = pt_Event->pt_Right;
+            }
+            else
+            {
+                if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
+                {
+                    t_Status = maxEventE(pt_Event->pt_Left);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        *pb_WasFilled = true;
+                    }
+                }
+
+                if (t_Status == ITC_STATUS_SUCCESS &&
+                    (pt_Event->pt_Left->t_Count <
+                     pt_Event->pt_Right->t_Count))
+                {
+                    pt_Event->pt_Left->t_Count = pt_Event->pt_Right->t_Count;
+                    *pb_WasFilled = true;
+                }
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    t_Status = normEventE(pt_Event);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        pt_PrevId = pt_Id;
+
+                        pt_Id = pt_Id->pt_Parent;
+                        pt_Event = pt_Event->pt_Parent;
+                    }
+                }
+            }
+        }
+        else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
+        {
+            if (
+                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+                // u32_CurrentNest >= u32_MaxNestLeft
+                pt_PrevId != pt_Id->pt_Left
+                )
+            {
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Left;
+                pt_Event = pt_Event->pt_Left;
+            }
+            else
+            {
+                if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
+                {
+                    t_Status = maxEventE(pt_Event->pt_Right);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        *pb_WasFilled = true;
+                    }
+                }
+
+                if (t_Status == ITC_STATUS_SUCCESS &&
+                    (pt_Event->pt_Right->t_Count <
+                     pt_Event->pt_Left->t_Count))
+                {
+                    pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
+                    *pb_WasFilled = true;
+                }
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    t_Status = normEventE(pt_Event);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        pt_PrevId = pt_Id;
+
+                        pt_Id = pt_Id->pt_Parent;
+                        pt_Event = pt_Event->pt_Parent;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (
+                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+                // u32_CurrentNest >= u32_MaxNestLeft
+                pt_PrevId != pt_Id->pt_Left &&
+                pt_PrevId != pt_Id->pt_Right
+
+                )
+            {
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Left;
+                pt_Event = pt_Event->pt_Left;
+            }
+            else if (
+                // !ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+                    //  u32_CurrentNest >= u32_MaxNestRight
+                pt_PrevId != pt_Id->pt_Right
+                     )
+            {
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Right;
+                pt_Event = pt_Event->pt_Right;
+            }
+            else
+            {
+                t_Status = normEventE(pt_Event);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_PrevId = pt_Id;
+
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_Event = pt_Event->pt_Parent;
+                }
+            }
+        }
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -1220,6 +1570,45 @@ ITC_Status_t ITC_Event_leq(
     {
         /* Check if `pt_Event1 <= pt_Event2` */
         t_Status = leqEventE(pt_Event1, pt_Event2, pb_IsLeq);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Fill an Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_fill(
+    ITC_Event_t *pt_Event,
+    const ITC_Id_t *const pt_Id,
+    bool *pb_WasFilled
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (!pb_WasFilled)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* TODO: Validate the ID */
+        if (!pt_Id)
+        {
+            t_Status = ITC_STATUS_INVALID_PARAM;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = fillEventE(pt_Event, pt_Id, pb_WasFilled);
     }
 
     return t_Status;
