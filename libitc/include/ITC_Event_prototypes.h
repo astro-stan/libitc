@@ -129,4 +129,24 @@ ITC_Status_t ITC_Event_fill(
     bool *pb_WasFilled
 );
 
+/**
+ * @brief Grow an Event
+ *
+ * Adds a new event to the Event tree. This may result in increased tree
+ * complexity.
+ *
+ * Try filling the Event first (using `ITC_Event_fill`). If that fails, use this
+ * function to grow the Event instead.
+ *
+ * @param pt_Event The Event to fill
+ * @param pt_Id The ID showing the ownership information for the interval
+ * @param pb_WasFilled Whether filling the Event was successful or not
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Event_grow(
+    ITC_Event_t *pt_Event,
+    const ITC_Id_t *const pt_Id
+);
+
 #endif /* ITC_EVENT_PROTOTYPES_H_ */

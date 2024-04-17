@@ -443,6 +443,58 @@ static ITC_Status_t liftDestroyDestroyEvent(
 }
 
 /**
+ * @brief Turns a leaf Event into a parent by allocating 2 child nodes for it
+ *
+ * Performs the operation and tries to do damange control (revert to original
+ * state) if any of the steps fail.
+ *
+ * @note It is assumed the Event passed in is a leaf event. If not, a memory
+ * leak will occur as the original children will not be deallocated before
+ * allocating the new child nodes
+ *
+ * @param pt_Event The Event on which to perform the operation
+ * children
+ * @param t_LeftCount The event counter to assign to the left child node
+ * @param t_RightCount The event counter to assign to the right child node
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t newChildNodes(
+    ITC_Event_t *pt_Event,
+    ITC_Event_Counter_t t_LeftCount,
+    ITC_Event_Counter_t t_RightCount
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+
+    /* Allocate the children */
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            t_Status = newEvent(&pt_Event->pt_Right, pt_Event, t_RightCount);
+
+            if (t_Status != ITC_STATUS_SUCCESS)
+            {
+                /* Delete the other child */
+                t_OpStatus = ITC_Event_destroy(&pt_Event->pt_Left);
+
+                if (t_OpStatus != ITC_STATUS_SUCCESS)
+                {
+                    /* Return last error */
+                    t_Status = t_OpStatus;
+                }
+            }
+        }
+    }
+
+    return t_Status;
+}
+
+/**
  * @brief Normalise an Event fulfilling `norm(e)`
  * Rules:
  *  - norm(n) = n
@@ -1039,6 +1091,8 @@ static ITC_Status_t fillEventE(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    /* Remember the root parents as these might be Event or ID subtrees */
     ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
     ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
 
@@ -1217,6 +1271,217 @@ static ITC_Status_t fillEventE(
                     pt_Id = pt_Id->pt_Parent;
                     pt_Event = pt_Event->pt_Parent;
                 }
+            }
+        }
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Grow an Event, fulfilling `grow(i, e)`
+ *
+ * Grow performs a dynamic programming based optimization to choose the
+ * inflation that can be performed, given the available ID tree, so as to
+ * minimize the cost (`c`) of the event tree growth. The cost of an Event tree
+ * growth is defined so that:
+ *  - incrementing an event counter is preferable over adding a node
+ *  - an operation near the root is preferable to one further away
+ *
+ * Rules:
+ *  - grow(1, n) = (n + 1, 0)
+ *  - grow(i, n) = (e', c + N), where:
+ *    - (e', c) = grow(i, (n, 0, 0))
+ *    - N is a constant, greater than the maximum tree depth that arises
+ *      Alternatively it could be implemented as a pair under
+ *      lexicographic order
+ *  - grow((0, ir), (n, el, er)):
+ *        ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er)
+ *  - grow((il, 0), (n, el, er)):
+ *        ((n, el', er), cl + 1), where (el', cl) = grow(il, el)
+ *  - grow((il, ir), (n, el, er)):
+ *    - If cl < cr:
+ *          ((n, el', er), cl + 1), where (el', cl) = grow(il, el)
+ *    - If cl >= cr:
+ *          ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er)
+ *
+ * @param pt_Event The Event to grow
+ * @param pt_Id The ID showing the ownership information for the interval
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t growEventE(
+    ITC_Event_t *pt_Event,
+    const ITC_Id_t *pt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    /* Remember the root parents as these might be Event or ID subtrees */
+    ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
+    ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+
+    /* The previously iterated ID subtree.
+     * Used to keep track of which nodes have been explored */
+    const ITC_Id_t *pt_PrevId = NULL;
+
+    /* TODO: Make this a lexicographic order cost */
+    uint32_t u32_CostLeft = 0;
+    uint32_t u32_CostRight = 0;
+
+    /* Init the cost pointer with the `&u32_CostLeft`. This is because if
+     * `cl >= cr`, the right subtree must be expanded. Two cases exist:
+     *
+     * - If the initial `pt_Event` is *not* a leaf:
+     *   `u32_CostLeft == u32_CostRight == 0`, thus the right subtree will be
+     *   expanded on the first iteration of the loop.
+     *
+     *  - If the initial `pt_Event` is a leaf:
+     *    On the first iteration, `pt_Event` will expanded into a parent node
+     *    (`grow(i, n) = (e', c + N), where (e', c) = grow(i, (n, 0, 0)))`).
+     *    Thus, on the second iteration `u32_CostLeft > u32_CostRight` will be
+     *    be true, which would again expand the right subtree. */
+    uint32_t *pu32_CostPtr = &u32_CostLeft;
+
+    while (t_Status == ITC_STATUS_SUCCESS &&
+           pt_Event != pt_ParentRootEvent &&
+           pt_Id != pt_ParentRootId)
+    {
+        /* This is a special case to protect against an infinite loop if a NULL
+         * ID is encountered. */
+        if (ITC_ID_IS_NULL_ID(pt_Id))
+        {
+            pt_PrevId = pt_Id;
+
+            pt_Id = pt_Id->pt_Parent;
+            pt_Event = pt_Event->pt_Parent;
+        }
+        /* grow(1, n) || grow(i, n) */
+        else if (ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+        {
+            /* grow(1, n) = (n + 1, 0) */
+            if (ITC_ID_IS_SEED_ID(pt_Id))
+            {
+                t_Status = incEventCounter(&pt_Event->t_Count, 1);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_PrevId = pt_Id;
+
+                    /* This case has no cost */
+
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_Event = pt_Event->pt_Parent;
+                }
+            }
+            /* grow(i, n) = (e', c + N) */
+            else
+            {
+                /* Expand the event tree by adding 2 child nodes */
+                t_Status = newChildNodes(pt_Event, 0, 0);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_PrevId = pt_Id;
+
+                    *pu32_CostPtr += 1000;
+
+                    /* Don't go up back the tree. Instead run through the
+                     * cases again with e' (a parent node) */
+                }
+            }
+        }
+        /* grow((0, ir), (n, el, er)):
+         * ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er) */
+        else if (ITC_ID_IS_NULL_ID(pt_Id->pt_Left))
+        {
+            /* (er', cr) = grow(ir, er) */
+            if (pt_PrevId != pt_Id->pt_Right)
+            {
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Right;
+                pt_Event = pt_Event->pt_Right;
+                pu32_CostPtr = &u32_CostRight;
+            }
+            /* ((n, el, er'), cr + 1) */
+            else
+            {
+                pt_PrevId = pt_Id;
+
+                u32_CostRight++;
+
+                pt_Id = pt_Id->pt_Parent;
+                pt_Event = pt_Event->pt_Parent;
+            }
+        }
+        /* grow((il, 0), (n, el, er)):
+         * ((n, el', er), cl + 1), where (el', cl) = grow(il, el) */
+        else if (ITC_ID_IS_NULL_ID(pt_Id->pt_Right))
+        {
+            /* (el', cl) = grow(il, el) */
+            if (pt_PrevId != pt_Id->pt_Left)
+            {
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Left;
+                pt_Event = pt_Event->pt_Left;
+                pu32_CostPtr = &u32_CostLeft;
+            }
+            /* ((n, el', er), cl + 1) */
+            else
+            {
+                pt_PrevId = pt_Id;
+
+                u32_CostLeft++;
+
+                pt_Id = pt_Id->pt_Parent;
+                pt_Event = pt_Event->pt_Parent;
+            }
+        }
+        /* grow((il, ir), (n, el, er)):
+        *  - If cl < cr:
+        *    ((n, el', er), cl + 1), where (el', cl) = grow(il, el)
+        *  - If cl >= cr:
+        *    ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er) */
+        else
+        {
+            if (pt_PrevId != pt_Id->pt_Left && pt_PrevId != pt_Id->pt_Right)
+            {
+                pt_PrevId = pt_Id;
+
+                /* cl < cr; (el', cl) = grow(il, el) */
+                if (u32_CostLeft < u32_CostRight)
+                {
+                    pt_Id = pt_Id->pt_Left;
+                    pt_Event = pt_Event->pt_Left;
+                    pu32_CostPtr = &u32_CostLeft;
+                }
+                /* cl >= cr; (er', cr) = grow(ir, er) */
+                else
+                {
+                    pt_Id = pt_Id->pt_Right;
+                    pt_Event = pt_Event->pt_Right;
+                    pu32_CostPtr = &u32_CostRight;
+                }
+            }
+            else
+            {
+                /* cl < cr; ((n, el', er), cl + 1) */
+                if (pt_PrevId == pt_Id->pt_Left)
+                {
+                    u32_CostLeft++;
+                }
+                /* cl >= cr; ((n, el, er'), cr + 1) */
+                else
+                {
+                    u32_CostRight++;
+                }
+
+                pt_PrevId = pt_Id;
+
+                pt_Id = pt_Id->pt_Parent;
+                pt_Event = pt_Event->pt_Parent;
             }
         }
     }
@@ -1475,6 +1740,36 @@ ITC_Status_t ITC_Event_fill(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = fillEventE(pt_Event, pt_Id, pb_WasFilled);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Grow an Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_grow(
+    ITC_Event_t *pt_Event,
+    const ITC_Id_t *const pt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    t_Status = validateEvent(pt_Event);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* TODO: Validate the ID */
+        if (!pt_Id)
+        {
+            t_Status = ITC_STATUS_INVALID_PARAM;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = growEventE(pt_Event, pt_Id);
     }
 
     return t_Status;
