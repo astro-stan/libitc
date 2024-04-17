@@ -1325,23 +1325,32 @@ static ITC_Status_t growEventE(
      * Used to keep track of which nodes have been explored */
     const ITC_Id_t *pt_PrevId = NULL;
 
-    /* TODO: Make this a lexicographic order cost */
-    uint32_t u32_CostLeft = 0;
-    uint32_t u32_CostRight = 0;
+    /* Use 64-bit counters to avoid having to use lexicographic order, which
+     * would require dynamically allocating a list of integers.
+     *
+     * Instead the node expansion cost (when performing `grow(i, n)`) is set to
+     * be `UINT32_MAX`. This is effectively the same as having a list of 32-bit
+     * integers in lexicographic order as long as the Event tree height is less
+     * than `UINT32_MAX`.
+     *
+     * For all practical purposes this should be orders of magnitde bigger than
+     * any encountered Event tree height. */
+    uint64_t u64_CostLeft = 0;
+    uint64_t u64_CostRight = 0;
 
-    /* Init the cost pointer with the `&u32_CostLeft`. This is because if
+    /* Init the cost pointer with the `&u64_CostLeft`. This is because if
      * `cl >= cr`, the right subtree must be expanded. Two cases exist:
      *
      * - If the initial `pt_Event` is *not* a leaf:
-     *   `u32_CostLeft == u32_CostRight == 0`, thus the right subtree will be
+     *   `u64_CostLeft == u64_CostRight == 0`, thus the right subtree will be
      *   expanded on the first iteration of the loop.
      *
      *  - If the initial `pt_Event` is a leaf:
      *    On the first iteration, `pt_Event` will expanded into a parent node
      *    (`grow(i, n) = (e', c + N), where (e', c) = grow(i, (n, 0, 0)))`).
-     *    Thus, on the second iteration `u32_CostLeft > u32_CostRight` will be
+     *    Thus, on the second iteration `u64_CostLeft > u64_CostRight` will be
      *    be true, which would again expand the right subtree. */
-    uint32_t *pu32_CostPtr = &u32_CostLeft;
+    uint64_t *pu64_CostPtr = &u64_CostLeft;
 
     while (t_Status == ITC_STATUS_SUCCESS &&
            pt_Event != pt_ParentRootEvent &&
@@ -1384,7 +1393,10 @@ static ITC_Status_t growEventE(
                 {
                     pt_PrevId = pt_Id;
 
-                    *pu32_CostPtr += 1000;
+                    /* This cost is equvalent to a `shift` operation on a list
+                     * of 32-bit integers in lexicographic order, as long as
+                     * the tree height is less than UINT32_MAX */
+                    *pu64_CostPtr += UINT32_MAX;
 
                     /* Don't go up back the tree. Instead run through the
                      * cases again with e' (a parent node) */
@@ -1402,14 +1414,14 @@ static ITC_Status_t growEventE(
 
                 pt_Id = pt_Id->pt_Right;
                 pt_Event = pt_Event->pt_Right;
-                pu32_CostPtr = &u32_CostRight;
+                pu64_CostPtr = &u64_CostRight;
             }
             /* ((n, el, er'), cr + 1) */
             else
             {
                 pt_PrevId = pt_Id;
 
-                u32_CostRight++;
+                u64_CostRight++;
 
                 pt_Id = pt_Id->pt_Parent;
                 pt_Event = pt_Event->pt_Parent;
@@ -1426,14 +1438,14 @@ static ITC_Status_t growEventE(
 
                 pt_Id = pt_Id->pt_Left;
                 pt_Event = pt_Event->pt_Left;
-                pu32_CostPtr = &u32_CostLeft;
+                pu64_CostPtr = &u64_CostLeft;
             }
             /* ((n, el', er), cl + 1) */
             else
             {
                 pt_PrevId = pt_Id;
 
-                u32_CostLeft++;
+                u64_CostLeft++;
 
                 pt_Id = pt_Id->pt_Parent;
                 pt_Event = pt_Event->pt_Parent;
@@ -1451,18 +1463,18 @@ static ITC_Status_t growEventE(
                 pt_PrevId = pt_Id;
 
                 /* cl < cr; (el', cl) = grow(il, el) */
-                if (u32_CostLeft < u32_CostRight)
+                if (u64_CostLeft < u64_CostRight)
                 {
                     pt_Id = pt_Id->pt_Left;
                     pt_Event = pt_Event->pt_Left;
-                    pu32_CostPtr = &u32_CostLeft;
+                    pu64_CostPtr = &u64_CostLeft;
                 }
                 /* cl >= cr; (er', cr) = grow(ir, er) */
                 else
                 {
                     pt_Id = pt_Id->pt_Right;
                     pt_Event = pt_Event->pt_Right;
-                    pu32_CostPtr = &u32_CostRight;
+                    pu64_CostPtr = &u64_CostRight;
                 }
             }
             else
@@ -1470,12 +1482,12 @@ static ITC_Status_t growEventE(
                 /* cl < cr; ((n, el', er), cl + 1) */
                 if (pt_PrevId == pt_Id->pt_Left)
                 {
-                    u32_CostLeft++;
+                    u64_CostLeft++;
                 }
                 /* cl >= cr; ((n, el, er'), cr + 1) */
                 else
                 {
-                    u32_CostRight++;
+                    u64_CostRight++;
                 }
 
                 pt_PrevId = pt_Id;
