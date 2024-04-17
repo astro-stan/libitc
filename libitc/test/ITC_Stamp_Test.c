@@ -386,6 +386,96 @@ void ITC_Stamp_Test_joinStampsSuccessful(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 }
 
+/* Test inflating the Event of as Stamp fails with invalid param */
+void ITC_Stamp_Test_eventStampFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Stamp_event(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test inflating the Event of a Stamp fails with corrupt stamp */
+void ITC_Stamp_Test_eventStampFailWithCorruptStamp(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Stamp_event(pt_Stamp), ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+}
+
+/* Test inflating the Event of a Stamp succeeds */
+void ITC_Stamp_Test_eventStampSuccessful(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_PeekStamp;
+    ITC_Stamp_t *pt_OriginalStamp;
+    ITC_Stamp_Comparison_t t_Result;
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Retain a copy for comparison */
+    TEST_SUCCESS(ITC_Stamp_clone(pt_Stamp, &pt_OriginalStamp));
+
+    /* Inflate the Stamp Event tree by growing it */
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp));
+
+    /* Test the Event counter has grown */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 1);
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp, pt_OriginalStamp, &t_Result));
+    TEST_ASSERT_TRUE(t_Result == ITC_STAMP_COMPARISON_GREATER_THAN);
+
+    /* Create a new peek Stamp */
+    TEST_SUCCESS(ITC_Stamp_newPeek(pt_Stamp, &pt_PeekStamp));
+
+    /* Attempt to inflate the peek Stamp */
+    TEST_SUCCESS(ITC_Stamp_event(pt_PeekStamp));
+
+    /* Test the Event counter has not changed */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_PeekStamp->pt_Event, 1);
+    TEST_SUCCESS(ITC_Stamp_compare(pt_PeekStamp, pt_Stamp, &t_Result));
+    TEST_ASSERT_TRUE(t_Result == ITC_STAMP_COMPARISON_EQUAL);
+
+    /* Destroy the Stamps */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_PeekStamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OriginalStamp));
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Retain a copy for comparison */
+    TEST_SUCCESS(ITC_Stamp_clone(pt_Stamp, &pt_OriginalStamp));
+
+    /* Add children to the Event tree */
+    TEST_SUCCESS(
+        newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, 0));
+    TEST_SUCCESS(
+        newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 3));
+
+    /* Inflate the Stamp Event tree this time by filling it */
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp));
+
+    /* Test the Event counter has been filled */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 3);
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp, pt_OriginalStamp, &t_Result));
+    TEST_ASSERT_TRUE(t_Result == ITC_STAMP_COMPARISON_GREATER_THAN);
+
+    /* Destroy the Stamps */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OriginalStamp));
+}
+
 /* Test comparing Stamps fails with invalid param */
 void ITC_Stamp_Test_compareStampsFailInvalidParam(void)
 {

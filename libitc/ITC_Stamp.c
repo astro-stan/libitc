@@ -424,6 +424,36 @@ ITC_Status_t ITC_Stamp_fork(
 }
 
 /******************************************************************************
+ * Add a new Event to the Stamp
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_event(
+    const ITC_Stamp_t *const pt_Stamp
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    bool b_WasFilled = false;
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Event_fill(
+            pt_Stamp->pt_Event, pt_Stamp->pt_Id, &b_WasFilled);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS && !b_WasFilled)
+    {
+        t_Status = ITC_Event_grow(pt_Stamp->pt_Event, pt_Stamp->pt_Id);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
  * Join two existing Stamps
  ******************************************************************************/
 

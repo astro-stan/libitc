@@ -84,6 +84,17 @@ ITC_Status_t ITC_Stamp_fork(
 );
 
 /**
+ * @brief Add a new Event to the Stamp
+ *
+ * @param pt_Stamp The existing Stamp
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Stamp_event(
+    const ITC_Stamp_t *const pt_Stamp
+);
+
+/**
  * @brief Join two existing Stamps
  * Joins 2 stamps into a single Stamp, combining their IDs and event histories.
  *
