@@ -1,13 +1,13 @@
 /**
- * @file ITC_Event_prototypes.h
+ * @file ITC_Event_package.h
  * @author Stan
- * @brief Prototypes for the Interval Tree Clock's Event mechanism
+ * @brief Package definitions for the Interval Tree Clock's Event mechanism
  *
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef ITC_EVENT_PROTOTYPES_H_
-#define ITC_EVENT_PROTOTYPES_H_
+#ifndef ITC_EVENT_PACKAGE_H_
+#define ITC_EVENT_PACKAGE_H_
 
 #include "ITC_Event.h"
 
@@ -149,4 +149,4 @@ ITC_Status_t ITC_Event_grow(
     const ITC_Id_t *const pt_Id
 );
 
-#endif /* ITC_EVENT_PROTOTYPES_H_ */
+#endif /* ITC_EVENT_PACKAGE_H_ */

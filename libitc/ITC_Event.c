@@ -7,11 +7,11 @@
  *
  */
 #include "ITC_Event.h"
+#include "ITC_Event_package.h"
 #include "ITC_Event_private.h"
-#include "ITC_Port.h"
-#include "ITC_package.h"
 
 #include "ITC_Id_private.h"
+#include "ITC_Port.h"
 
 /******************************************************************************
  * Private functions

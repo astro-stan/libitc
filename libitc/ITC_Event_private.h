@@ -17,6 +17,18 @@
  * Defines
  ******************************************************************************/
 
+/** Returns the minimum of two values
+ * @note Non-idempotent expressions, such as `myVar++` or `myVar--` will
+ * execute multiple times and can cause undefined behaviour
+*/
+#define MIN(a, b)                                      (((a) < (b)) ? (a) : (b))
+
+/** Returns the maximum of two values
+ * @note Non-idempotent expressions, such as `myVar++` or `myVar--` will
+ * execute multiple times and can cause undefined behaviour
+*/
+#define MAX(a, b)                                      (((a) > (b)) ? (a) : (b))
+
 /** Checks whether the given `ITC_Event_t` is a leaf node */
 #define ITC_EVENT_IS_LEAF_EVENT(pt_Event)                                     \
     ((pt_Event) && !(pt_Event)->pt_Left && !(pt_Event)->pt_Right)

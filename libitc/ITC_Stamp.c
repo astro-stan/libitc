@@ -7,6 +7,9 @@
  *
  */
 #include "ITC_Stamp.h"
+
+#include "ITC_Event_package.h"
+#include "ITC_Id_package.h"
 #include "ITC_Port.h"
 
 #include <stdbool.h>

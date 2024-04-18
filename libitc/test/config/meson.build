@@ -73,7 +73,7 @@ foreach libitc_test_src_file_path : libitc_test_src
         build_by_default: false,
         include_directories: [libitc_test_inc],
         dependencies: [
-            libitc_dep,
+            libitc_test_dep,
             unity_dep,
             cmock_dep,
         ],

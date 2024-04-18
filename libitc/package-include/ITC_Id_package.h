@@ -1,13 +1,13 @@
 /**
- * @file ITC_Id_prototypes.h
+ * @file ITC_Id_package.h
  * @author Stan
  * @brief Prototypes for the Interval Tree Clock's ID mechanism
  *
  * @copyright Copyright (c) 2024
  *
  */
-#ifndef ITC_ID_PROTOTYPES_H_
-#define ITC_ID_PROTOTYPES_H_
+#ifndef ITC_ID_PACKAGE_H_
+#define ITC_ID_PACKAGE_H_
 
 #include "ITC_Id.h"
 #include "ITC_Status.h"
@@ -105,4 +105,4 @@ ITC_Status_t ITC_Id_sum(
     ITC_Id_t **ppt_Id
 );
 
-#endif /* ITC_ID_PROTOTYPES_H_ */
+#endif /* ITC_ID_PACKAGE_H_ */

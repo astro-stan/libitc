@@ -9,10 +9,8 @@
 #ifndef ITC_TEST_PACKAGE_H_
 #define ITC_TEST_PACKAGE_H_
 
-#include "unity.h"
-#include "ITC_Status.h"
-#include "ITC_Id_Test_package.h"
 #include "ITC_Event_Test_package.h"
+#include "ITC_Id_Test_package.h"
 
 /******************************************************************************
  * Defines

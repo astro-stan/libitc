@@ -1,6 +1,8 @@
 #include "ITC_Event.h"
+#include "ITC_Event_package.h"
 #include "ITC_Event_Test.h"
 
+#include "ITC_Id_package.h"
 #include "ITC_Test_package.h"
 
 /******************************************************************************

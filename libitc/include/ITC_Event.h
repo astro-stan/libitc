@@ -34,7 +34,4 @@ typedef struct ITC_Event_t
     ITC_Event_Counter_t t_Count;
 } ITC_Event_t;
 
-/* Late include. We need to define the types first */
-#include "ITC_Event_prototypes.h"
-
 #endif /* ITC_EVENT_H_ */
