@@ -72,20 +72,17 @@ static ITC_Status_t validateId(
 
                 pt_CurrentId = pt_CurrentId->pt_Left;
             }
-            /* Descend into right tree */
+            /* ITC trees must always have both left and right subtrees or
+             * be leafs. If this is reached, then a node is missing its
+             * left subtree, which makes the tree invalid. Usually this will
+             * be caught in the `if` at the beginning of the loop, but do check
+             * again just in case */
             else if (pt_CurrentId->pt_Right)
             {
-                /* Remember the parent address */
-                pt_ParentCurrentId = pt_CurrentId;
-
-                pt_CurrentId = pt_CurrentId->pt_Right;
+                t_Status = ITC_STATUS_CORRUPT_ID;
             }
             else
             {
-                /* Trust the parent pointers.
-                 * They were validated on the way down */
-                pt_ParentCurrentId = pt_CurrentId->pt_Parent;
-
                 /* Loop until the current element is no longer reachable
                  * through he parent's right child */
                 while (pt_ParentCurrentId != pt_ParentRootId &&
