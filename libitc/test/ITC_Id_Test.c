@@ -61,7 +61,7 @@ static void newInvalidIdWithRootParentOwner(ITC_Id_t **ppt_Id)
 {
     TEST_SUCCESS(newSeed(ppt_Id, NULL));
     TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -99,7 +99,33 @@ static void newInvalidIdWithAsymmetricNestedParent(ITC_Id_t **ppt_Id)
     TEST_SUCCESS(newNull(ppt_Id, NULL));
     TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
     TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right->pt_Left, (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Left, (*ppt_Id)->pt_Right));
+}
+
+/**
+ * @brief Create a new invalid not normalised ID
+ *
+ * @param pt_Id (out) The pointer to the ID
+ */
+static void newInvalidNotNormalisedId(ITC_Id_t **ppt_Id)
+{
+    TEST_SUCCESS(newNull(ppt_Id, NULL));
+    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
+}
+
+/**
+ * @brief Create a new invalid not normalised nested ID
+ *
+ * @param pt_Id (out) The pointer to the ID
+ */
+static void newInvalidNotNormalisedNestedId(ITC_Id_t **ppt_Id)
+{
+    TEST_SUCCESS(newNull(ppt_Id, NULL));
+    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Left, (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Right, (*ppt_Id)->pt_Right));
 }
 
 /**
@@ -113,7 +139,7 @@ static void newInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
 {
     TEST_SUCCESS(newNull(ppt_Id, NULL));
     TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -176,6 +202,11 @@ void (*gpv_InvalidIdConstructorTable[])(ITC_Id_t **) =
     newInvalidIdWithNestedParentOwner,
     newInvalidIdWithNullParentPointer,
     newInvalidIdWithInvalidParentPointer,
+    /* Normalisation related invalid IDs.
+     * If adding more constructors before this point,
+     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX` */
+    newInvalidNotNormalisedId,
+    newInvalidNotNormalisedNestedId,
 };
 
 /**
@@ -196,6 +227,11 @@ void (*gpv_InvalidIdDestructorTable[])(ITC_Id_t **) =
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     destroyInvalidIdWithNullParentPointer,
     destroyInvalidIdWithInvalidParentPointer,
+    /* Normalisation related invalid IDs.
+     * If adding more destructors before this point,
+     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX` */
+    (void (*)(ITC_Id_t **))ITC_Id_destroy,
+    (void (*)(ITC_Id_t **))ITC_Id_destroy,
 };
 
 /******************************************************************************
@@ -869,9 +905,10 @@ void ITC_Id_Test_normaliseIdFailWithCorruptId(void)
 {
     ITC_Id_t *pt_Id;
 
-    /* Test different invalid IDs are handled properly */
+    /* Test different invalid IDs are handled properly.
+     * Only test invalid IDs that are not related to normalisation */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidIdConstructorTable);
+         u32_I < FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX;
          u32_I++)
     {
         /* Construct an invalid ID */
@@ -1457,93 +1494,6 @@ void ITC_Id_Test_sumId01And10SubtreesSucceeds(void)
 
     /* Test the summed ID is a seed ID */
     TEST_ITC_ID_IS_SEED_ID(pt_SumId);
-
-    /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
-    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
-}
-
-/* Test summing two (0, 0) IDs succeeds */
-void ITC_Id_Test_sumId0000Succeeds(void)
-{
-    ITC_Id_t *pt_OriginalId1;
-    ITC_Id_t *pt_OriginalId2;
-    ITC_Id_t *pt_SumId = NULL;
-
-    /* Create the two (0, 0) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
-
-    /* Sum the IDs */
-    TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
-
-    /* Test the summed ID is a NULL ID */
-    TEST_ITC_ID_IS_NULL_ID(pt_SumId);
-
-    /* Destroy the ID */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
-
-    /* Sum the IDs the other way around */
-    TEST_SUCCESS(ITC_Id_sum(pt_OriginalId2, pt_OriginalId1, &pt_SumId));
-
-    /* Test the summed ID is a NULL ID */
-    TEST_ITC_ID_IS_NULL_ID(pt_SumId);
-
-    /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
-    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
-    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
-}
-
-/* Test summing two (0, 0) ID subtrees succeeds */
-void ITC_Id_Test_sumId0000SubtreesSucceeds(void)
-{
-    ITC_Id_t *pt_OriginalId1;
-    ITC_Id_t *pt_OriginalId2;
-    ITC_Id_t *pt_SumId = NULL;
-
-    /* clang-format off */
-    /* Create the two (0, 0) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left->pt_Left, pt_OriginalId1->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left->pt_Right, pt_OriginalId1->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
-
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Left, pt_OriginalId2->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Right, pt_OriginalId2->pt_Right));
-    /* clang-format on */
-
-    /* Sum the IDs */
-    TEST_SUCCESS(
-        ITC_Id_sum(
-            pt_OriginalId1->pt_Left,
-            pt_OriginalId2->pt_Right,
-            &pt_SumId));
-
-    /* Test the summed ID is a NULL ID */
-    TEST_ITC_ID_IS_NULL_ID(pt_SumId);
-
-    /* Destroy the ID */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_SumId));
-
-    /* Sum the IDs the other way around */
-    TEST_SUCCESS(
-        ITC_Id_sum(
-            pt_OriginalId2->pt_Right,
-            pt_OriginalId1->pt_Left,
-            &pt_SumId));
-
-    /* Test the summed ID is a NULL ID */
-    TEST_ITC_ID_IS_NULL_ID(pt_SumId);
 
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));

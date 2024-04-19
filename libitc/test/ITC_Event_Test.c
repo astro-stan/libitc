@@ -169,10 +169,38 @@ static void newInvalidEventWithAsymmetricRootParent(ITC_Event_t **ppt_Event)
 static void newInvalidEventWithAsymmetricNestedParent(ITC_Event_t **ppt_Event)
 {
     TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
+    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
     TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
     TEST_SUCCESS(
         newEvent(&(*ppt_Event)->pt_Right->pt_Left, (*ppt_Event)->pt_Right, 3));
+}
+
+/**
+ * @brief Create a new invalid not normalised Event
+ *
+ * @param pt_Event (out) The pointer to the Event
+ */
+static void newInvalidNotNormalisedEvent(ITC_Event_t **ppt_Event)
+{
+    TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
+    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
+}
+
+/**
+ * @brief Create a new invalid not normalised nested Event
+ *
+ * @param pt_Event (out) The pointer to the Event
+ */
+static void newInvalidNotNormalisedNestedEvent(ITC_Event_t **ppt_Event)
+{
+    TEST_SUCCESS(newEvent(ppt_Event, NULL, 1));
+    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
+    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
+    TEST_SUCCESS(
+        newEvent(&(*ppt_Event)->pt_Right->pt_Left, (*ppt_Event)->pt_Right, 2));
+    TEST_SUCCESS(
+        newEvent(&(*ppt_Event)->pt_Right->pt_Right, (*ppt_Event)->pt_Right, 2));
 }
 
 /**
@@ -185,7 +213,7 @@ static void newInvalidEventWithAsymmetricNestedParent(ITC_Event_t **ppt_Event)
 static void newInvalidEventWithNullParentPointer(ITC_Event_t **ppt_Event)
 {
     TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, NULL, 1));
+    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, NULL, 0));
     TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
 }
 
@@ -247,6 +275,11 @@ void (*gpv_InvalidEventConstructorTable[])(ITC_Event_t **) =
     newInvalidEventWithAsymmetricNestedParent,
     newInvalidEventWithNullParentPointer,
     newInvalidEventWithInvalidParentPointer,
+    /* Normalisation related invalid Events.
+     * If adding more constructors before this point,
+     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX` */
+    newInvalidNotNormalisedEvent,
+    newInvalidNotNormalisedNestedEvent,
 };
 
 /**
@@ -265,6 +298,11 @@ void (*gpv_InvalidEventDestructorTable[])(ITC_Event_t **) =
     (void (*)(ITC_Event_t **))ITC_Event_destroy,
     destroyInvalidEventWithNullParentPointer,
     destroyInvalidEventWithInvalidParentPointer,
+    /* Normalisation related invalid Events.
+     * If adding more destructors before this point,
+     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX` */
+    (void (*)(ITC_Event_t **))ITC_Event_destroy,
+    (void (*)(ITC_Event_t **))ITC_Event_destroy,
 };
 
 /******************************************************************************
@@ -359,7 +397,7 @@ void ITC_Event_Test_cloneEventSuccessful(void)
 
     /* Test cloning a complex Event */
     TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
+    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 0));
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 2));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent != pt_ClonedEvent);
@@ -369,7 +407,7 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 0);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Left->pt_Parent == pt_ClonedEvent);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 2);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Right->pt_Parent == pt_ClonedEvent);
@@ -385,7 +423,7 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     /* Test cloning an Event subree */
     TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 2));
+    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 0));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
@@ -399,7 +437,7 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left->pt_Left, pt_OriginalEvent->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left->pt_Right, pt_OriginalEvent->pt_Left, 3));
+    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left->pt_Right, pt_OriginalEvent->pt_Left, 0));
     TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 4));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
@@ -412,7 +450,7 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 2);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Left->pt_Parent == pt_ClonedEvent);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 3);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 0);
     TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Right->pt_Parent == pt_ClonedEvent);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 }
@@ -430,7 +468,7 @@ void ITC_Event_Test_normaliseEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX;
          u32_I++)
     {
         /* Construct an invalid Event */

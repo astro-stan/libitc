@@ -12,6 +12,8 @@
 
 #include "ITC_Port.h"
 
+#include <stdbool.h>
+
 /******************************************************************************
  * Private functions
  ******************************************************************************/
@@ -22,11 +24,13 @@
  * Should be used to validate all incoming IDs before any processing is done.
  *
  * @param pt_Id The ID to validate
+ * @param b_CheckIsNormalised Whether to check if the ID is normalised
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t validateId(
-    const ITC_Id_t *const pt_Id
+    const ITC_Id_t *const pt_Id,
+    const bool b_CheckIsNormalised
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -52,13 +56,13 @@ static ITC_Status_t validateId(
     {
         /* Checks:
          *  - The parent pointer must match pt_ParentCurrentId.
-         *  - If not a leaf node:
-         *    - `pt_CurrentId->b_IsOwner == false`
-         *    - `pt_CurrentId->pt_Left != pt_CurrentId->pt_Right != NULL`
+         *  - Must be a leaf or a valid parent node
+         *  - Must be a normalised ID node (if the check is enabled)
          */
         if (pt_ParentCurrentId != pt_CurrentId->pt_Parent ||
             (!ITC_ID_IS_LEAF_ID(pt_CurrentId) &&
-             !ITC_ID_IS_VALID_PARENT(pt_CurrentId)))
+             !ITC_ID_IS_VALID_PARENT(pt_CurrentId)) ||
+            (b_CheckIsNormalised && !ITC_ID_IS_NORMALISED_ID(pt_CurrentId)))
         {
             t_Status = ITC_STATUS_CORRUPT_ID;
         }
@@ -950,7 +954,7 @@ ITC_Status_t ITC_Id_clone(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateId(pt_Id);
+    t_Status = validateId(pt_Id, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -972,7 +976,7 @@ ITC_Status_t ITC_Id_split(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateId(pt_Id);
+    t_Status = validateId(pt_Id, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -992,7 +996,7 @@ ITC_Status_t ITC_Id_normalise(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateId(pt_Id);
+    t_Status = validateId(pt_Id, false);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1014,11 +1018,11 @@ ITC_Status_t ITC_Id_sum(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateId(pt_Id1);
+    t_Status = validateId(pt_Id1, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateId(pt_Id2);
+        t_Status = validateId(pt_Id2, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)

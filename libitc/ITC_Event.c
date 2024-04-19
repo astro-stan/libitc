@@ -13,6 +13,8 @@
 #include "ITC_Id_private.h"
 #include "ITC_Port.h"
 
+#include <stdbool.h>
+
 /******************************************************************************
  * Private functions
  ******************************************************************************/
@@ -23,11 +25,13 @@
  * Should be used to validate all incoming Events before any processing is done.
  *
  * @param pt_Event The Event to validate
+ * @param b_CheckIsNormalised Whether to check if the Event is normalised
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t validateEvent(
-    const ITC_Event_t *const pt_Event
+    const ITC_Event_t *const pt_Event,
+    const bool b_CheckIsNormalised
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -53,12 +57,14 @@ static ITC_Status_t validateEvent(
     {
         /* Checks:
          *  - The parent pointer must match pt_ParentCurrentEvent.
-         *  - If not a leaf node:
-         *    - `pt_CurrentEvent->pt_Left != pt_CurrentEvent->pt_Right != NULL`
+         *  - Must be a leaf or a valid parent node
+         *  - Must be a normalised Event node (if the check is enabled)
          */
         if (pt_ParentCurrentEvent != pt_CurrentEvent->pt_Parent ||
             (!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent) &&
-             !ITC_EVENT_IS_VALID_PARENT(pt_CurrentEvent)))
+             !ITC_EVENT_IS_VALID_PARENT(pt_CurrentEvent)) ||
+            (b_CheckIsNormalised &&
+             !ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent)))
         {
             t_Status = ITC_STATUS_CORRUPT_EVENT;
         }
@@ -1601,7 +1607,7 @@ ITC_Status_t ITC_Event_clone(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event);
+    t_Status = validateEvent(pt_Event, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1621,7 +1627,7 @@ ITC_Status_t ITC_Event_normalise(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event);
+    t_Status = validateEvent(pt_Event, false);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1641,7 +1647,7 @@ ITC_Status_t ITC_Event_maximise(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event);
+    t_Status = validateEvent(pt_Event, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1663,11 +1669,11 @@ ITC_Status_t ITC_Event_join(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateEvent(pt_Event1);
+    t_Status = validateEvent(pt_Event1, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event2);
+        t_Status = validateEvent(pt_Event2, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1698,12 +1704,12 @@ ITC_Status_t ITC_Event_leq(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event1);
+        t_Status = validateEvent(pt_Event1, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event2);
+        t_Status = validateEvent(pt_Event2, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1734,7 +1740,7 @@ ITC_Status_t ITC_Event_fill(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event);
+        t_Status = validateEvent(pt_Event, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1765,7 +1771,7 @@ ITC_Status_t ITC_Event_grow(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event);
+    t_Status = validateEvent(pt_Event, true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
