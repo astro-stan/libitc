@@ -65,6 +65,17 @@ ITC_Status_t ITC_Id_clone(
 );
 
 /**
+ * @brief Validate an ID
+ *
+ * @param pt_Id The ID to validate
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Id_validate(
+    ITC_Id_t *pt_Id
+);
+
+/**
  * @brief Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  *
  * @param pt_Id The existing ID

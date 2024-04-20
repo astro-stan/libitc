@@ -58,6 +58,17 @@ ITC_Status_t ITC_Event_clone(
 );
 
 /**
+ * @brief Validate an Event
+ *
+ * @param pt_Event The Event to validate
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+ITC_Status_t ITC_Event_validate(
+    ITC_Event_t *pt_Event
+);
+
+/**
  * @brief Normalise an Event
  *
  * @param pt_Event The Event to normalise

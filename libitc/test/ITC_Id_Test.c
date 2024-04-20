@@ -894,6 +894,47 @@ void ITC_Id_Test_split010010IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId2));
 }
 
+/* Test validating an ID fails with invalid param */
+void ITC_Id_Test_validateIdFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Id_validate(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test validating an ID fails with corrupt ID */
+void ITC_Id_Test_validatingIdFailWithCorruptId(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Test different invalid IDs are handled properly.
+     * Only test invalid IDs that are not related to normalisation */
+    for (uint32_t u32_I = 0;
+         u32_I < ARRAY_COUNT(gpv_InvalidIdConstructorTable);
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Id_validate(pt_Id), ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
+    }
+}
+
+/* Test validating an ID succeeds */
+void ITC_Id_Test_validateIdSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+
+    /* Create a new ID */
+    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    /* Validate the ID */
+    TEST_SUCCESS(ITC_Id_validate(pt_Id));
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
 /* Test normalising an ID fails with invalid param */
 void ITC_Id_Test_normaliseIdFailInvalidParam(void)
 {

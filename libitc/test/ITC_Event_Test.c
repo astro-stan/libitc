@@ -455,6 +455,46 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 }
 
+/* Test validating an Event fails with invalid param */
+void ITC_Event_Test_validateEventFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Event_validate(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test validating an Event fails with corrupt event */
+void ITC_Event_Test_validatingEventFailWithCorruptEvent(void)
+{
+    ITC_Event_t *pt_Event;
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Event_validate(pt_Event), ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+}
+
+/* Test validating an event succeeds */
+void ITC_Event_Test_validateEventSucceeds(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Create the event */
+    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    /* Validate the event */
+    TEST_SUCCESS(ITC_Event_validate(pt_Event));
+    /* Destroy the event*/
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
 /* Test normalising an Event fails with invalid param */
 void ITC_Event_Test_normaliseEventFailInvalidParam(void)
 {
@@ -490,7 +530,7 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     /* Create the 0 leaf event */
     TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
     /* Normalise the event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test this is still a 0 leaf event */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     /* Destroy the event*/
@@ -499,7 +539,7 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     /* Create the 1 leaf event */
     TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
     /* Normalise the event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test this is still a 1 leaf event */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     /* Destroy the event*/
@@ -519,14 +559,14 @@ void ITC_Event_Test_normaliseLeafEventSubtreeSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Normalise the event subtree */
-    ITC_Event_normalise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
     /* Test the whole event tree hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the event subtree */
-    ITC_Event_normalise(pt_Event->pt_Right);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Right));
     /* Test the whole event tree hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
@@ -547,14 +587,14 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 3));
 
     /* Normalise the event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test the event has been normalised */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 3);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the normalised event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 3);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
@@ -564,7 +604,7 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
     pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
 
     /* Normalise the event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test the event has been normalised */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 3);
 
@@ -585,7 +625,7 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Normalise the event subtree */
-    ITC_Event_normalise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
     /* Test the event subtree has been normalised */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
@@ -595,7 +635,7 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the normalised event subtree*/
-    ITC_Event_normalise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
     /* Test the event subtree has been normalised */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
@@ -609,7 +649,7 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
         pt_Event->pt_Left->pt_Left->t_Count;
 
     /* Normalise the event */
-    ITC_Event_normalise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
     /* Test the event has been normalised */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
     /* Test the rest of the tree hasn't changed */
@@ -639,7 +679,7 @@ void ITC_Event_Test_normaliseComplexEventSucceeds(void)
     /* clang-format on */
 
     /* Normalise the event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test the event has been normalised */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 5);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
@@ -650,7 +690,7 @@ void ITC_Event_Test_normaliseComplexEventSucceeds(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
 
     /* Normalise the normalised event */
-    ITC_Event_normalise(pt_Event);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test the event hasn't changed */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 5);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
@@ -684,7 +724,7 @@ void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Normalise the event subtree */
-    ITC_Event_normalise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
     /* Test the event subtree has been normalised */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
@@ -698,7 +738,7 @@ void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Normalise the normalised event subtree */
-    ITC_Event_normalise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
     /* Test the event subtree hasn't changed */
     /* Test the event subtree has been normalised */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
@@ -752,7 +792,7 @@ void ITC_Event_Test_maximisingLeafEventSucceeds(void)
     /* Create the 0 leaf event */
     TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is still a 0 leaf event */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
     /* Destroy the event*/
@@ -761,7 +801,7 @@ void ITC_Event_Test_maximisingLeafEventSucceeds(void)
     /* Create the 1 leaf event */
     TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is still a 1 leaf event */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
     /* Destroy the event*/
@@ -779,7 +819,7 @@ void ITC_Event_Test_maximisingLeafEventSubtreeSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Left));
     /* Test this is still a 0 leaf event */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
     /* Test the rest of the Event tree hasn't changed */
@@ -787,7 +827,7 @@ void ITC_Event_Test_maximisingLeafEventSubtreeSucceeds(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event->pt_Right);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Right));
     /* Test this is still a 1 leaf event */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
     /* Test the rest of the Event tree hasn't changed */
@@ -809,7 +849,7 @@ void ITC_Event_Test_maximisingParentEventSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is a leaf event with 5 events */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 5);
     /* Destroy the event*/
@@ -821,7 +861,7 @@ void ITC_Event_Test_maximisingParentEventSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is a leaf event with 6 events */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 6);
     /* Destroy the event*/
@@ -843,7 +883,7 @@ void ITC_Event_Test_maximisingParentEventSubtreeSucceeds(void)
     /* clang-format on */
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event->pt_Right);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Right));
     /* Test this is a leaf event with 5 events */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 5);
     /* Test the rest of the Event tree hasn't changed */
@@ -861,7 +901,7 @@ void ITC_Event_Test_maximisingParentEventSubtreeSucceeds(void)
     TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event->pt_Left);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Left));
     /* Test this is a leaf event with 6 events */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
     /* Test the rest of the Event tree hasn't changed */
@@ -893,7 +933,7 @@ void ITC_Event_Test_maximisingComplexEventSucceeds(void)
     /* clang-format on */
 
     /* Maximise the event */
-    ITC_Event_maximise(pt_Event);
+    TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is a leaf event with 8 events */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 8);
 
