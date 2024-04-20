@@ -12,31 +12,6 @@
  ******************************************************************************/
 
 /**
- * @brief Same as ITC_Event_new but enforces setting the parent and an
- * event count
- *
- * @param ppt_Event (out) The pointer to the Event
- * @param pt_Parent The pointer to the parent Event. Otherwise NULL
- */
-static ITC_Status_t newEvent(
-    ITC_Event_t **ppt_Event,
-    ITC_Event_t *pt_Parent,
-    ITC_Event_Counter_t t_Count
-)
-{
-    ITC_Status_t t_Status;
-
-    t_Status = ITC_Event_new(ppt_Event);
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        (*ppt_Event)->pt_Parent = pt_Parent;
-        (*ppt_Event)->t_Count = t_Count;
-    }
-
-    return t_Status;
-}
-
-/**
  * @brief Create a new invalid Stamp with no ID component
  *
  * @param pt_Stamp (out) The pointer to the Stamp
@@ -462,9 +437,11 @@ void ITC_Stamp_Test_eventStampSuccessful(void)
 
     /* Add children to the Event tree */
     TEST_SUCCESS(
-        newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, 0));
+        ITC_TestUtil_newEvent(
+            &pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, 0));
     TEST_SUCCESS(
-        newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 3));
+        ITC_TestUtil_newEvent(
+            &pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 3));
 
     /* Inflate the Stamp Event tree this time by filling it */
     TEST_SUCCESS(ITC_Stamp_event(pt_Stamp));
@@ -542,15 +519,19 @@ void ITC_Stamp_Test_compareStampsSucceeds(void)
     TEST_SUCCESS(ITC_Stamp_newPeek(pt_Stamp1, &pt_Stamp2));
 
     TEST_SUCCESS(
-        newEvent(&pt_Stamp1->pt_Event->pt_Left, pt_Stamp1->pt_Event, 0));
+        ITC_TestUtil_newEvent(
+            &pt_Stamp1->pt_Event->pt_Left, pt_Stamp1->pt_Event, 0));
     TEST_SUCCESS(
-        newEvent(&pt_Stamp1->pt_Event->pt_Right, pt_Stamp1->pt_Event, 3));
+        ITC_TestUtil_newEvent(
+            &pt_Stamp1->pt_Event->pt_Right, pt_Stamp1->pt_Event, 3));
 
     pt_Stamp2->pt_Event->t_Count = 1;
     TEST_SUCCESS(
-        newEvent(&pt_Stamp2->pt_Event->pt_Left, pt_Stamp2->pt_Event, 0));
+        ITC_TestUtil_newEvent(
+            &pt_Stamp2->pt_Event->pt_Left, pt_Stamp2->pt_Event, 0));
     TEST_SUCCESS(
-        newEvent(&pt_Stamp2->pt_Event->pt_Right, pt_Stamp2->pt_Event, 2));
+        ITC_TestUtil_newEvent(
+            &pt_Stamp2->pt_Event->pt_Right, pt_Stamp2->pt_Event, 2));
 
     /* Compare Stamps */
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result));

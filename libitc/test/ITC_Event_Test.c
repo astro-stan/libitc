@@ -9,79 +9,6 @@
  *  Private functions
  ******************************************************************************/
 
-/******************************************************************************
- *  Private functions
- ******************************************************************************/
-
-/**
- * @brief Same as ITC_Id_newNull but enforces setting the parent
- *
- * @param ppt_Id (out) The pointer to the NULL ID
- * @param pt_Parent The pointer to the parent ID. Otherwise NULL
- */
-static ITC_Status_t newNullId(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent
-)
-{
-    ITC_Status_t t_Status;
-
-    t_Status = ITC_Id_newNull(ppt_Id);
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        (*ppt_Id)->pt_Parent = pt_Parent;
-    }
-
-    return t_Status;
-}
-
-/**
- * @brief Same as ITC_Id_newSeed but enforces setting the parent
- *
- * @param ppt_Id (out) The pointer to the seed ID
- * @param pt_Parent The pointer to the parent ID. Otherwise NULL
- */
-static ITC_Status_t newSeedId(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent
-)
-{
-    ITC_Status_t t_Status;
-
-    t_Status = ITC_Id_newSeed(ppt_Id);
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        (*ppt_Id)->pt_Parent = pt_Parent;
-    }
-
-    return t_Status;
-}
-
-/**
- * @brief Same as ITC_Event_new but enforces setting the parent and an
- * event count
- *
- * @param ppt_Event (out) The pointer to the Event
- * @param pt_Parent The pointer to the parent Event. Otherwise NULL
- */
-static ITC_Status_t newEvent(
-    ITC_Event_t **ppt_Event,
-    ITC_Event_t *pt_Parent,
-    ITC_Event_Counter_t t_Count
-)
-{
-    ITC_Status_t t_Status;
-
-    t_Status = ITC_Event_new(ppt_Event);
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        (*ppt_Event)->pt_Parent = pt_Parent;
-        (*ppt_Event)->t_Count = t_Count;
-    }
-
-    return t_Status;
-}
-
 /* Test *pt_Event1 == *pt_Event2 */
 static void checkEventEqual(
     const ITC_Event_t *const pt_Event1,
@@ -157,8 +84,8 @@ static void checkEventConcurrent(
  */
 static void newInvalidEventWithAsymmetricRootParent(ITC_Event_t **ppt_Event)
 {
-    TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 1));
 }
 
 /**
@@ -168,11 +95,14 @@ static void newInvalidEventWithAsymmetricRootParent(ITC_Event_t **ppt_Event)
  */
 static void newInvalidEventWithAsymmetricNestedParent(ITC_Event_t **ppt_Event)
 {
-    TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
     TEST_SUCCESS(
-        newEvent(&(*ppt_Event)->pt_Right->pt_Left, (*ppt_Event)->pt_Right, 3));
+        ITC_TestUtil_newEvent(
+            &(*ppt_Event)->pt_Right->pt_Left,
+            (*ppt_Event)->pt_Right,
+            3));
 }
 
 /**
@@ -182,9 +112,9 @@ static void newInvalidEventWithAsymmetricNestedParent(ITC_Event_t **ppt_Event)
  */
 static void newInvalidNotNormalisedEvent(ITC_Event_t **ppt_Event)
 {
-    TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
 }
 
 /**
@@ -194,13 +124,19 @@ static void newInvalidNotNormalisedEvent(ITC_Event_t **ppt_Event)
  */
 static void newInvalidNotNormalisedNestedEvent(ITC_Event_t **ppt_Event)
 {
-    TEST_SUCCESS(newEvent(ppt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
     TEST_SUCCESS(
-        newEvent(&(*ppt_Event)->pt_Right->pt_Left, (*ppt_Event)->pt_Right, 2));
+        ITC_TestUtil_newEvent(
+            &(*ppt_Event)->pt_Right->pt_Left,
+            (*ppt_Event)->pt_Right,
+            2));
     TEST_SUCCESS(
-        newEvent(&(*ppt_Event)->pt_Right->pt_Right, (*ppt_Event)->pt_Right, 2));
+        ITC_TestUtil_newEvent(
+            &(*ppt_Event)->pt_Right->pt_Right,
+            (*ppt_Event)->pt_Right,
+            2));
 }
 
 /**
@@ -212,9 +148,9 @@ static void newInvalidNotNormalisedNestedEvent(ITC_Event_t **ppt_Event)
  */
 static void newInvalidEventWithNullParentPointer(ITC_Event_t **ppt_Event)
 {
-    TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
 }
 
 /**
@@ -240,9 +176,13 @@ static void destroyInvalidEventWithNullParentPointer(ITC_Event_t **ppt_Event)
  */
 static void newInvalidEventWithInvalidParentPointer(ITC_Event_t **ppt_Event)
 {
-    TEST_SUCCESS(newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
-    TEST_SUCCESS(newEvent(&(*ppt_Event)->pt_Right, (*ppt_Event)->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
+    TEST_SUCCESS(
+        ITC_TestUtil_newEvent(
+            &(*ppt_Event)->pt_Right,
+            (*ppt_Event)->pt_Left,
+            2));
 }
 
 /**
@@ -386,7 +326,7 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     ITC_Event_t *pt_ClonedEvent = NULL;
 
     /* Test cloning an Event */
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent, NULL, 0));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent != pt_ClonedEvent);
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
@@ -395,16 +335,18 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 0);
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 
+    /* clang-format off */
     /* Test cloning a complex Event */
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 0));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 2));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent != pt_ClonedEvent);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 0);
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent->pt_Left);
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Right != pt_ClonedEvent->pt_Right);
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
+    /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 0);
@@ -420,13 +362,15 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
     ITC_Event_t *pt_OriginalEvent = NULL;
     ITC_Event_t *pt_ClonedEvent = NULL;
 
+    /* clang-format off */
     /* Test cloning an Event subree */
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 0));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
+    /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 1);
@@ -434,11 +378,11 @@ void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
 
     /* clang-format off */
     /* Test cloning a complex Event subree */
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left->pt_Left, pt_OriginalEvent->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Left->pt_Right, pt_OriginalEvent->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left->pt_Left, pt_OriginalEvent->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left->pt_Right, pt_OriginalEvent->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 4));
     TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
     TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 1);
@@ -488,7 +432,7 @@ void ITC_Event_Test_validateEventSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
     /* Validate the event */
     TEST_SUCCESS(ITC_Event_validate(pt_Event));
     /* Destroy the event*/
@@ -528,7 +472,7 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the 0 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
     /* Normalise the event */
     TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test this is still a 0 leaf event */
@@ -537,7 +481,7 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 
     /* Create the 1 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
     /* Normalise the event */
     TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test this is still a 1 leaf event */
@@ -552,11 +496,11 @@ void ITC_Event_Test_normaliseLeafEventSubtreeSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the root event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
     /* Create the 0 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
     /* Create the 1 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Normalise the event subtree */
     TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
@@ -582,9 +526,9 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the root event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 3));
 
     /* Normalise the event */
     TEST_SUCCESS(ITC_Event_normalise(pt_Event));
@@ -617,12 +561,14 @@ void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
+    /* clang-format off */
     /* Create the root event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    /* clang-format on */
 
     /* Normalise the event subtree */
     TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
@@ -667,15 +613,15 @@ void ITC_Event_Test_normaliseComplexEventSucceeds(void)
 
     /* clang-format off */
     /* Create the complex event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right->pt_Left, pt_Event->pt_Right->pt_Right, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right->pt_Right, pt_Event->pt_Right->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right->pt_Left, pt_Event->pt_Right->pt_Right, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right->pt_Right, pt_Event->pt_Right->pt_Right, 2));
     /* clang-format on */
 
     /* Normalise the event */
@@ -711,17 +657,17 @@ void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
 
     /* clang-format off */
     /* Create the complex event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right->pt_Left, pt_Event->pt_Left->pt_Right, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right->pt_Right, pt_Event->pt_Left->pt_Right, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right->pt_Left, pt_Event->pt_Left->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right->pt_Right, pt_Event->pt_Left->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Normalise the event subtree */
     TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
@@ -790,7 +736,7 @@ void ITC_Event_Test_maximisingLeafEventSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the 0 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
     /* Maximise the event */
     TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is still a 0 leaf event */
@@ -799,7 +745,7 @@ void ITC_Event_Test_maximisingLeafEventSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 
     /* Create the 1 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
     /* Maximise the event */
     TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is still a 1 leaf event */
@@ -814,9 +760,9 @@ void ITC_Event_Test_maximisingLeafEventSubtreeSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the 0 leaf event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Maximise the event */
     TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Left));
@@ -844,9 +790,9 @@ void ITC_Event_Test_maximisingParentEventSucceeds(void)
     ITC_Event_t *pt_Event = NULL;
 
     /* Create the event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 5));
 
     /* Maximise the event */
     TEST_SUCCESS(ITC_Event_maximise(pt_Event));
@@ -856,9 +802,9 @@ void ITC_Event_Test_maximisingParentEventSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 
     /* Create the event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 5));
 
     /* Maximise the event */
     TEST_SUCCESS(ITC_Event_maximise(pt_Event));
@@ -875,11 +821,11 @@ void ITC_Event_Test_maximisingParentEventSubtreeSucceeds(void)
 
     /* clang-format off */
     /* Create the event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 10));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 5));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 10));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 5));
     /* clang-format on */
 
     /* Maximise the event */
@@ -893,12 +839,14 @@ void ITC_Event_Test_maximisingParentEventSubtreeSucceeds(void)
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 
+    /* clang-format off */
     /* Create the event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 10));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 5));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 10));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 5));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    /* clang-format on */
 
     /* Maximise the event */
     TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Left));
@@ -919,17 +867,17 @@ void ITC_Event_Test_maximisingComplexEventSucceeds(void)
 
     /* clang-format off */
     /* Create the event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 6));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 6));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 5));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 5));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 3));
     /* clang-format on */
 
     /* Maximise the event */
@@ -970,7 +918,7 @@ void ITC_Event_Test_joinEventFailWithCorruptEvent(void)
         gpv_InvalidEventConstructorTable[u32_I](&pt_Event1);
 
         /* Construct the other Event */
-        TEST_SUCCESS(newEvent(&pt_Event2, NULL, 0));
+        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 0));
 
         /* Test for the failure */
         TEST_FAILURE(
@@ -995,8 +943,8 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventsSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
 
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
@@ -1017,12 +965,12 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventSubtreesSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
 
     /* Test joining the events */
     TEST_SUCCESS(
@@ -1044,8 +992,8 @@ void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 4));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 2));
 
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
@@ -1076,12 +1024,12 @@ void ITC_Event_Test_joinTwoDifferentLeafEventSubtreesSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 2));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 2));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
 
     /* Test joining the events */
     TEST_SUCCESS(
@@ -1114,10 +1062,10 @@ void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 6));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 6));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 2));
 
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
@@ -1153,15 +1101,15 @@ void ITC_Event_Test_joinALeafAndAParentEventSubtreesSucceeds(void)
 
     /* clang-format off */
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 6));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 6));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 2));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 2));
     /* clang-format on */
 
     /* Test joining the events */
@@ -1199,12 +1147,12 @@ void ITC_Event_Test_joinTwoIdenticalParentEventsSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 3));
 
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
@@ -1228,12 +1176,12 @@ void ITC_Event_Test_joinTwoMirroredParentEventsSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 3));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
 
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
@@ -1264,12 +1212,12 @@ void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
     ITC_Event_t *pt_JoinEvent;
 
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 2));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 6));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 6));
 
     /* Test joining the events */
     TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
@@ -1305,23 +1253,23 @@ void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
 
     /* clang-format off */
     /* Construct the original Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 2));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left->pt_Left, pt_Event1->pt_Right->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left->pt_Right, pt_Event1->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left->pt_Left, pt_Event1->pt_Right->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left->pt_Right, pt_Event1->pt_Right->pt_Left, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Left, pt_Event2->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Left->pt_Left, pt_Event2->pt_Left->pt_Left, 4));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Left->pt_Right, pt_Event2->pt_Left->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Right, pt_Event2->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 6));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right->pt_Left, pt_Event2->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right->pt_Right, pt_Event2->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Left, pt_Event2->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Left->pt_Left, pt_Event2->pt_Left->pt_Left, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Left->pt_Right, pt_Event2->pt_Left->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Right, pt_Event2->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 6));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right->pt_Left, pt_Event2->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right->pt_Right, pt_Event2->pt_Right, 2));
     /* clang-format on */
 
     /* Test joining the events */
@@ -1395,7 +1343,7 @@ void ITC_Event_Test_eventLeqFailWithCorruptEvent(void)
         gpv_InvalidEventConstructorTable[u32_I](&pt_Event1);
 
         /* Construct the other Event */
-        TEST_SUCCESS(newEvent(&pt_Event2, NULL, 0));
+        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 0));
 
         /* Test for the failure */
         TEST_FAILURE(
@@ -1419,8 +1367,8 @@ void ITC_Event_Test_compareLeafEventsSucceeds(void)
     ITC_Event_t *pt_Event2;
 
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 0));
 
     /* Compare Events */
     checkEventEqual(pt_Event1, pt_Event2);
@@ -1447,12 +1395,12 @@ void ITC_Event_Test_compareLeafEventSubtreesSucceeds(void)
     ITC_Event_t *pt_Event2;
 
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
 
     /* Compare Events */
     checkEventEqual(pt_Event1->pt_Left, pt_Event2->pt_Left);
@@ -1479,10 +1427,10 @@ void ITC_Event_Test_compareLeafAndParentEventsSucceeds(void)
     ITC_Event_t *pt_Event2;
 
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 0));
 
     /* Compare Events */
     checkEventGreaterThan(pt_Event1, pt_Event2);
@@ -1512,15 +1460,17 @@ void ITC_Event_Test_compareLeafAndParentEventSubtreesSucceeds(void)
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
 
+    /* clang-format off */
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 1));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    /* clang-format on */
 
     /* Compare Events */
     checkEventGreaterThan(pt_Event1->pt_Left, pt_Event2->pt_Left);
@@ -1551,13 +1501,13 @@ void ITC_Event_Test_compareTwoParentEventsSucceeds(void)
     ITC_Event_t *pt_Event2;
 
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
 
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 2));
 
     /* Compare Events */
     checkEventLessThan(pt_Event1, pt_Event2);
@@ -1589,17 +1539,17 @@ void ITC_Event_Test_compareTwoParentEventsWith1LevelDifferenceSucceeds(void)
 
     /* clang-format off */
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Left, pt_Event2->pt_Left, 4));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Right, pt_Event2->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 7));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Left, pt_Event2->pt_Left, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Right, pt_Event2->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 7));
     /* clang-format on */
 
     /* Compare Events */
@@ -1632,21 +1582,21 @@ void ITC_Event_Test_compareTwoParentEventsWith2LevelDifferenceSucceeds(void)
 
     /* clang-format off */
     /* Create the Events */
-    TEST_SUCCESS(newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left->pt_Left, pt_Event1->pt_Right->pt_Left, 4));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Left->pt_Right, pt_Event1->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left->pt_Left, pt_Event1->pt_Right->pt_Left, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left->pt_Right, pt_Event1->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Left, pt_Event2->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Right, pt_Event2->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Right->pt_Left, pt_Event2->pt_Left->pt_Right, 3));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Left->pt_Right->pt_Right, pt_Event2->pt_Left->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event2->pt_Right, pt_Event2, 10));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Left, pt_Event2->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Right, pt_Event2->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Right->pt_Left, pt_Event2->pt_Left->pt_Right, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left->pt_Right->pt_Right, pt_Event2->pt_Left->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 10));
     /* clang-format on */
 
     /* Compare Events */
@@ -1729,11 +1679,11 @@ void ITC_Event_Test_fillLeafEventWithNullAndSeedIdsSucceeds(void)
     bool b_WasFilled;
 
     /* Create the IDs */
-    TEST_SUCCESS(newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(newNullId(&pt_NullId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -1793,13 +1743,13 @@ void ITC_Event_Test_fillLeafEvenSubtreeWithNullAndSeedIdsSucceeds(void)
     bool b_WasFilled;
 
     /* Create the IDs */
-    TEST_SUCCESS(newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(newNullId(&pt_NullId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -1870,12 +1820,12 @@ void ITC_Event_Test_fillLeafEventWithNullAndSeedIdSubtreesSucceeds(void)
     bool b_WasFilled;
 
     /* Create the IDs */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -1932,17 +1882,19 @@ void ITC_Event_Test_fillLeafEventWith1001IdSucceeds(void)
     ITC_Id_t *pt_Id;
     bool b_WasFilled;
 
+    /* clang-format off */
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -1985,13 +1937,13 @@ void ITC_Event_Test_fillParentEventWithNullAndSeedIdsSucceeds(void)
     bool b_WasFilled;
 
     /* Create the IDs */
-    TEST_SUCCESS(newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(newNullId(&pt_NullId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2032,14 +1984,14 @@ void ITC_Event_Test_fill010And001EventsWith10IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2059,9 +2011,9 @@ void ITC_Event_Test_fill010And001EventsWith10IdSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2091,14 +2043,14 @@ void ITC_Event_Test_fill010And001EventsWith01IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2116,9 +2068,9 @@ void ITC_Event_Test_fill010And001EventsWith01IdSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2151,16 +2103,18 @@ void ITC_Event_Test_fill01020And00102EventWith10IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
+    /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    /* clang-format on */
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2181,11 +2135,11 @@ void ITC_Event_Test_fill01020And00102EventWith10IdSucceeds(void)
 
     /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2221,16 +2175,18 @@ void ITC_Event_Test_fill01020And00102EventWith01IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
+    /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    /* clang-format on */
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2251,12 +2207,14 @@ void ITC_Event_Test_fill01020And00102EventWith01IdSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
     TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
 
+    /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
+    /* clang-format on */
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2289,19 +2247,19 @@ void ITC_Event_Test_fill0100320And0010032EventWith10IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2323,13 +2281,13 @@ void ITC_Event_Test_fill0100320And0010032EventWith10IdSucceeds(void)
 
     /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2367,19 +2325,19 @@ void ITC_Event_Test_fill0100320And0010032EventWith01IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
     /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2405,13 +2363,13 @@ void ITC_Event_Test_fill0100320And0010032EventWith01IdSucceeds(void)
 
     /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 2));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2446,27 +2404,27 @@ void ITC_Event_Test_fill12003204030EventWith110And101IdSucceeds(void)
     bool b_WasFilled;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
 
     /* clang-format off */
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2524,30 +2482,30 @@ void ITC_Event_Test_fill12003204030EventWith1001And0110IdSucceeds(void)
     ITC_Id_t *pt_TmpId;
     bool b_WasFilled;
 
-    /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
-
     /* clang-format off */
+    /* Create the ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2617,51 +2575,51 @@ void ITC_Event_Test_fill120030500403010EventWith01101001IdSucceeds(void)
 
     /* clang-format off */
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Left->pt_Left, pt_Id->pt_Left->pt_Left));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left->pt_Left->pt_Right, pt_Id->pt_Left->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left->pt_Left, pt_Id->pt_Left->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left->pt_Right, pt_Id->pt_Left->pt_Left));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left->pt_Right->pt_Left, pt_Id->pt_Left->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Right->pt_Right, pt_Id->pt_Left->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right->pt_Left, pt_Id->pt_Left->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right->pt_Right, pt_Id->pt_Left->pt_Right));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right->pt_Left, pt_Id->pt_Right->pt_Right));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Right->pt_Right, pt_Id->pt_Right->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right->pt_Left, pt_Id->pt_Right->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right->pt_Right, pt_Id->pt_Right->pt_Right));
 
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 3));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right->pt_Left, pt_Event->pt_Left->pt_Right, 5));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left->pt_Right->pt_Right, pt_Event->pt_Left->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right->pt_Left, pt_Event->pt_Left->pt_Right, 5));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right->pt_Right, pt_Event->pt_Left->pt_Right, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 3));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right->pt_Left, pt_Event->pt_Right->pt_Right, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right->pt_Right, pt_Event->pt_Right->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right->pt_Left, pt_Event->pt_Right->pt_Right, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right->pt_Right, pt_Event->pt_Right->pt_Right, 0));
     /* clang-format on */
 
     /* Retain a copy for comparison */
@@ -2801,11 +2759,11 @@ void ITC_Event_Test_growLeafEventWithNullAndSeedIdsSucceeds(void)
     ITC_Id_t *pt_NullId;
 
     /* Create the IDs */
-    TEST_SUCCESS(newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(newNullId(&pt_NullId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2842,13 +2800,13 @@ void ITC_Event_Test_growLeafEventSubtreeWithNullAndSeedIdsSucceeds(void)
     ITC_Id_t *pt_NullId;
 
     /* Create the IDs */
-    TEST_SUCCESS(newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(newNullId(&pt_NullId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2891,12 +2849,12 @@ void ITC_Event_Test_growLeafEventWithNullAndSeedSubtreeIdsSucceeds(void)
     ITC_Id_t *pt_Id;
 
     /* Create the IDs */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2932,12 +2890,12 @@ void ITC_Event_Test_growLeafEventWith10And01IdsSucceeds(void)
     ITC_Id_t *pt_TmpId;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -2988,14 +2946,14 @@ void ITC_Event_Test_growLeafEventWith001And010IdsSucceeds(void)
     ITC_Id_t *pt_TmpId;
 
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -3049,15 +3007,17 @@ void ITC_Event_Test_growLeafEventWith110And101IdsSucceeds(void)
     ITC_Id_t *pt_Id;
     ITC_Id_t *pt_TmpId;
 
+    /* clang-format off */
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -3112,17 +3072,17 @@ void ITC_Event_Test_growLeafEventWith1110And1101IdsSucceeds(void)
 
     /* clang-format off */
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Right->pt_Left, pt_Id->pt_Right->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right->pt_Right, pt_Id->pt_Right->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right->pt_Left, pt_Id->pt_Right->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right->pt_Right, pt_Id->pt_Right->pt_Right));
     /* clang-format on */
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Retain a copy for comparison */
     TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
@@ -3178,28 +3138,28 @@ void ITC_Event_Test_grow1102010EventWith10010IdSucceeds(void)
 
     /* clang-format off */
     /* Create the ID */
-    TEST_SUCCESS(newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
 
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
-    TEST_SUCCESS(newSeedId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
-    TEST_SUCCESS(newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
 
     /* Create the Event */
-    TEST_SUCCESS(newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
 
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right, pt_Event, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 2));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 1));
-    TEST_SUCCESS(newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
     /* clang-format on */
 
     /* Retain a copy for comparison */

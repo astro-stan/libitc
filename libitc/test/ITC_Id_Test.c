@@ -9,59 +9,15 @@
  ******************************************************************************/
 
 /**
- * @brief Same as ITC_Id_newNull but enforces setting the parent
- *
- * @param ppt_Id (out) The pointer to the NULL ID
- * @param pt_Parent The pointer to the parent ID. Otherwise NULL
- */
-static ITC_Status_t newNull(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent
-)
-{
-    ITC_Status_t t_Status;
-
-    t_Status = ITC_Id_newNull(ppt_Id);
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        (*ppt_Id)->pt_Parent = pt_Parent;
-    }
-
-    return t_Status;
-}
-
-/**
- * @brief Same as ITC_Id_newSeed but enforces setting the parent
- *
- * @param ppt_Id (out) The pointer to the seed ID
- * @param pt_Parent The pointer to the parent ID. Otherwise NULL
- */
-static ITC_Status_t newSeed(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t *pt_Parent
-)
-{
-    ITC_Status_t t_Status;
-
-    t_Status = ITC_Id_newSeed(ppt_Id);
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        (*ppt_Id)->pt_Parent = pt_Parent;
-    }
-
-    return t_Status;
-}
-
-/**
  * @brief Create a new invalid ID with root parent owner
  *
  * @param pt_Id (out) The pointer to the ID
  */
 static void newInvalidIdWithRootParentOwner(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newSeed(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -71,11 +27,17 @@ static void newInvalidIdWithRootParentOwner(ITC_Id_t **ppt_Id)
  */
 static void newInvalidIdWithNestedParentOwner(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right->pt_Left, (*ppt_Id)->pt_Right));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Right, (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(
+        ITC_TestUtil_newNullId(
+            &(*ppt_Id)->pt_Right->pt_Left,
+            (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(
+        ITC_TestUtil_newSeedId(
+            &(*ppt_Id)->pt_Right->pt_Right,
+            (*ppt_Id)->pt_Right));
 }
 
 /**
@@ -85,8 +47,8 @@ static void newInvalidIdWithNestedParentOwner(ITC_Id_t **ppt_Id)
  */
 static void newInvalidIdWithAsymmetricRootParent(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -96,10 +58,13 @@ static void newInvalidIdWithAsymmetricRootParent(ITC_Id_t **ppt_Id)
  */
 static void newInvalidIdWithAsymmetricNestedParent(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Left, (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(
+        ITC_TestUtil_newSeedId(
+            &(*ppt_Id)->pt_Right->pt_Left,
+            (*ppt_Id)->pt_Right));
 }
 
 /**
@@ -109,9 +74,9 @@ static void newInvalidIdWithAsymmetricNestedParent(ITC_Id_t **ppt_Id)
  */
 static void newInvalidNotNormalisedId(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -121,11 +86,17 @@ static void newInvalidNotNormalisedId(ITC_Id_t **ppt_Id)
  */
 static void newInvalidNotNormalisedNestedId(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Left, (*ppt_Id)->pt_Right));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right->pt_Right, (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(
+        ITC_TestUtil_newSeedId(
+            &(*ppt_Id)->pt_Right->pt_Left,
+            (*ppt_Id)->pt_Right));
+    TEST_SUCCESS(
+        ITC_TestUtil_newSeedId(
+            &(*ppt_Id)->pt_Right->pt_Right,
+            (*ppt_Id)->pt_Right));
 }
 
 /**
@@ -137,9 +108,9 @@ static void newInvalidNotNormalisedNestedId(ITC_Id_t **ppt_Id)
  */
 static void newInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, NULL));
-    TEST_SUCCESS(newSeed(&(*ppt_Id)->pt_Right, *ppt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -165,9 +136,10 @@ static void destroyInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
  */
 static void newInvalidIdWithInvalidParentPointer(ITC_Id_t **ppt_Id)
 {
-    TEST_SUCCESS(newNull(ppt_Id, NULL));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(newNull(&(*ppt_Id)->pt_Right, (*ppt_Id)->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(
+        ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, (*ppt_Id)->pt_Left));
 }
 
 /**
@@ -335,7 +307,7 @@ void ITC_Id_Test_cloneIdSuccessful(void)
     ITC_Id_t *pt_ClonedId = NULL;
 
     /* Test cloning seed ID */
-    TEST_SUCCESS(newSeed(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId, NULL));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -345,7 +317,7 @@ void ITC_Id_Test_cloneIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
     /* Test cloning null ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
@@ -354,16 +326,18 @@ void ITC_Id_Test_cloneIdSuccessful(void)
     TEST_ITC_ID_IS_NULL_ID(pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
+    /* clang-format off */
     /* Test cloning a complex ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right, pt_OriginalId));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId != pt_ClonedId);
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_ClonedId);
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left != pt_ClonedId->pt_Left);
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Right != pt_ClonedId->pt_Right);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+    /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
     TEST_ITC_ID_IS_NULL_ID(pt_ClonedId->pt_Left);
@@ -379,25 +353,29 @@ void ITC_Id_Test_cloneIdSubtreeSuccessful(void)
     ITC_Id_t *pt_OriginalId = NULL;
     ITC_Id_t *pt_ClonedId = NULL;
 
+    /* clang-format off */
     /* Test cloning seed subree ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId->pt_Left, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left != pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+    /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
     TEST_ITC_ID_IS_SEED_ID(pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_ClonedId));
 
+    /* clang-format off */
     /* Test cloning null subree ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId->pt_Right, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Right != pt_ClonedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId));
+    /* clang-format on */
 
     TEST_ASSERT_FALSE(pt_ClonedId->pt_Parent);
     TEST_ITC_ID_IS_NULL_ID(pt_ClonedId);
@@ -405,11 +383,11 @@ void ITC_Id_Test_cloneIdSubtreeSuccessful(void)
 
     /* clang-format off */
     /* Test cloning a complex ID subree */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
     TEST_SUCCESS(ITC_Id_clone(pt_OriginalId->pt_Left, &pt_ClonedId));
     TEST_ASSERT_TRUE(pt_OriginalId->pt_Left != pt_ClonedId);
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_ClonedId);
@@ -472,7 +450,7 @@ void ITC_Id_Test_splitNullAndSeedIdsSuccessful(void)
     ITC_Id_t *pt_SplitId2 = NULL;
 
     /* Create a new NULL ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
 
     /* Split the NULL ID */
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
@@ -514,10 +492,12 @@ void ITC_Id_Test_splitNullAndSeedIdSubtreesSuccessful(void)
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
+    /* clang-format off */
     /* Create a new NULL ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right, pt_OriginalId));
+    /* clang-format on */
 
     /* Split the NULL ID */
     TEST_SUCCESS(ITC_Id_split(
@@ -558,10 +538,12 @@ void ITC_Id_Test_split01And10IdsSuccessful(void)
     ITC_Id_t *pt_SplitId1 = NULL;
     ITC_Id_t *pt_SplitId2 = NULL;
 
+    /* clang-format off */
     /* Create a new (0, 1) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right, pt_OriginalId));
+    /* clang-format on */
 
     /* Split the (0, 1) ID */
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));
@@ -616,11 +598,11 @@ void ITC_Id_Test_split01And10IdSubtreesSuccessful(void)
 
     /* clang-format off */
     /* Create a new (0, 1) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
     /* clang-format on */
 
     /* Split the (0, 1) ID */
@@ -678,13 +660,13 @@ void ITC_Id_Test_split010RIdSuccessful(void)
 
     /* clang-format off */
     /* Create a new (0, (1, 0)) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
     /* clang-format on */
 
     /* Split the (0, (1, 0)) ID */
@@ -722,13 +704,13 @@ void ITC_Id_Test_split010LIdSuccessful(void)
 
     /* clang-format off */
     /* Create a new ((0, 1), 0) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
     /* clang-format on */
 
     /* Split the ((0, 1), 0) ID */
@@ -766,15 +748,15 @@ void ITC_Id_Test_split1001IdSuccessful(void)
 
     /* clang-format off */
     /* Create a new ((1, 0), (0, 1)) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
     /* clang-format on */
 
     /* Split the ((1, 0), (0, 1)) ID */
@@ -807,17 +789,17 @@ void ITC_Id_Test_split1001IdSubtreeSuccessful(void)
 
     /* clang-format off */
     /* Create a new ((1, 0), (0, 1)) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Left->pt_Left, pt_OriginalId->pt_Left->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left->pt_Right, pt_OriginalId->pt_Left->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left->pt_Left->pt_Left, pt_OriginalId->pt_Left->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Left->pt_Right, pt_OriginalId->pt_Left->pt_Left));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right->pt_Left, pt_OriginalId->pt_Left->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Right->pt_Right, pt_OriginalId->pt_Left->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Right->pt_Left, pt_OriginalId->pt_Left->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left->pt_Right->pt_Right, pt_OriginalId->pt_Left->pt_Right));
     /* clang-format on */
 
     /* Split the ((1, 0), (0, 1)) ID */
@@ -851,19 +833,19 @@ void ITC_Id_Test_split010010IdSuccessful(void)
 
     /* clang-format off */
     /* Create a new ((0, (1, 0)), ((0, 1), 0)) ID */
-    TEST_SUCCESS(newNull(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId, NULL));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Left->pt_Right->pt_Left, pt_OriginalId->pt_Left->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Left->pt_Right->pt_Right, pt_OriginalId->pt_Left->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Left, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Right, pt_OriginalId->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Left->pt_Right->pt_Left, pt_OriginalId->pt_Left->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Left->pt_Right->pt_Right, pt_OriginalId->pt_Left->pt_Right));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right, pt_OriginalId));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Left->pt_Left, pt_OriginalId->pt_Right->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId->pt_Right->pt_Left->pt_Right, pt_OriginalId->pt_Right->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right, pt_OriginalId));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right->pt_Left, pt_OriginalId->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right->pt_Left->pt_Left, pt_OriginalId->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId->pt_Right->pt_Left->pt_Right, pt_OriginalId->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId->pt_Right->pt_Right, pt_OriginalId->pt_Right));
     /* clang-format on */
 
     /* Split the ((0, (1, 0)), ((0, 1), 0)) ID */
@@ -928,7 +910,7 @@ void ITC_Id_Test_validateIdSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
     /* Validate the ID */
     TEST_SUCCESS(ITC_Id_validate(pt_Id));
     /* Destroy the ID */
@@ -969,7 +951,7 @@ void ITC_Id_Test_normaliseNullAndSeedIdsSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new NULL ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -996,9 +978,9 @@ void ITC_Id_Test_normaliseNullAndSeedIdSubtreesSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new NULL and seed ID subtrees */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Normalise the NULL ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Right));
@@ -1022,9 +1004,9 @@ void ITC_Id_Test_normalise10And01IdsSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new (1, 0) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1051,12 +1033,14 @@ void ITC_Id_Test_normalise10And01IdSubtreesSuccessful(void)
 {
     ITC_Id_t *pt_Id;
 
+    /* clang-format off */
     /* Create a new (1, 0) ID subree */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
@@ -1088,9 +1072,9 @@ void ITC_Id_Test_normalise11And00IdSuccessful(void)
     ITC_Id_t *pt_Id;
 
     /* Create a new (1, 1) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1102,9 +1086,9 @@ void ITC_Id_Test_normalise11And00IdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
     /* Create a new (0, 0) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1121,12 +1105,14 @@ void ITC_Id_Test_normalise11And00IdSubtreesSuccessful(void)
 {
     ITC_Id_t *pt_Id;
 
+    /* clang-format off */
     /* Create a new (1, 1) ID subtree (whole tree (1, (1, 1)) ) */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Normalise the ID subtree */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Right));
@@ -1138,12 +1124,14 @@ void ITC_Id_Test_normalise11And00IdSubtreesSuccessful(void)
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
+    /* clang-format off */
     /* Create a new (0, 0) ID subtree (whole tree ((0, 0), 0) ) */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    /* clang-format on */
 
     /* Normalise the ID subtree */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id->pt_Left));
@@ -1161,12 +1149,14 @@ void ITC_Id_Test_normalise011And110IdSuccessful(void)
 {
     ITC_Id_t *pt_Id;
 
+    /* clang-format off */
     /* Create a new (0, (1, 1)) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1177,12 +1167,14 @@ void ITC_Id_Test_normalise011And110IdSuccessful(void)
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
+    /* clang-format off */
     /* Create a new ((1, 1), 0) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1199,12 +1191,14 @@ void ITC_Id_Test_normalise111And111IdSuccessful(void)
 {
     ITC_Id_t *pt_Id;
 
+    /* clang-format off */
     /* Create a new (1, (1, 1)) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1215,12 +1209,14 @@ void ITC_Id_Test_normalise111And111IdSuccessful(void)
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
+    /* clang-format off */
     /* Create a new ((1, 1), 1) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1237,12 +1233,14 @@ void ITC_Id_Test_normalise100And001IdSuccessful(void)
 {
     ITC_Id_t *pt_Id;
 
+    /* clang-format off */
     /* Create a new (1, (0, 0)) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1253,12 +1251,14 @@ void ITC_Id_Test_normalise100And001IdSuccessful(void)
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
+    /* clang-format off */
     /* Create a new ((0, 0), 1) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1275,12 +1275,14 @@ void ITC_Id_Test_normalise000And000IdSuccessful(void)
 {
     ITC_Id_t *pt_Id;
 
+    /* clang-format off */
     /* Create a new (0, (0, 0)) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1291,12 +1293,14 @@ void ITC_Id_Test_normalise000And000IdSuccessful(void)
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
+    /* clang-format off */
     /* Create a new ((0, 0), 0) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    /* clang-format on */
 
     /* Normalise the ID */
     TEST_SUCCESS(ITC_Id_normalise(pt_Id));
@@ -1315,17 +1319,17 @@ void ITC_Id_Test_normalise11111IdSuccessful(void)
 
     /* clang-format off */
     /* Create a new (((1, 1), 1), (1, 1)) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
 
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left->pt_Left, pt_Id->pt_Left->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Left->pt_Right, pt_Id->pt_Left->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left->pt_Left, pt_Id->pt_Left->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Left->pt_Right, pt_Id->pt_Left->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
 
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
     /* clang-format on */
 
     /* Normalise the ID */
@@ -1345,17 +1349,17 @@ void ITC_Id_Test_normalise00000IdSuccessful(void)
 
     /* clang-format off */
     /* Create a new ((0, 0), ((0, 0), 0)) ID */
-    TEST_SUCCESS(newNull(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
 
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
 
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right, pt_Id));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
-    TEST_SUCCESS(newNull(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
     /* clang-format on */
 
     /* Normalise the ID */
@@ -1397,7 +1401,7 @@ void ITC_Id_Test_sumIdFailWithCorruptId(void)
         gpv_InvalidIdConstructorTable[u32_I](&pt_Id1);
 
         /* Construct the other ID */
-        TEST_SUCCESS(newNull(&pt_Id2, NULL));
+        TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id2, NULL));
 
         /* Test for the failure */
         TEST_FAILURE(
@@ -1420,8 +1424,8 @@ void ITC_Id_Test_sumId00Succeeds(void)
     ITC_Id_t *pt_SumId = NULL;
 
     /* Create two NULL IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
@@ -1442,13 +1446,15 @@ void ITC_Id_Test_sumId00SubtreesSucceeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create two NULL IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(
@@ -1474,8 +1480,8 @@ void ITC_Id_Test_sumId01And10Succeeds(void)
     ITC_Id_t *pt_SumId = NULL;
 
     /* Create the NULL and seed IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2, NULL));
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
@@ -1505,13 +1511,15 @@ void ITC_Id_Test_sumId01And10SubtreesSucceeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create the NULL and seed IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(
@@ -1549,11 +1557,13 @@ void ITC_Id_Test_sumId001And010Succeeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create the NULL and (0, 1) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
@@ -1583,11 +1593,13 @@ void ITC_Id_Test_sumId010And100Succeeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create the NULL and (1, 0) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
@@ -1617,13 +1629,15 @@ void ITC_Id_Test_sumId1001And0110Succeeds(void)
     ITC_Id_t *pt_OriginalId2;
     ITC_Id_t *pt_SumId = NULL;
 
+    /* clang-format off */
     /* Create the (1, 0) and (0, 1) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    /* clang-format on */
 
     /* Sum the IDs */
     TEST_SUCCESS(ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId));
@@ -1655,17 +1669,17 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
 
     /* clang-format off */
     /* Create the (1, 0), 1) and a ((0, 1), 0) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Left->pt_Left, pt_OriginalId1->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Left->pt_Right, pt_OriginalId1->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId1->pt_Left->pt_Left, pt_OriginalId1->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Left->pt_Right, pt_OriginalId1->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId1->pt_Right, pt_OriginalId1));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left->pt_Left, pt_OriginalId2->pt_Left));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Left->pt_Right, pt_OriginalId2->pt_Left));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left->pt_Left, pt_OriginalId2->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2->pt_Left->pt_Right, pt_OriginalId2->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
     /* clang-format on */
 
     /* Sum the IDs */
@@ -1698,17 +1712,17 @@ void ITC_Id_Test_sumId001110And110001Succeeds(void)
 
     /* clang-format off */
     /* Create the (1, (1, 0)) and a (0, (0, 1)) IDs */
-    TEST_SUCCESS(newNull(&pt_OriginalId1, NULL));
-    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Left, pt_OriginalId1));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right, pt_OriginalId1));
-    TEST_SUCCESS(newSeed(&pt_OriginalId1->pt_Right->pt_Left, pt_OriginalId1->pt_Right));
-    TEST_SUCCESS(newNull(&pt_OriginalId1->pt_Right->pt_Right, pt_OriginalId1->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId1->pt_Left, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Right, pt_OriginalId1));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId1->pt_Right->pt_Left, pt_OriginalId1->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId1->pt_Right->pt_Right, pt_OriginalId1->pt_Right));
 
-    TEST_SUCCESS(newNull(&pt_OriginalId2, NULL));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Left, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right, pt_OriginalId2));
-    TEST_SUCCESS(newNull(&pt_OriginalId2->pt_Right->pt_Left, pt_OriginalId2->pt_Right));
-    TEST_SUCCESS(newSeed(&pt_OriginalId2->pt_Right->pt_Right, pt_OriginalId2->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Left, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Right, pt_OriginalId2));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OriginalId2->pt_Right->pt_Left, pt_OriginalId2->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2->pt_Right->pt_Right, pt_OriginalId2->pt_Right));
     /* clang-format on */
 
     /* Sum the IDs */
@@ -1755,7 +1769,7 @@ void ITC_Id_Test_sumIdSplitSeedAndSumItBackToSeedSucceeds(void)
     ITC_Id_t *pt_TmpId = NULL;
 
     /* Create the seed ID */
-    TEST_SUCCESS(newSeed(&pt_OriginalId, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId, NULL));
 
     /* Split into (1, 0) and (0, 1) */
     TEST_SUCCESS(ITC_Id_split(pt_OriginalId, &pt_SplitId1, &pt_SplitId2));

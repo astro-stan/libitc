@@ -1,4 +1,3 @@
-
 # Entrypoint for the unit tests
 # Expects Unity to generate the unit test runner function
 libitc_test_entrypoint_file = '''/* The test runner function */
@@ -70,6 +69,7 @@ foreach libitc_test_src_file_path : libitc_test_src
         libitc_test_src_file_path,
         libitc_test_runner_ch_tgt,
         libitc_test_entrypoint_c_tgt,
+        libitc_test_util_src,
         build_by_default: false,
         include_directories: [libitc_test_inc],
         dependencies: [
