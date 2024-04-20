@@ -65,7 +65,7 @@ ITC_Status_t ITC_Event_clone(
  * @retval ITC_STATUS_SUCCESS on success
  */
 ITC_Status_t ITC_Event_validate(
-    ITC_Event_t *pt_Event
+    const ITC_Event_t *const pt_Event
 );
 
 /**

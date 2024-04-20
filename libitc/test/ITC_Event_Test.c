@@ -1477,8 +1477,11 @@ void ITC_Event_Test_fillEventFailInvalidParam(void)
 void ITC_Event_Test_fillEventFailWithCorruptEvent(void)
 {
     ITC_Event_t *pt_Event;
-    ITC_Id_t *pt_Id = NULL;
+    ITC_Id_t *pt_Id;
     bool b_WasFilled;
+
+    /* Create a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
@@ -1498,7 +1501,32 @@ void ITC_Event_Test_fillEventFailWithCorruptEvent(void)
         gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
     }
 
-    /* TODO: Test invalid IDs */
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a valid Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Id */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled),
+            ITC_STATUS_CORRUPT_ID);
+
+
+        /* Destroy the Id */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
+    }
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
 /* Test filling leaf Event with null and seed IDs succeeds */
@@ -2562,7 +2590,10 @@ void ITC_Event_Test_growEventFailInvalidParam(void)
 void ITC_Event_Test_growEventFailWithCorruptEvent(void)
 {
     ITC_Event_t *pt_Event;
-    ITC_Id_t *pt_Id = NULL;
+    ITC_Id_t *pt_Id;
+
+    /* Create a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
@@ -2579,7 +2610,32 @@ void ITC_Event_Test_growEventFailWithCorruptEvent(void)
         gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
     }
 
-    /* TODO: Test invalid IDs */
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a valid Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Id */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Event_grow(pt_Event, pt_Id),
+            ITC_STATUS_CORRUPT_ID);
+
+
+        /* Destroy the Id */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
+    }
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
 /* Test growing a leaf Event with null and seed IDs succeeds */

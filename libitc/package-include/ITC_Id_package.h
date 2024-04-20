@@ -72,7 +72,7 @@ ITC_Status_t ITC_Id_clone(
  * @retval ITC_STATUS_SUCCESS on success
  */
 ITC_Status_t ITC_Id_validate(
-    ITC_Id_t *pt_Id
+    const ITC_Id_t *const pt_Id
 );
 
 /**

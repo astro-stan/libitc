@@ -10,6 +10,7 @@
 #include "ITC_Event_package.h"
 #include "ITC_Event_private.h"
 
+#include "ITC_Id_package.h"
 #include "ITC_Id_private.h"
 #include "ITC_Port.h"
 
@@ -1622,7 +1623,7 @@ ITC_Status_t ITC_Event_clone(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_validate(
-    ITC_Event_t *pt_Event
+    const ITC_Event_t *const pt_Event
 )
 {
     return validateEvent(pt_Event, true);
@@ -1756,11 +1757,8 @@ ITC_Status_t ITC_Event_fill(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* TODO: Validate the ID */
-        if (!pt_Id)
-        {
-            t_Status = ITC_STATUS_INVALID_PARAM;
-        }
+        /* Validate the ID */
+        t_Status = ITC_Id_validate(pt_Id);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1786,11 +1784,8 @@ ITC_Status_t ITC_Event_grow(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* TODO: Validate the ID */
-        if (!pt_Id)
-        {
-            t_Status = ITC_STATUS_INVALID_PARAM;
-        }
+        /* Validate the ID */
+        t_Status = ITC_Id_validate(pt_Id);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
