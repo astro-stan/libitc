@@ -5,208 +5,6 @@
 #include "ITC_Test_package.h"
 
 /******************************************************************************
- *  Private functions
- ******************************************************************************/
-
-/**
- * @brief Create a new invalid ID with root parent owner
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidIdWithRootParentOwner(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Right, *ppt_Id));
-}
-
-/**
- * @brief Create a new invalid ID with nested parent owner
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidIdWithNestedParentOwner(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(
-        ITC_TestUtil_newNullId(
-            &(*ppt_Id)->pt_Right->pt_Left,
-            (*ppt_Id)->pt_Right));
-    TEST_SUCCESS(
-        ITC_TestUtil_newSeedId(
-            &(*ppt_Id)->pt_Right->pt_Right,
-            (*ppt_Id)->pt_Right));
-}
-
-/**
- * @brief Create a new invalid ID with asymmetric root parent
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidIdWithAsymmetricRootParent(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
-}
-
-/**
- * @brief Create a new invalid ID with asymmetric nested parent
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidIdWithAsymmetricNestedParent(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(
-        ITC_TestUtil_newSeedId(
-            &(*ppt_Id)->pt_Right->pt_Left,
-            (*ppt_Id)->pt_Right));
-}
-
-/**
- * @brief Create a new invalid not normalised ID
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidNotNormalisedId(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
-}
-
-/**
- * @brief Create a new invalid not normalised nested ID
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidNotNormalisedNestedId(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
-    TEST_SUCCESS(
-        ITC_TestUtil_newSeedId(
-            &(*ppt_Id)->pt_Right->pt_Left,
-            (*ppt_Id)->pt_Right));
-    TEST_SUCCESS(
-        ITC_TestUtil_newSeedId(
-            &(*ppt_Id)->pt_Right->pt_Right,
-            (*ppt_Id)->pt_Right));
-}
-
-/**
- * @brief Create a new invalid ID with NULL parent pointer
- *
- * Use `destroyInvalidIdWithNullParentPointer` to deallocate the ID
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Right, *ppt_Id));
-}
-
-/**
- * @brief Deallocate an invalid ID created with
- * `newInvalidIdWithNullParentPointer`
- *
- *
- * @param pt_Id (in) The pointer to the root if the ID.
- */
-static void destroyInvalidIdWithNullParentPointer(ITC_Id_t **ppt_Id)
-{
-    /* Fix the damage so the ID can be properly deallocated */
-    (*ppt_Id)->pt_Left->pt_Parent = *ppt_Id;
-    TEST_SUCCESS(ITC_Id_destroy(ppt_Id));
-}
-
-/**
- * @brief Create a new invalid ID with invalid parent pointer
- *
- * Use `destroyInvalidIdWithInvalidParentPointer` to deallocate the ID
- *
- * @param pt_Id (out) The pointer to the ID
- */
-static void newInvalidIdWithInvalidParentPointer(ITC_Id_t **ppt_Id)
-{
-    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
-    TEST_SUCCESS(
-        ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, (*ppt_Id)->pt_Left));
-}
-
-/**
- * @brief Deallocate an invalid ID created with
- * `newInvalidIdWithInvalidParentPointer`
- *
- * @param pt_Id (in) The pointer to the root if the ID.
- */
-static void destroyInvalidIdWithInvalidParentPointer(ITC_Id_t **ppt_Id)
-{
-    /* Fix the damage so the ID can be properly deallocated */
-    (*ppt_Id)->pt_Right->pt_Parent = *ppt_Id;
-    TEST_SUCCESS(ITC_Id_destroy(ppt_Id));
-}
-
-/******************************************************************************
- *  Global variables
- ******************************************************************************/
-
-/**
- * @brief Table of constructors for varous types of invalid IDs
- *  Each constructor must return an invalid ITC_Id_t**.
- *
- *  It is expected that a a destructor for the invalid ID exists at the
- *  corresponding index in `gpv_InvalidIdDestructorTable`
- */
-void (*gpv_InvalidIdConstructorTable[])(ITC_Id_t **) =
-{
-    newInvalidIdWithAsymmetricRootParent,
-    newInvalidIdWithAsymmetricNestedParent,
-    newInvalidIdWithRootParentOwner,
-    newInvalidIdWithNestedParentOwner,
-    newInvalidIdWithNullParentPointer,
-    newInvalidIdWithInvalidParentPointer,
-    /* Normalisation related invalid IDs.
-     * If adding more constructors before this point,
-     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX` */
-    newInvalidNotNormalisedId,
-    newInvalidNotNormalisedNestedId,
-};
-
-/**
- * @brief Table of destructors for varous types of invalid IDs
- *  Each destructor must fully deallocate the invalid ID.
- *
- *  It is expected that a a constructor for the invalid ID exists at the
- *  corresponding index in `gpv_InvalidIdConstructorTable`
- */
-void (*gpv_InvalidIdDestructorTable[])(ITC_Id_t **) =
-{
-    /* Cast the funcion pointer to the type of the table
-     * This is ugly but beats needlessly having to write a destructor
-     * for each invalid ID */
-    (void (*)(ITC_Id_t **))ITC_Id_destroy,
-    (void (*)(ITC_Id_t **))ITC_Id_destroy,
-    (void (*)(ITC_Id_t **))ITC_Id_destroy,
-    (void (*)(ITC_Id_t **))ITC_Id_destroy,
-    destroyInvalidIdWithNullParentPointer,
-    destroyInvalidIdWithInvalidParentPointer,
-    /* Normalisation related invalid IDs.
-     * If adding more destructors before this point,
-     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX` */
-    (void (*)(ITC_Id_t **))ITC_Id_destroy,
-    (void (*)(ITC_Id_t **))ITC_Id_destroy,
-};
-
-/******************************************************************************
  *  Public functions
  ******************************************************************************/
 
@@ -286,7 +84,7 @@ void ITC_Id_Test_cloneIdFailWithCorruptId(void)
 
     /* Test different invalid IDs are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidIdConstructorTable);
+         u32_I < gu32_InvalidIdTablesSize;
          u32_I++)
     {
         /* Construct an invalid ID */
@@ -426,7 +224,7 @@ void ITC_Id_Test_splitIdFailWithCorruptId(void)
 
     /* Test different invalid IDs are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidIdConstructorTable);
+         u32_I < gu32_InvalidIdTablesSize;
          u32_I++)
     {
         /* Construct an invalid ID */
@@ -890,7 +688,7 @@ void ITC_Id_Test_validatingIdFailWithCorruptId(void)
     /* Test different invalid IDs are handled properly.
      * Only test invalid IDs that are not related to normalisation */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidIdConstructorTable);
+         u32_I < gu32_InvalidIdTablesSize;
          u32_I++)
     {
         /* Construct an invalid ID */
@@ -1394,7 +1192,7 @@ void ITC_Id_Test_sumIdFailWithCorruptId(void)
 
     /* Test different invalid IDs are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidIdConstructorTable);
+         u32_I < gu32_InvalidIdTablesSize;
          u32_I++)
     {
         /* Construct an invalid ID */

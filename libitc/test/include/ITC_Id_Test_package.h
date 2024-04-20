@@ -92,10 +92,4 @@
 #define TEST_ITC_ID_IS_SEED_SEED_ID(pt_Id)                                    \
     TEST_ASSERT_TRUE(ITC_ID_IS_SEED_SEED_ID(pt_Id))
 
-/** The index of the first normalisation related invalid ID test inside
- * the `gpv_InvalidIdConstructorTable` and `gpv_InvalidIdDestructorTable`
- * tables.
- */
-#define FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX                         (6)
-
 #endif /* ITC_ID_TEST_PACKAGE_H_ */

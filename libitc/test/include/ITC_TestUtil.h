@@ -13,6 +13,80 @@
 #include "ITC_Event.h"
 #include "ITC_Status.h"
 
+#include <stdint.h>
+
+/******************************************************************************
+ *  Defines
+ ******************************************************************************/
+
+/** The index of the first normalisation related invalid ID test inside
+ * the `gpv_InvalidIdConstructorTable` and `gpv_InvalidIdDestructorTable`
+ * tables.
+ */
+#define FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX                         (6)
+
+/** The index of the first normalisation related invalid Event test inside
+ * the `gpv_InvalidEventConstructorTable` and `gpv_InvalidEventDestructorTable`
+ * tables.
+ */
+#define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (4)
+
+/******************************************************************************
+ *  Global variables
+ ******************************************************************************/
+
+/**
+ * @brief Table of constructors for varous types of invalid IDs
+ *  Each constructor must return an invalid ITC_Id_t**.
+ *
+ *  It is expected that a a destructor for the invalid ID exists at the
+ *  corresponding index in `gpv_InvalidIdDestructorTable`
+ */
+extern void (*const gpv_InvalidIdConstructorTable[])(ITC_Id_t **);
+
+/**
+ * @brief Table of destructors for varous types of invalid IDs
+ *  Each destructor must fully deallocate the invalid ID.
+ *
+ *  It is expected that a a constructor for the invalid ID exists at the
+ *  corresponding index in `gpv_InvalidIdConstructorTable`
+ */
+extern void (*const gpv_InvalidIdDestructorTable[])(ITC_Id_t **);
+
+/**
+ * @brief The size of the `gpv_InvalidIdDestructorTable` and
+ *  `gpv_InvalidIdConstructorTable` arrays.
+ */
+extern const uint32_t gu32_InvalidIdTablesSize;
+
+/**
+ * @brief Table of constructors for varous types of invalid Events
+ *  Each constructor must return an invalid ITC_Event_t**.
+ *
+ *  It is expected that a a destructor for the invalid Event exists at the
+ *  corresponding index in `gpv_InvalidEventDestructorTable`
+ */
+extern void (*const gpv_InvalidEventConstructorTable[])(ITC_Event_t **);
+
+/**
+ * @brief Table of destructors for varous types of invalid Events
+ *  Each destructor must fully deallocate the invalid Event.
+ *
+ *  It is expected that a a constructor for the invalid Event exists at the
+ *  corresponding index in `gpv_InvalidEventConstructorTable`
+ */
+extern void (*const gpv_InvalidEventDestructorTable[])(ITC_Event_t **);
+
+/**
+ * @brief The size of the `gpv_InvalidEventConstructorTable` and
+ *  `gpv_InvalidEventDestructorTable` arrays.
+ */
+extern const uint32_t gu32_InvalidEventTablesSize;
+
+/******************************************************************************
+ *  Public functions
+ ******************************************************************************/
+
 /**
  * @brief Same as ITC_Id_newNull but enforces setting the parent
  *

@@ -42,10 +42,4 @@
         (ITC_EVENT_IS_VALID_PARENT(pt_Event) &&                               \
         (pt_Event)->t_Count == (t_Count_)))
 
-/** The index of the first normalisation related invalid Event test inside
- * the `gpv_InvalidEventConstructorTable` and `gpv_InvalidEventDestructorTable`
- * tables.
- */
-#define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (4)
-
 #endif /* ITC_EVENT_TEST_PACKAGE_H_ */

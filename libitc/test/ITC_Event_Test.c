@@ -77,174 +77,6 @@ static void checkEventConcurrent(
     TEST_ASSERT_FALSE(b_IsLeq21);
 }
 
-/**
- * @brief Create a new invalid Event with asymmetric root parent
- *
- * @param pt_Event (out) The pointer to the Event
- */
-static void newInvalidEventWithAsymmetricRootParent(ITC_Event_t **ppt_Event)
-{
-    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 1));
-}
-
-/**
- * @brief Create a new invalid Event with asymmetric nested parent
- *
- * @param pt_Event (out) The pointer to the Event
- */
-static void newInvalidEventWithAsymmetricNestedParent(ITC_Event_t **ppt_Event)
-{
-    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
-    TEST_SUCCESS(
-        ITC_TestUtil_newEvent(
-            &(*ppt_Event)->pt_Right->pt_Left,
-            (*ppt_Event)->pt_Right,
-            3));
-}
-
-/**
- * @brief Create a new invalid not normalised Event
- *
- * @param pt_Event (out) The pointer to the Event
- */
-static void newInvalidNotNormalisedEvent(ITC_Event_t **ppt_Event)
-{
-    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
-}
-
-/**
- * @brief Create a new invalid not normalised nested Event
- *
- * @param pt_Event (out) The pointer to the Event
- */
-static void newInvalidNotNormalisedNestedEvent(ITC_Event_t **ppt_Event)
-{
-    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
-    TEST_SUCCESS(
-        ITC_TestUtil_newEvent(
-            &(*ppt_Event)->pt_Right->pt_Left,
-            (*ppt_Event)->pt_Right,
-            2));
-    TEST_SUCCESS(
-        ITC_TestUtil_newEvent(
-            &(*ppt_Event)->pt_Right->pt_Right,
-            (*ppt_Event)->pt_Right,
-            2));
-}
-
-/**
- * @brief Create a new invalid Event with NULL parent pointer
- *
- * Use `destroyInvalidEventWithNullParentPointer` to deallocate the Event
- *
- * @param pt_Event (out) The pointer to the Event
- */
-static void newInvalidEventWithNullParentPointer(ITC_Event_t **ppt_Event)
-{
-    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
-}
-
-/**
- * @brief Deallocate an invalid Event created with
- * `newInvalidEventWithNullParentPointer`
- *
- *
- * @param pt_Event (in) The pointer to the root if the Event.
- */
-static void destroyInvalidEventWithNullParentPointer(ITC_Event_t **ppt_Event)
-{
-    /* Fix the damage so the Event can be properly deallocated */
-    (*ppt_Event)->pt_Left->pt_Parent = *ppt_Event;
-    TEST_SUCCESS(ITC_Event_destroy(ppt_Event));
-}
-
-/**
- * @brief Create a new invalid Event with invalid parent pointer
- *
- * Use `destroyInvalidEventWithInvalidParentPointer` to deallocate the Event
- *
- * @param pt_Event (out) The pointer to the Event
- */
-static void newInvalidEventWithInvalidParentPointer(ITC_Event_t **ppt_Event)
-{
-    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
-    TEST_SUCCESS(
-        ITC_TestUtil_newEvent(
-            &(*ppt_Event)->pt_Right,
-            (*ppt_Event)->pt_Left,
-            2));
-}
-
-/**
- * @brief Deallocate an invalid Event created with
- * `newInvalidEventWithInvalidParentPointer`
- *
- * @param pt_Event (in) The pointer to the root if the Event.
- */
-static void destroyInvalidEventWithInvalidParentPointer(ITC_Event_t **ppt_Event)
-{
-    /* Fix the damage so the Event can be properly deallocated */
-    (*ppt_Event)->pt_Right->pt_Parent = *ppt_Event;
-    TEST_SUCCESS(ITC_Event_destroy(ppt_Event));
-}
-
-/******************************************************************************
- *  Global variables
- ******************************************************************************/
-
-/**
- * @brief Table of constructors for varous types of invalid Events
- *  Each constructor must return an invalid ITC_Event_t**.
- *
- *  It is expected that a a destructor for the invalid Event exists at the
- *  corresponding index in `gpv_InvalidEventDestructorTable`
- */
-void (*gpv_InvalidEventConstructorTable[])(ITC_Event_t **) =
-{
-    newInvalidEventWithAsymmetricRootParent,
-    newInvalidEventWithAsymmetricNestedParent,
-    newInvalidEventWithNullParentPointer,
-    newInvalidEventWithInvalidParentPointer,
-    /* Normalisation related invalid Events.
-     * If adding more constructors before this point,
-     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX` */
-    newInvalidNotNormalisedEvent,
-    newInvalidNotNormalisedNestedEvent,
-};
-
-/**
- * @brief Table of destructors for varous types of invalid Events
- *  Each destructor must fully deallocate the invalid Event.
- *
- *  It is expected that a a constructor for the invalid Event exists at the
- *  corresponding index in `gpv_InvalidEventConstructorTable`
- */
-void (*gpv_InvalidEventDestructorTable[])(ITC_Event_t **) =
-{
-    /* Cast the funcion pointer to the type of the table
-     * This is ugly but beats needlessly having to write a destructor
-     * for each invalid Event */
-    (void (*)(ITC_Event_t **))ITC_Event_destroy,
-    (void (*)(ITC_Event_t **))ITC_Event_destroy,
-    destroyInvalidEventWithNullParentPointer,
-    destroyInvalidEventWithInvalidParentPointer,
-    /* Normalisation related invalid Events.
-     * If adding more destructors before this point,
-     * be sure to update `FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX` */
-    (void (*)(ITC_Event_t **))ITC_Event_destroy,
-    (void (*)(ITC_Event_t **))ITC_Event_destroy,
-};
-
 /******************************************************************************
  *  Public functions
  ******************************************************************************/
@@ -303,7 +135,7 @@ void ITC_Event_Test_cloneEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
@@ -412,7 +244,7 @@ void ITC_Event_Test_validatingEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
@@ -716,7 +548,7 @@ void ITC_Event_Test_maximiseEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
@@ -911,7 +743,7 @@ void ITC_Event_Test_joinEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
@@ -1336,7 +1168,7 @@ void ITC_Event_Test_eventLeqFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
@@ -1650,7 +1482,7 @@ void ITC_Event_Test_fillEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
@@ -2734,7 +2566,7 @@ void ITC_Event_Test_growEventFailWithCorruptEvent(void)
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+         u32_I < gu32_InvalidEventTablesSize;
          u32_I++)
     {
         /* Construct an invalid Event */
