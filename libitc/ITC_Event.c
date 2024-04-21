@@ -31,82 +31,81 @@
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t validateEvent(
-    const ITC_Event_t *const pt_Event,
+    const ITC_Event_t *pt_Event,
     const bool b_CheckIsNormalised
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    const ITC_Event_t *pt_CurrentEvent = pt_Event;
     const ITC_Event_t *pt_ParentCurrentEvent = NULL;
     const ITC_Event_t *pt_ParentRootEvent = NULL;
 
-    if(!pt_CurrentEvent)
+    if(!pt_Event)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
     else
     {
         /* Remember the root parent Event as this might be a subtree */
-        pt_ParentRootEvent = pt_CurrentEvent->pt_Parent;
+        pt_ParentRootEvent = pt_Event->pt_Parent;
 
         pt_ParentCurrentEvent = pt_ParentRootEvent;
     }
 
     /* Perform a pre-order traversal */
-    while (t_Status == ITC_STATUS_SUCCESS && pt_CurrentEvent)
+    while (t_Status == ITC_STATUS_SUCCESS && pt_Event)
     {
         /* Checks:
          *  - The parent pointer must match pt_ParentCurrentEvent.
          *  - Must be a leaf or a valid parent node
          *  - Must be a normalised Event node (if the check is enabled)
          */
-        if (pt_ParentCurrentEvent != pt_CurrentEvent->pt_Parent ||
-            (!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent) &&
-             !ITC_EVENT_IS_VALID_PARENT(pt_CurrentEvent)) ||
+        if (pt_ParentCurrentEvent != pt_Event->pt_Parent ||
+            (!ITC_EVENT_IS_LEAF_EVENT(pt_Event) &&
+             !ITC_EVENT_IS_VALID_PARENT(pt_Event)) ||
             (b_CheckIsNormalised &&
-             !ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent)))
+             !ITC_EVENT_IS_NORMALISED_EVENT(pt_Event)))
         {
             t_Status = ITC_STATUS_CORRUPT_EVENT;
         }
         else
         {
             /* Descend into left tree */
-            if (pt_CurrentEvent->pt_Left)
+            if (pt_Event->pt_Left)
             {
                 /* Remember the parent address */
-                pt_ParentCurrentEvent = pt_CurrentEvent;
+                pt_ParentCurrentEvent = pt_Event;
 
-                pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                pt_Event = pt_Event->pt_Left;
             }
             /* ITC trees must always have both left and right subtrees or
              * be leafs. If this is reached, then a node is missing its
              * left subtree, which makes the tree invalid. Usually this will
              * be caught in the `if` at the beginning of the loop, but do check
              * again just in case */
-            else if (pt_CurrentEvent->pt_Right)
+            else if (pt_Event->pt_Right)
             {
                 t_Status = ITC_STATUS_CORRUPT_EVENT;
             }
             else
             {
                 /* Loop until the current element is no longer reachable
-                 * through he parent's right child */
+                 * through the parent's right child */
                 while (pt_ParentCurrentEvent != pt_ParentRootEvent &&
-                    pt_ParentCurrentEvent->pt_Right == pt_CurrentEvent)
+                    pt_ParentCurrentEvent->pt_Right == pt_Event)
                 {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                    pt_Event = pt_Event->pt_Parent;
                     pt_ParentCurrentEvent = pt_ParentCurrentEvent->pt_Parent;
                 }
 
                 /* There is a right subtree that has not been explored yet */
                 if (pt_ParentCurrentEvent != pt_ParentRootEvent)
                 {
-                    pt_CurrentEvent = pt_ParentCurrentEvent->pt_Right;
+                    pt_Event = pt_ParentCurrentEvent->pt_Right;
                 }
                 else
                 {
-                    pt_CurrentEvent = NULL;
+                    pt_Event = NULL;
                 }
             }
         }
@@ -170,28 +169,27 @@ static ITC_Status_t newEvent(
  * @retval ITC_STATUS_SUCCESS on success
  */
 static ITC_Status_t cloneEvent(
-    const ITC_Event_t *const pt_Event,
+    const ITC_Event_t *pt_Event,
     ITC_Event_t **ppt_ClonedEvent,
     ITC_Event_t *const pt_ParentEvent
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    const ITC_Event_t *pt_CurrentEvent = pt_Event; /* The current root */
-    const ITC_Event_t *pt_CurrentEventParent; /* pt_CurrentEvent's parent */
+    const ITC_Event_t *pt_ParentRootId; /* The parent of the root */
     ITC_Event_t *pt_ClonedEventClone; /* The current cloned root */
 
-    if (pt_CurrentEvent == NULL)
+    if (!pt_Event)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
     else
     {
         /* Remember the parent of the root as this might be a subree */
-        pt_CurrentEventParent = pt_CurrentEvent->pt_Parent;
+        pt_ParentRootId = pt_Event->pt_Parent;
 
         /* Allocate the root */
         t_Status = newEvent(
-            ppt_ClonedEvent, pt_ParentEvent, pt_CurrentEvent->t_Count);
+            ppt_ClonedEvent, pt_ParentEvent, pt_Event->t_Count);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
@@ -200,43 +198,43 @@ static ITC_Status_t cloneEvent(
         }
 
         while(t_Status == ITC_STATUS_SUCCESS &&
-              pt_CurrentEvent != pt_CurrentEventParent)
+              pt_Event != pt_ParentRootId)
         {
-            if (pt_CurrentEvent->pt_Left && !pt_ClonedEventClone->pt_Left)
+            if (pt_Event->pt_Left && !pt_ClonedEventClone->pt_Left)
             {
                 /* Allocate left subtree */
                 t_Status = newEvent(
                     &pt_ClonedEventClone->pt_Left,
                     pt_ClonedEventClone,
-                    pt_CurrentEvent->pt_Left->t_Count);
+                    pt_Event->pt_Left->t_Count);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
                     /* Descend into the left child */
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                    pt_Event = pt_Event->pt_Left;
                     pt_ClonedEventClone = pt_ClonedEventClone->pt_Left;
                 }
             }
             else if (
-                pt_CurrentEvent->pt_Right && !pt_ClonedEventClone->pt_Right)
+                pt_Event->pt_Right && !pt_ClonedEventClone->pt_Right)
             {
                 /* Allocate right subtree */
                 t_Status = newEvent(
                     &pt_ClonedEventClone->pt_Right,
                     pt_ClonedEventClone,
-                    pt_CurrentEvent->pt_Right->t_Count);
+                    pt_Event->pt_Right->t_Count);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
                     /* Descend into the right child */
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+                    pt_Event = pt_Event->pt_Right;
                     pt_ClonedEventClone = pt_ClonedEventClone->pt_Right;
                 }
             }
             else
             {
                 /* Go up the tree */
-                pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                pt_Event = pt_Event->pt_Parent;
                 pt_ClonedEventClone = pt_ClonedEventClone->pt_Parent;
             }
         }
@@ -518,38 +516,38 @@ static ITC_Status_t normEventE(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Event_t *pt_CurrentEvent = pt_Event;
+
     /* Remember the parent as this might be a subtree */
     ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
 
     while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_CurrentEvent != pt_ParentRootEvent)
+           pt_Event != pt_ParentRootEvent)
     {
         /* norm((n, e1, e2)) */
-        if (!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent))
+        if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event))
         {
             /* Normalise e1 */
-            if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Left))
+            if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Left))
             {
-                pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                pt_Event = pt_Event->pt_Left;
             }
             /* Normalise e2 */
-            else if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent->pt_Right))
+            else if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Right))
             {
-                pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+                pt_Event = pt_Event->pt_Right;
             }
             /* norm((n, m, m)) = lift(n, m) */
-            else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Left) &&
-                     ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent->pt_Right) &&
-                     (pt_CurrentEvent->pt_Left->t_Count ==
-                          pt_CurrentEvent->pt_Right->t_Count))
+            else if (ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left) &&
+                     ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right) &&
+                     (pt_Event->pt_Left->t_Count ==
+                          pt_Event->pt_Right->t_Count))
             {
                 /* Lift the root, destroy the children */
-                t_Status = liftDestroyDestroyEvent(pt_CurrentEvent);
+                t_Status = liftDestroyDestroyEvent(pt_Event);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                    pt_Event = pt_Event->pt_Parent;
                 }
             }
             /*
@@ -560,26 +558,26 @@ static ITC_Status_t normEventE(
              *    - min(n) = n
              *    - min((n, e1, e2)) = n
              */
-            else if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_CurrentEvent))
+            else if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_Event))
             {
                 /* Lift the root, sink the children */
-                t_Status = liftSinkSinkEvent(pt_CurrentEvent);
+                t_Status = liftSinkSinkEvent(pt_Event);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                    pt_Event = pt_Event->pt_Parent;
                 }
             }
-            /* pt_CurrentEvent event is normalised. Nothing to do */
+            /* pt_Event event is normalised. Nothing to do */
             else
             {
-                pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                pt_Event = pt_Event->pt_Parent;
             }
         }
         /* norm(n) = n */
         else
         {
-            pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+            pt_Event = pt_Event->pt_Parent;
         }
     }
 
@@ -1532,7 +1530,7 @@ ITC_Status_t ITC_Event_destroy(
     ITC_Status_t t_FreeStatus = ITC_STATUS_SUCCESS; /* The last free status */
     ITC_Event_t *pt_CurrentEvent = NULL; /* The current element */
     ITC_Event_t *pt_ParentCurrentEvent = NULL;
-    ITC_Event_t *pt_RootParent = NULL;
+    ITC_Event_t *pt_ParentRootId = NULL;
 
     if (!ppt_Event || !(*ppt_Event))
     {
@@ -1541,10 +1539,10 @@ ITC_Status_t ITC_Event_destroy(
     else
     {
         pt_CurrentEvent = *ppt_Event;
-        pt_RootParent = pt_CurrentEvent->pt_Parent;
+        pt_ParentRootId = pt_CurrentEvent->pt_Parent;
 
         /* Keep trying to free elements even if some frees fail */
-        while(pt_CurrentEvent && pt_CurrentEvent != pt_RootParent)
+        while(pt_CurrentEvent && pt_CurrentEvent != pt_ParentRootId)
         {
             /* Advance into left subtree */
             if(pt_CurrentEvent->pt_Left)
