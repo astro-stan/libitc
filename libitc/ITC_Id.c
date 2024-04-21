@@ -34,9 +34,8 @@ static ITC_Status_t validateId(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
-    const ITC_Id_t *pt_ParentCurrentId = NULL;
-    const ITC_Id_t *pt_ParentRootId = NULL;
+    const ITC_Id_t *pt_ParentCurrentId = NULL; /* The current ID node */
+    const ITC_Id_t *pt_ParentRootId = NULL; /* The parent of the root node */
 
     if(!pt_Id)
     {
@@ -126,17 +125,10 @@ static ITC_Status_t newId(
     const bool b_IsOwner
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_Alloc = NULL;
+    ITC_Status_t t_Status; /* The current status */
+    ITC_Id_t *pt_Alloc;
 
-    if (!ppt_Id)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Id_t));
-    }
+    t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Id_t));
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -148,6 +140,11 @@ static ITC_Status_t newId(
 
         /* Return the pointer to the allocated memory */
         *ppt_Id = pt_Alloc;
+    }
+    else
+    {
+        /* Sanitise pointer */
+        *ppt_Id = NULL;
     }
 
     return t_Status;
@@ -170,74 +167,69 @@ static ITC_Status_t cloneId(
     ITC_Id_t *const pt_ParentId
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
     const ITC_Id_t *pt_ParentRootId; /* The parent of the root */
-    ITC_Id_t *pt_ClonedIdClone; /* The current cloned root */
+    ITC_Id_t *pt_CurrentIdClone; /* The current ID clone */
 
-    if (!pt_Id)
+    /* Init clone pointer */
+    *ppt_ClonedId = NULL;
+    /* Remember the parent of the root as this might be a subree */
+    pt_ParentRootId = pt_Id->pt_Parent;
+
+    /* Allocate the root */
+    t_Status = newId(
+        ppt_ClonedId, pt_ParentId, pt_Id->b_IsOwner);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_STATUS_INVALID_PARAM;
+        /* Initialise the cloned root pointer */
+        pt_CurrentIdClone = *ppt_ClonedId;
     }
-    else
+
+    while(t_Status == ITC_STATUS_SUCCESS &&
+            pt_Id != pt_ParentRootId)
     {
-        /* Remember the parent of the root as this might be a subree */
-        pt_ParentRootId = pt_Id->pt_Parent;
-
-        /* Allocate the root */
-        t_Status = newId(
-            ppt_ClonedId, pt_ParentId, pt_Id->b_IsOwner);
-
-        if (t_Status == ITC_STATUS_SUCCESS)
+        if (pt_Id->pt_Left && !pt_CurrentIdClone->pt_Left)
         {
-            /* Initialise the cloned root pointer */
-            pt_ClonedIdClone = *ppt_ClonedId;
+            /* Allocate left subtree */
+            t_Status = newId(
+                &pt_CurrentIdClone->pt_Left,
+                pt_CurrentIdClone,
+                pt_Id->pt_Left->b_IsOwner);
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                /* Descend into the left child */
+                pt_Id = pt_Id->pt_Left;
+                pt_CurrentIdClone = pt_CurrentIdClone->pt_Left;
+            }
         }
-
-        while(t_Status == ITC_STATUS_SUCCESS &&
-              pt_Id != pt_ParentRootId)
+        else if (pt_Id->pt_Right && !pt_CurrentIdClone->pt_Right)
         {
-            if (pt_Id->pt_Left && !pt_ClonedIdClone->pt_Left)
-            {
-                /* Allocate left subtree */
-                t_Status = newId(
-                    &pt_ClonedIdClone->pt_Left,
-                    pt_ClonedIdClone,
-                    pt_Id->pt_Left->b_IsOwner);
+            /* Allocate right subtree */
+            t_Status = newId(
+                &pt_CurrentIdClone->pt_Right,
+                pt_CurrentIdClone,
+                pt_Id->pt_Right->b_IsOwner);
 
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    /* Descend into the left child */
-                    pt_Id = pt_Id->pt_Left;
-                    pt_ClonedIdClone = pt_ClonedIdClone->pt_Left;
-                }
-            }
-            else if (pt_Id->pt_Right && !pt_ClonedIdClone->pt_Right)
+            if (t_Status == ITC_STATUS_SUCCESS)
             {
-                /* Allocate right subtree */
-                t_Status = newId(
-                    &pt_ClonedIdClone->pt_Right,
-                    pt_ClonedIdClone,
-                    pt_Id->pt_Right->b_IsOwner);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    /* Descend into the right child */
-                    pt_Id = pt_Id->pt_Right;
-                    pt_ClonedIdClone = pt_ClonedIdClone->pt_Right;
-                }
+                /* Descend into the right child */
+                pt_Id = pt_Id->pt_Right;
+                pt_CurrentIdClone = pt_CurrentIdClone->pt_Right;
             }
-            else
-            {
-                /* Go up the tree */
-                pt_Id = pt_Id->pt_Parent;
-                pt_ClonedIdClone = pt_ClonedIdClone->pt_Parent;
-            }
+        }
+        else
+        {
+            /* Go up the tree */
+            pt_Id = pt_Id->pt_Parent;
+            pt_CurrentIdClone = pt_CurrentIdClone->pt_Parent;
         }
     }
 
     /* If something goes wrong during the cloning - the ID is invalid and must
      * not be used. */
-    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* There is nothing else to do if the cloning fails. Also it is more
          * important to convey the cloning failed, rather than the destroy */
@@ -265,7 +257,7 @@ static ITC_Status_t splitId0(
     ITC_Id_t *const pt_ParentId2
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
 
     t_Status = newId(ppt_Id1, pt_ParentId1, false);
 
@@ -295,7 +287,7 @@ static ITC_Status_t splitId1(
     ITC_Id_t *const pt_ParentId2
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
 
     /* Allocate the first root */
     t_Status = newId(ppt_Id1, pt_ParentId1, false);
@@ -352,36 +344,24 @@ static ITC_Status_t splitIdI(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    const ITC_Id_t *pt_CurrentIdParent = NULL;
     ITC_Id_t **ppt_CurrentId1 = ppt_Id1;
     ITC_Id_t *pt_ParentCurrentId1 = NULL;
     ITC_Id_t **ppt_CurrentId2 = ppt_Id2;
     ITC_Id_t *pt_ParentCurrentId2 = NULL;
 
-    if (!pt_Id || !ppt_CurrentId1 || !ppt_CurrentId2)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        /* Remember the parent of the root as this might be a subtree */
-        pt_CurrentIdParent = pt_Id->pt_Parent;
+    const ITC_Id_t *pt_CurrentIdParent;
 
-        /* Init the new IDs */
-        *ppt_CurrentId1 = NULL;
-        *ppt_CurrentId2 = NULL;
-    }
+    /* Remember the parent of the root as this might be a subtree */
+    pt_CurrentIdParent = pt_Id->pt_Parent;
+
+    /* Init the new IDs */
+    *ppt_CurrentId1 = NULL;
+    *ppt_CurrentId2 = NULL;
 
     while (t_Status == ITC_STATUS_SUCCESS && pt_Id != pt_CurrentIdParent)
     {
-        /* split(0) = (0, 0)
-         * *ppt_CurrentId1 && *ppt_CurrentId2 should always be NULL here
-         * but ensure this is the case before overwriting the pointer as
-         * this could lead to a memory leak.
-         */
-        if (ITC_ID_IS_NULL_ID(pt_Id)
-            && !(*ppt_CurrentId1)
-            && !(*ppt_CurrentId2))
+        /* split(0) = (0, 0) */
+        if (ITC_ID_IS_NULL_ID(pt_Id))
         {
             t_Status = splitId0(
                 ppt_CurrentId1,
@@ -394,13 +374,8 @@ static ITC_Status_t splitIdI(
                 pt_Id = pt_Id->pt_Parent;
             }
         }
-        /* split(1) = ((1, 0), (0, 1))
-         * *ppt_CurrentId1 && *ppt_CurrentId2 should always be NULL here
-         * but ensure this is the case before overwriting the pointer as
-         * this could lead to a memory leak. */
-        else if (ITC_ID_IS_SEED_ID(pt_Id)
-                 && !(*ppt_CurrentId1)
-                 && !(*ppt_CurrentId2))
+        /* split(1) = ((1, 0), (0, 1)) */
+        else if (ITC_ID_IS_SEED_ID(pt_Id))
         {
             t_Status = splitId1(
                 ppt_CurrentId1,
@@ -588,7 +563,7 @@ static ITC_Status_t splitIdI(
 
     /* If something goes wrong during the splitting - the IDs are invalid and
      * must not be used. */
-    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* There is nothing else to do if the destroy fails. Also it is more
          * important to convey the split failed, rather than the destroy */
@@ -615,7 +590,7 @@ static ITC_Status_t normIdI(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current op status */
+    ITC_Status_t t_OpStatus; /* The current op status */
 
     /* Remember the parent as this might be a subtree */
     const ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
@@ -699,20 +674,15 @@ static ITC_Status_t sumIdI(
 
     ITC_Id_t **ppt_CurrentId = ppt_Id;
     ITC_Id_t *pt_ParentCurrentId = NULL;
-    const ITC_Id_t *pt_ParentRootId1 = NULL;
-    const ITC_Id_t *pt_ParentRootId2 = NULL;
+    const ITC_Id_t *pt_ParentRootId1;
+    const ITC_Id_t *pt_ParentRootId2;
 
-    if(!ppt_CurrentId || !pt_Id1 || !pt_Id2)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        *ppt_CurrentId = NULL;
-        /* Remember the root parent as this might be a subtree */
-        pt_ParentRootId1 = pt_Id1->pt_Parent;
-        pt_ParentRootId2 = pt_Id2->pt_Parent;
-    }
+    /* Init the ID */
+    *ppt_CurrentId = NULL;
+
+    /* Remember the root parent as this might be a subtree */
+    pt_ParentRootId1 = pt_Id1->pt_Parent;
+    pt_ParentRootId2 = pt_Id2->pt_Parent;
 
     while(t_Status == ITC_STATUS_SUCCESS &&
           pt_Id1 != pt_ParentRootId1 &&
@@ -820,7 +790,7 @@ static ITC_Status_t sumIdI(
 
     /* If something goes wrong during the summing process - the ID is invalid
      * and must not be used. */
-    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* There is nothing else to do if the destroy fails. Also it is more
          * important to convey the split failed, rather than the destroy */
@@ -842,6 +812,11 @@ ITC_Status_t ITC_Id_newSeed(
     ITC_Id_t **ppt_Id
 )
 {
+    if (!ppt_Id)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
     return newId(ppt_Id, NULL, true);
 }
 
@@ -853,6 +828,11 @@ ITC_Status_t ITC_Id_newNull(
     ITC_Id_t **ppt_Id
 )
 {
+    if (!ppt_Id)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
     return newId(ppt_Id, NULL, false);
 }
 
@@ -870,11 +850,11 @@ ITC_Status_t ITC_Id_destroy(
     ITC_Id_t *pt_ParentCurrentId = NULL;
     ITC_Id_t *pt_ParentRootId = NULL;
 
-    if (!ppt_Id || !(*ppt_Id))
+    if (!ppt_Id)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-    else
+    else if (*ppt_Id)
     {
         pt_CurrentId = *ppt_Id;
         /* Remember the parent as this might be a subtree */
@@ -925,6 +905,10 @@ ITC_Status_t ITC_Id_destroy(
             }
         }
     }
+    else
+    {
+        /* Nothing to do */
+    }
 
     /* Sanitize the freed pointer */
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -946,7 +930,15 @@ ITC_Status_t ITC_Id_clone(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateId(pt_Id, true);
+    if (!ppt_ClonedId)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id, true);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -977,9 +969,17 @@ ITC_Status_t ITC_Id_split(
     ITC_Id_t **ppt_Id2
 )
 {
-    ITC_Status_t t_Status; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateId(pt_Id, true);
+    if (!ppt_Id1 || !ppt_Id2)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id, true);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1019,9 +1019,17 @@ ITC_Status_t ITC_Id_sum(
     ITC_Id_t **ppt_Id
 )
 {
-    ITC_Status_t t_Status; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateId(pt_Id1, true);
+    if (!ppt_Id)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id1, true);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {

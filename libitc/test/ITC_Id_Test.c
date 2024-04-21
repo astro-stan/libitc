@@ -17,10 +17,18 @@ void tearDown(void) {}
 /* Test destroying an ID fails with invalid param */
 void ITC_Id_Test_destroyIdFailInvalidParam(void)
 {
+    TEST_FAILURE(ITC_Id_destroy(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test destroying an ID suceeds */
+void ITC_Id_Test_destroyIdSuccessful(void)
+{
     ITC_Id_t *pt_Dummy = NULL;
 
-    TEST_FAILURE(ITC_Id_destroy(NULL), ITC_STATUS_INVALID_PARAM);
-    TEST_FAILURE(ITC_Id_destroy(&pt_Dummy), ITC_STATUS_INVALID_PARAM);
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Dummy));
+
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Dummy, NULL));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Dummy));
 }
 
 /* Test creating a NULL ID fails with invalid param */

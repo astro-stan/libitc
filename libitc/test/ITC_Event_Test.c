@@ -90,10 +90,18 @@ void tearDown(void) {}
 /* Test destroying an Event fails with invalid param */
 void ITC_Event_Test_destroyEventFailInvalidParam(void)
 {
+    TEST_FAILURE(ITC_Event_destroy(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test destroying an Event suceeds */
+void ITC_Event_Test_destroyEventSuccessful(void)
+{
     ITC_Event_t *pt_Dummy = NULL;
 
-    TEST_FAILURE(ITC_Event_destroy(NULL), ITC_STATUS_INVALID_PARAM);
-    TEST_FAILURE(ITC_Event_destroy(&pt_Dummy), ITC_STATUS_INVALID_PARAM);
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Dummy));
+
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Dummy, NULL, 0));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Dummy));
 }
 
 /* Test creating a NULL Event fails with invalid param */

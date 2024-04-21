@@ -36,9 +36,8 @@ static ITC_Status_t validateEvent(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
-    const ITC_Event_t *pt_ParentCurrentEvent = NULL;
-    const ITC_Event_t *pt_ParentRootEvent = NULL;
+    const ITC_Event_t *pt_ParentCurrentEvent; /* The current Event node */
+    const ITC_Event_t *pt_ParentRootEvent; /* The parent of the root node */
 
     if(!pt_Event)
     {
@@ -130,17 +129,10 @@ static ITC_Status_t newEvent(
     const ITC_Event_Counter_t t_Count
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Event_t *pt_Alloc = NULL;
+    ITC_Status_t t_Status; /* The current status */
+    ITC_Event_t *pt_Alloc;
 
-    if (!ppt_Event)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Event_t));
-    }
+    t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Event_t));
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -152,6 +144,11 @@ static ITC_Status_t newEvent(
 
         /* Return the pointer to the allocated memory */
         *ppt_Event = pt_Alloc;
+    }
+    else
+    {
+        /* Sanitise pointer */
+        *ppt_Event = NULL;
     }
 
     return t_Status;
@@ -174,75 +171,70 @@ static ITC_Status_t cloneEvent(
     ITC_Event_t *const pt_ParentEvent
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
     const ITC_Event_t *pt_ParentRootId; /* The parent of the root */
-    ITC_Event_t *pt_ClonedEventClone; /* The current cloned root */
+    ITC_Event_t *pt_CurrentEventClone; /* The current event clone */
 
-    if (!pt_Event)
+    /* Init clone pointer */
+    *ppt_ClonedEvent = NULL;
+    /* Remember the parent of the root as this might be a subree */
+    pt_ParentRootId = pt_Event->pt_Parent;
+
+    /* Allocate the root */
+    t_Status = newEvent(
+        ppt_ClonedEvent, pt_ParentEvent, pt_Event->t_Count);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_STATUS_INVALID_PARAM;
+        /* Initialise the cloned root pointer */
+        pt_CurrentEventClone = *ppt_ClonedEvent;
     }
-    else
+
+    while(t_Status == ITC_STATUS_SUCCESS &&
+            pt_Event != pt_ParentRootId)
     {
-        /* Remember the parent of the root as this might be a subree */
-        pt_ParentRootId = pt_Event->pt_Parent;
-
-        /* Allocate the root */
-        t_Status = newEvent(
-            ppt_ClonedEvent, pt_ParentEvent, pt_Event->t_Count);
-
-        if (t_Status == ITC_STATUS_SUCCESS)
+        if (pt_Event->pt_Left && !pt_CurrentEventClone->pt_Left)
         {
-            /* Initialise the cloned root pointer */
-            pt_ClonedEventClone = *ppt_ClonedEvent;
+            /* Allocate left subtree */
+            t_Status = newEvent(
+                &pt_CurrentEventClone->pt_Left,
+                pt_CurrentEventClone,
+                pt_Event->pt_Left->t_Count);
+
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                /* Descend into the left child */
+                pt_Event = pt_Event->pt_Left;
+                pt_CurrentEventClone = pt_CurrentEventClone->pt_Left;
+            }
         }
-
-        while(t_Status == ITC_STATUS_SUCCESS &&
-              pt_Event != pt_ParentRootId)
+        else if (
+            pt_Event->pt_Right && !pt_CurrentEventClone->pt_Right)
         {
-            if (pt_Event->pt_Left && !pt_ClonedEventClone->pt_Left)
-            {
-                /* Allocate left subtree */
-                t_Status = newEvent(
-                    &pt_ClonedEventClone->pt_Left,
-                    pt_ClonedEventClone,
-                    pt_Event->pt_Left->t_Count);
+            /* Allocate right subtree */
+            t_Status = newEvent(
+                &pt_CurrentEventClone->pt_Right,
+                pt_CurrentEventClone,
+                pt_Event->pt_Right->t_Count);
 
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    /* Descend into the left child */
-                    pt_Event = pt_Event->pt_Left;
-                    pt_ClonedEventClone = pt_ClonedEventClone->pt_Left;
-                }
-            }
-            else if (
-                pt_Event->pt_Right && !pt_ClonedEventClone->pt_Right)
+            if (t_Status == ITC_STATUS_SUCCESS)
             {
-                /* Allocate right subtree */
-                t_Status = newEvent(
-                    &pt_ClonedEventClone->pt_Right,
-                    pt_ClonedEventClone,
-                    pt_Event->pt_Right->t_Count);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    /* Descend into the right child */
-                    pt_Event = pt_Event->pt_Right;
-                    pt_ClonedEventClone = pt_ClonedEventClone->pt_Right;
-                }
+                /* Descend into the right child */
+                pt_Event = pt_Event->pt_Right;
+                pt_CurrentEventClone = pt_CurrentEventClone->pt_Right;
             }
-            else
-            {
-                /* Go up the tree */
-                pt_Event = pt_Event->pt_Parent;
-                pt_ClonedEventClone = pt_ClonedEventClone->pt_Parent;
-            }
+        }
+        else
+        {
+            /* Go up the tree */
+            pt_Event = pt_Event->pt_Parent;
+            pt_CurrentEventClone = pt_CurrentEventClone->pt_Parent;
         }
     }
 
     /* If something goes wrong during the cloning - the Event is invalid and
      * must not be used. */
-    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* There is nothing else to do if the cloning fails. Also it is more
          * important to convey the cloning failed, rather than the destroy */
@@ -342,33 +334,30 @@ static ITC_Status_t liftSinkSinkEvent(
     ITC_Event_t *pt_Event
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-    ITC_Event_Counter_t t_Count = 0;
+    ITC_Status_t t_Status;
+    ITC_Status_t t_OpStatus;
+    ITC_Event_Counter_t t_Count;
 
     /* Remember the count */
     t_Count = MIN(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
     /* Sink the children */
+    t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
+
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
+        t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
 
-        if (t_Status == ITC_STATUS_SUCCESS)
+        if (t_Status != ITC_STATUS_SUCCESS)
         {
-            t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
+            /* Restore the other child */
+            t_OpStatus = incEventCounter(
+                &pt_Event->pt_Left->t_Count, t_Count);
 
-            if (t_Status != ITC_STATUS_SUCCESS)
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
-                /* Restore the other child */
-                t_OpStatus = incEventCounter(
-                    &pt_Event->pt_Left->t_Count, t_Count);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
+                /* Return last error */
+                t_Status = t_OpStatus;
             }
         }
     }
@@ -402,35 +391,32 @@ static ITC_Status_t liftDestroyDestroyEvent(
     ITC_Event_t *pt_Event
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-    ITC_Event_Counter_t t_LeftCount = 0;
-    ITC_Event_Counter_t t_MaxCount = 0;
+    ITC_Status_t t_Status;
+    ITC_Status_t t_OpStatus;
+    ITC_Event_Counter_t t_LeftCount;
+    ITC_Event_Counter_t t_MaxCount;
 
     /* Remember the counts */
     t_LeftCount = pt_Event->pt_Left->t_Count;
     t_MaxCount = MAX(t_LeftCount, pt_Event->pt_Right->t_Count);
 
     /* Destroy the children */
+    t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+        t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
 
-        if (t_Status == ITC_STATUS_SUCCESS)
+        if (t_Status != ITC_STATUS_SUCCESS)
         {
-            t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
+            /* Restore the other child */
+            t_OpStatus = newEvent(
+                &pt_Event->pt_Left, pt_Event, t_LeftCount);
 
-            if (t_Status != ITC_STATUS_SUCCESS)
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
-                /* Restore the other child */
-                t_OpStatus = newEvent(
-                    &pt_Event->pt_Left, pt_Event, t_LeftCount);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
+                /* Return last error */
+                t_Status = t_OpStatus;
             }
         }
     }
@@ -467,28 +453,25 @@ static ITC_Status_t newChildNodes(
     ITC_Event_Counter_t t_RightCount
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_Status;
+    ITC_Status_t t_OpStatus;
 
     /* Allocate the children */
+    t_Status = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
+
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
+        t_Status = newEvent(&pt_Event->pt_Right, pt_Event, t_RightCount);
 
-        if (t_Status == ITC_STATUS_SUCCESS)
+        if (t_Status != ITC_STATUS_SUCCESS)
         {
-            t_Status = newEvent(&pt_Event->pt_Right, pt_Event, t_RightCount);
+            /* Delete the other child */
+            t_OpStatus = ITC_Event_destroy(&pt_Event->pt_Left);
 
-            if (t_Status != ITC_STATUS_SUCCESS)
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
-                /* Delete the other child */
-                t_OpStatus = ITC_Event_destroy(&pt_Event->pt_Left);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
+                /* Return last error */
+                t_Status = t_OpStatus;
             }
         }
     }
@@ -608,7 +591,7 @@ static ITC_Status_t joinEventE(
     ITC_Event_t **ppt_Event
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
 
     ITC_Event_t *pt_CurrentEvent1 = NULL;
     ITC_Event_t *pt_RootCurrentEvent1 = NULL;
@@ -620,30 +603,23 @@ static ITC_Status_t joinEventE(
     ITC_Event_t **ppt_CurrentEvent = ppt_Event;
     ITC_Event_t *pt_ParentCurrentEvent = NULL;
 
-    if (!pt_Event1 || !pt_Event2  || !ppt_Event)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        /* Init Event */
-        *ppt_CurrentEvent = NULL;
+    /* Init Event */
+    *ppt_CurrentEvent = NULL;
 
-        /* Clone the input events, as they will get modified during the
-         * joining process */
-        t_Status = cloneEvent(pt_Event1, &pt_CurrentEvent1, NULL);
+    /* Clone the input events, as they will get modified during the
+     * joining process */
+    t_Status = cloneEvent(pt_Event1, &pt_CurrentEvent1, NULL);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Save the root so it can be easily deallocated */
+        pt_RootCurrentEvent1 = pt_CurrentEvent1;
+
+        t_Status = cloneEvent(pt_Event2, &pt_CurrentEvent2, NULL);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
-            /* Save the root so it can be easily deallocated */
-            pt_RootCurrentEvent1 = pt_CurrentEvent1;
-
-            t_Status = cloneEvent(pt_Event2, &pt_CurrentEvent2, NULL);
-
-            if (t_Status == ITC_STATUS_SUCCESS)
-            {
-                pt_RootCurrentEvent2 = pt_CurrentEvent2;
-            }
+            pt_RootCurrentEvent2 = pt_CurrentEvent2;
         }
     }
 
@@ -809,7 +785,7 @@ static ITC_Status_t joinEventE(
 
     /* If something goes wrong during the joining process - the Event is invalid
      * and must not be used. */
-    if (t_Status != ITC_STATUS_SUCCESS && t_Status != ITC_STATUS_INVALID_PARAM)
+    if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* There is nothing else to do if the destroy fails. Also it is more
          * important to convey the join failed, rather than the destroy */
@@ -843,8 +819,8 @@ static ITC_Status_t leqEventE(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    const ITC_Event_t *pt_ParentCurrentEvent1 = NULL;
-    const ITC_Event_t *pt_ParentRootEvent1 = NULL;
+    const ITC_Event_t *pt_ParentCurrentEvent1;
+    const ITC_Event_t *pt_ParentRootEvent1;
 
     /* Holds the event count from the root to the current parent node */
     ITC_Event_Counter_t t_ParentsCountEvent1 = 0;
@@ -859,20 +835,13 @@ static ITC_Status_t leqEventE(
      * to its tree branch being shallower than the one in pt_Event1 */
     uint32_t u32_CurrentEvent2DescendSkips = 0;
 
-    if(!pt_Event1 || !pt_Event2)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        /* Init flag */
-        *pb_IsLeq = true;
+    /* Init flag */
+    *pb_IsLeq = true;
 
-        /* Remember the root parent Event as this might be a subtree */
-        pt_ParentRootEvent1 = pt_Event1->pt_Parent;
+    /* Remember the root parent Event as this might be a subtree */
+    pt_ParentRootEvent1 = pt_Event1->pt_Parent;
 
-        pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
-    }
+    pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
 
     /* Perform a pre-order traversal.
      *
@@ -1028,15 +997,8 @@ static ITC_Status_t maxEventE(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
     ITC_Event_t *pt_ParentRootEvent;
 
-    if (!pt_Event)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        /* Remember the parent as this might be a subtree */
-        pt_ParentRootEvent = pt_Event->pt_Parent;
-    }
+    /* Remember the parent as this might be a subtree */
+    pt_ParentRootEvent = pt_Event->pt_Parent;
 
     while (t_Status == ITC_STATUS_SUCCESS && pt_Event != pt_ParentRootEvent)
     {
@@ -1515,6 +1477,11 @@ ITC_Status_t ITC_Event_new(
     ITC_Event_t **ppt_Event
 )
 {
+    if (!ppt_Event)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
     return newEvent(ppt_Event, NULL, 0);
 }
 
@@ -1527,16 +1494,16 @@ ITC_Status_t ITC_Event_destroy(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_FreeStatus = ITC_STATUS_SUCCESS; /* The last free status */
-    ITC_Event_t *pt_CurrentEvent = NULL; /* The current element */
-    ITC_Event_t *pt_ParentCurrentEvent = NULL;
-    ITC_Event_t *pt_ParentRootId = NULL;
+    ITC_Status_t t_FreeStatus; /* The last free status */
+    ITC_Event_t *pt_CurrentEvent; /* The current element */
+    ITC_Event_t *pt_ParentCurrentEvent;
+    ITC_Event_t *pt_ParentRootId;
 
-    if (!ppt_Event || !(*ppt_Event))
+    if (!ppt_Event)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-    else
+    else if (*ppt_Event)
     {
         pt_CurrentEvent = *ppt_Event;
         pt_ParentRootId = pt_CurrentEvent->pt_Parent;
@@ -1585,6 +1552,10 @@ ITC_Status_t ITC_Event_destroy(
             }
         }
     }
+    else
+    {
+        /* Nothing to do */
+    }
 
     /* Sanitize the freed pointer */
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1606,7 +1577,15 @@ ITC_Status_t ITC_Event_clone(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event, true);
+    if (!ppt_ClonedEvent)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event, true);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1635,7 +1614,7 @@ ITC_Status_t ITC_Event_normalise(
     ITC_Event_t *pt_Event
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
 
     t_Status = validateEvent(pt_Event, false);
 
@@ -1655,7 +1634,7 @@ ITC_Status_t ITC_Event_maximise(
     ITC_Event_t *pt_Event
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
 
     t_Status = validateEvent(pt_Event, true);
 
@@ -1677,9 +1656,17 @@ ITC_Status_t ITC_Event_join(
     ITC_Event_t **ppt_Event
 )
 {
-    ITC_Status_t t_Status; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event1, true);
+    if (!ppt_Event)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event1, true);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1776,7 +1763,7 @@ ITC_Status_t ITC_Event_grow(
     const ITC_Id_t *const pt_Id
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
 
     t_Status = validateEvent(pt_Event, true);
 
