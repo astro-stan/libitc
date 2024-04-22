@@ -341,18 +341,36 @@ static ITC_Status_t liftSinkSinkEvent(
     /* Remember the count */
     t_Count = MIN(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
-    /* Sink the children */
-    t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
+    /* Lift the event counter of the root node */
+    t_Status = incEventCounter(&pt_Event->t_Count, t_Count);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
+        /* Sink the children */
+        t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
+
+            if (t_Status != ITC_STATUS_SUCCESS)
+            {
+                /* Restore the other child */
+                t_OpStatus = incEventCounter(
+                    &pt_Event->pt_Left->t_Count, t_Count);
+
+                if (t_OpStatus != ITC_STATUS_SUCCESS)
+                {
+                    /* Return last error */
+                    t_Status = t_OpStatus;
+                }
+            }
+        }
 
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Restore the other child */
-            t_OpStatus = incEventCounter(
-                &pt_Event->pt_Left->t_Count, t_Count);
+            /* Restore the event counter of the root node */
+            t_OpStatus = decEventCounter(&pt_Event->t_Count, t_Count);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
@@ -360,12 +378,6 @@ static ITC_Status_t liftSinkSinkEvent(
                 t_Status = t_OpStatus;
             }
         }
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Lift the event counter of the root node */
-        t_Status = incEventCounter(&pt_Event->t_Count, t_Count);
     }
 
     return t_Status;
@@ -400,18 +412,36 @@ static ITC_Status_t liftDestroyDestroyEvent(
     t_LeftCount = pt_Event->pt_Left->t_Count;
     t_MaxCount = MAX(t_LeftCount, pt_Event->pt_Right->t_Count);
 
-    /* Destroy the children */
-    t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+    /* Lift the event counter of the root node */
+    t_Status = incEventCounter(&pt_Event->t_Count, t_MaxCount);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
+        /* Destroy the children */
+        t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
+
+            if (t_Status != ITC_STATUS_SUCCESS)
+            {
+                /* Restore the other child */
+                t_OpStatus = newEvent(
+                    &pt_Event->pt_Left, pt_Event, t_LeftCount);
+
+                if (t_OpStatus != ITC_STATUS_SUCCESS)
+                {
+                    /* Return last error */
+                    t_Status = t_OpStatus;
+                }
+            }
+        }
 
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Restore the other child */
-            t_OpStatus = newEvent(
-                &pt_Event->pt_Left, pt_Event, t_LeftCount);
+            /* Restore the event counter of the root node */
+            t_OpStatus = decEventCounter(&pt_Event->t_Count, t_MaxCount);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
@@ -421,17 +451,11 @@ static ITC_Status_t liftDestroyDestroyEvent(
         }
     }
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Lift the event counter of the root node */
-        t_Status = incEventCounter(&pt_Event->t_Count, t_MaxCount);
-    }
-
     return t_Status;
 }
 
 /**
- * @brief Turns a leaf Event into a parent by allocating 2 child nodes for it
+ * @brief Turn a leaf Event into a parent by allocating 2 child nodes for it
  *
  * Performs the operation and tries to do damange control (revert to original
  * state) if any of the steps fail.
@@ -447,7 +471,7 @@ static ITC_Status_t liftDestroyDestroyEvent(
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t newChildNodes(
+static ITC_Status_t createChildEventNodes(
     ITC_Event_t *pt_Event,
     ITC_Event_Counter_t t_LeftCount,
     ITC_Event_Counter_t t_RightCount
@@ -465,7 +489,7 @@ static ITC_Status_t newChildNodes(
 
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Delete the other child */
+            /* Deallocate the other child */
             t_OpStatus = ITC_Event_destroy(&pt_Event->pt_Left);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
@@ -743,26 +767,12 @@ static ITC_Status_t joinEventE(
         /* join(n1, (n2, l2, r2)) = join((n1, 0, 0), (n2, l2, r2)) */
         else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1))
         {
-            t_Status = newEvent(
-                &pt_CurrentEvent1->pt_Left, pt_CurrentEvent1, 0);
-
-            if (t_Status == ITC_STATUS_SUCCESS)
-            {
-                t_Status = newEvent(
-                    &pt_CurrentEvent1->pt_Right, pt_CurrentEvent1, 0);
-            }
+            t_Status = createChildEventNodes(pt_CurrentEvent1, 0, 0);
         }
         /* join((n1, l1, r1), n2) = join((n1, l1, r1), (n2, 0, 0)) */
         else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
         {
-            t_Status = newEvent(
-                &pt_CurrentEvent2->pt_Left, pt_CurrentEvent2, 0);
-
-            if (t_Status == ITC_STATUS_SUCCESS)
-            {
-                t_Status = newEvent(
-                    &pt_CurrentEvent2->pt_Right, pt_CurrentEvent2, 0);
-            }
+            t_Status = createChildEventNodes(pt_CurrentEvent2, 0, 0);
         }
         else
         {
@@ -1071,7 +1081,7 @@ static ITC_Status_t fillEventE(
            pt_Event != pt_ParentRootEvent &&
            pt_Id != pt_ParentRootId)
     {
-        /* fill(0, e) = e || fill(i, n) = n */
+        /* fill(0, e) = e or fill(i, n) = n */
         if(ITC_ID_IS_NULL_ID(pt_Id) ||
            ITC_EVENT_IS_LEAF_EVENT(pt_Event))
         {
@@ -1089,10 +1099,13 @@ static ITC_Status_t fillEventE(
             /* Maximise Event (turn it into a leaf) */
             t_Status = maxEventE(pt_Event);
 
-            *pb_WasFilled = true;
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                *pb_WasFilled = true;
 
-            pt_Id = pt_Id->pt_Parent;
-            pt_Event = pt_Event->pt_Parent;
+                pt_Id = pt_Id->pt_Parent;
+                pt_Event = pt_Event->pt_Parent;
+            }
         }
         /* fill((1, ir), (n, el, er)):
          *     norm((n, max(max(el), min(er')), er')), where er' = fill(ir, er)
@@ -1329,7 +1342,7 @@ static ITC_Status_t growEventE(
             pt_Id = pt_Id->pt_Parent;
             pt_Event = pt_Event->pt_Parent;
         }
-        /* grow(1, n) || grow(i, n) */
+        /* grow(1, n) or grow(i, n) */
         else if (ITC_EVENT_IS_LEAF_EVENT(pt_Event))
         {
             /* grow(1, n) = (n + 1, 0) */
@@ -1351,7 +1364,7 @@ static ITC_Status_t growEventE(
             else
             {
                 /* Expand the event tree by adding 2 child nodes */
-                t_Status = newChildNodes(pt_Event, 0, 0);
+                t_Status = createChildEventNodes(pt_Event, 0, 0);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {

@@ -259,6 +259,10 @@ static ITC_Status_t splitId0(
 {
     ITC_Status_t t_Status; /* The current status */
 
+    /* Init IDs */
+    *ppt_Id1 = NULL;
+    *ppt_Id2 = NULL;
+
     t_Status = newId(ppt_Id1, pt_ParentId1, false);
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -288,6 +292,10 @@ static ITC_Status_t splitId1(
 )
 {
     ITC_Status_t t_Status; /* The current status */
+
+    /* Init IDs */
+    *ppt_Id1 = NULL;
+    *ppt_Id2 = NULL;
 
     /* Allocate the first root */
     t_Status = newId(ppt_Id1, pt_ParentId1, false);
@@ -574,6 +582,55 @@ static ITC_Status_t splitIdI(
     return t_Status;
 }
 
+
+/**
+ * @brief Turn a parent ID into a leaf
+ *
+ * Performs the operation and tries to do damange control (revert to original
+ * state) if any of the steps fail.
+ *
+ * @note It is assumed the child ID nodes exist and have not been deallocated
+ *
+ * @param pt_Id The ID on which to perform the operation
+ * children
+ * @return ITC_Status_t The status of the operation
+ * @retval ITC_STATUS_SUCCESS on success
+ */
+static ITC_Status_t destroyDestroyId(
+    ITC_Id_t *pt_Id
+)
+{
+    ITC_Status_t t_Status;
+    ITC_Status_t t_OpStatus;
+    bool b_IsOwnerLeft;
+
+    /* Remember the node ownership */
+    b_IsOwnerLeft = pt_Id->pt_Left->b_IsOwner;
+
+    /* Destroy the children */
+    t_Status = ITC_Id_destroy(&pt_Id->pt_Left);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_destroy(&pt_Id->pt_Right);
+
+        if (t_Status != ITC_STATUS_SUCCESS)
+        {
+            /* Restore the other child */
+            t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwnerLeft);
+
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                /* Return last error */
+                t_Status = t_OpStatus;
+            }
+        }
+    }
+
+    return t_Status;
+}
+
+
 /**
  * @brief Normalise an ID fulfilling `norm(i)`
  * Rules:
@@ -590,7 +647,6 @@ static ITC_Status_t normIdI(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_OpStatus; /* The current op status */
 
     /* Remember the parent as this might be a subtree */
     const ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
@@ -629,21 +685,33 @@ static ITC_Status_t normIdI(
             }
         }
 
-        /* norm(1, 1) = 1 or norm(0, 0) = 0 */
-        if (pt_Id &&
-            (ITC_ID_IS_SEED_SEED_ID(pt_Id) ||
-             ITC_ID_IS_NULL_NULL_ID(pt_Id)))
+        if (pt_Id)
         {
-            /* Set the interval ownership */
-            pt_Id->b_IsOwner = pt_Id->pt_Left->b_IsOwner;
-
-            /* Destroy the children */
-            t_Status = ITC_Id_destroy(&pt_Id->pt_Left);
-            t_OpStatus = ITC_Id_destroy(&pt_Id->pt_Right);
-
-            if(t_Status == ITC_STATUS_SUCCESS)
+            /* norm(1, 1) = 1 */
+            if (ITC_ID_IS_SEED_SEED_ID(pt_Id))
             {
-                t_Status = t_OpStatus;
+                /* Destroy the children */
+                t_Status = destroyDestroyId(pt_Id);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_Id->b_IsOwner = true;
+                }
+            }
+            /* norm(0, 0) = 0 */
+            else if (ITC_ID_IS_NULL_NULL_ID(pt_Id))
+            {
+                /* Destroy the children */
+                t_Status = destroyDestroyId(pt_Id);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_Id->b_IsOwner = false;
+                }
+            }
+            else
+            {
+                /* Nothing to do */
             }
         }
     }
