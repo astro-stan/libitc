@@ -6,7 +6,7 @@ libitc_lib = library(
     c_args: libitc_c_args + common_c_args,
     link_args: libitc_link_args + common_link_args,
     install: true,
-    install_dir: 'bin'
+    install_dir: libitc_install_dir
 )
 
 libitc_dep = declare_dependency(

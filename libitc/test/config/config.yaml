@@ -1,4 +1,7 @@
 :cmock:
+  :mock_path: . # Subfolders are not supported due to meson weirdness
+  :mock_prefix: Mock # Different prefix is not supported due to hardcoded build system config
+  :mock_suffix: '' # Different suffix is not supported due to hardocded build system config
   :verbosity: 2
   :plugins:
     - :callback

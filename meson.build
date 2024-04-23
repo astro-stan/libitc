@@ -12,6 +12,11 @@ project('itc', 'c',
     ]
 )
 
+# Install dirs
+libitc_install_dir = 'bin'
+libitc_test_bin_install_dir = libitc_install_dir / 'tests'
+
+
 # Common compiler args used with for all libs and executables
 common_c_args = meson.get_compiler('c').get_supported_arguments([
     '-Wbidi-chars=any,ucn',
@@ -58,9 +63,11 @@ if get_option('tests')
     cmock_dep = cmock_proj.get_variable('cmock_dep')
     unity_dep = cmock_proj.get_variable('unity_dep')
 
+    bash = find_program('bash', required: true)
     ruby = find_program('ruby', required: true)
     valgrind = find_program('valgrind', required: false)
     unity_test_runner_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'vendor' / 'unity' / 'auto' / 'generate_test_runner.rb'
+    unity_test_mock_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'lib' / 'cmock.rb'
 
     libitc_test_src_dir = 'libitc' / 'test'
     subdir(libitc_test_src_dir)
