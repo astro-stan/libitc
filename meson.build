@@ -55,7 +55,7 @@ common_link_args = meson.get_compiler('c').get_supported_link_arguments([
 
 # Build LibITC
 subdir('libitc')
-subdir('libitc' / 'config')
+subdir('libitc' / 'build')
 
 # Build unit tests
 if get_option('tests')
@@ -71,5 +71,5 @@ if get_option('tests')
 
     libitc_test_src_dir = 'libitc' / 'test'
     subdir(libitc_test_src_dir)
-    subdir(libitc_test_src_dir / 'config')
+    subdir(libitc_test_src_dir / 'build')
 endif
