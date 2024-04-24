@@ -3,6 +3,7 @@
 #include "ITC_Id_Test.h"
 
 #include "ITC_Test_package.h"
+#include "ITC_TestUtil.h"
 
 /******************************************************************************
  *  Public functions

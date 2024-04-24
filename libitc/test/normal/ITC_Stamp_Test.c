@@ -6,6 +6,7 @@
 #include "ITC_Port.h"
 
 #include "ITC_Test_package.h"
+#include "ITC_TestUtil.h"
 
 /******************************************************************************
  *  Private functions

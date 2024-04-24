@@ -4,6 +4,7 @@
 
 #include "ITC_Id_package.h"
 #include "ITC_Event_package.h"
+#include "ITC_TestUtil.h"
 
 /******************************************************************************
  *  Private functions
