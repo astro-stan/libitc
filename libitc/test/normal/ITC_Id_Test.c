@@ -1223,6 +1223,27 @@ void ITC_Id_Test_sumIdFailWithCorruptId(void)
     }
 }
 
+/* Test summing two seed IDs fails with overlapping ID interval */
+void ITC_Id_Test_sumId11FailOverlappingInterval(void)
+{
+    ITC_Id_t *pt_OriginalId1;
+    ITC_Id_t *pt_OriginalId2;
+    ITC_Id_t *pt_SumId = NULL;
+
+    /* Create two seed IDs */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId2, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_OriginalId1, NULL));
+
+    /* Sum the IDs */
+    TEST_FAILURE(
+        ITC_Id_sum(pt_OriginalId1, pt_OriginalId2, &pt_SumId),
+        ITC_STATUS_OVERLAPPING_ID_INTERVAL);
+
+    /* Destroy the IDs */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId1));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_OriginalId2));
+}
+
 /* Test summing two NULL IDs succeeds */
 void ITC_Id_Test_sumId00Succeeds(void)
 {

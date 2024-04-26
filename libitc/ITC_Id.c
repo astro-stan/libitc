@@ -873,7 +873,7 @@ static ITC_Status_t sumIdI(
         }
         else
         {
-            t_Status = ITC_STATUS_CORRUPT_ID;
+            t_Status = ITC_STATUS_OVERLAPPING_ID_INTERVAL;
         }
     }
 

@@ -16,31 +16,34 @@
  ******************************************************************************/
 
 /** Operation succeeded */
-#define ITC_STATUS_SUCCESS                                                   (0)
+#define ITC_STATUS_SUCCESS                                                  (0U)
 
-/** Operation failed */
-#define ITC_STATUS_FAILURE                                                   (1)
+/** Operation failed with unknown error */
+#define ITC_STATUS_FAILURE                                                  (1U)
 
 /** Operation failed due to invalid input parameter */
-#define ITC_STATUS_INVALID_PARAM                                             (2)
+#define ITC_STATUS_INVALID_PARAM                                            (2U)
 
 /** Operation failed due to insufficient resources */
-#define ITC_STATUS_INSUFFICIENT_RESOURCES                                    (3)
+#define ITC_STATUS_INSUFFICIENT_RESOURCES                                   (3U)
+
+/** Operation failed due to the detection of ITC ID interval overlap */
+#define ITC_STATUS_OVERLAPPING_ID_INTERVAL                                  (4U)
 
 /** Operation failed due to the ITC ID being corrupted */
-#define ITC_STATUS_CORRUPT_ID                                                (4)
+#define ITC_STATUS_CORRUPT_ID                                               (5U)
 
 /** Operation failed due to the ITC Event being corrupted */
-#define ITC_STATUS_CORRUPT_EVENT                                             (5)
+#define ITC_STATUS_CORRUPT_EVENT                                            (6U)
 
 /** Operation failed due to the ITC Stamp being corrupted */
-#define ITC_STATUS_CORRUPT_STAMP                                             (6)
+#define ITC_STATUS_CORRUPT_STAMP                                            (7U)
 
 /** Operation failed due to the ITC Event counter overflowing */
-#define ITC_STATUS_EVENT_COUNTER_OVERFLOW                                    (7)
+#define ITC_STATUS_EVENT_COUNTER_OVERFLOW                                   (8U)
 
 /** Operation failed due to the ITC Event counter underflowing */
-#define ITC_STATUS_EVENT_COUNTER_UNDERFLOW                                   (8)
+#define ITC_STATUS_EVENT_COUNTER_UNDERFLOW                                  (9U)
 
 /******************************************************************************
  * Types
