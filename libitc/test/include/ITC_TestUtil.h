@@ -23,13 +23,13 @@
  * the `gpv_InvalidIdConstructorTable` and `gpv_InvalidIdDestructorTable`
  * tables.
  */
-#define FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX                         (6)
+#define FIRST_NORMALISATION_RELATED_INVALID_ID_INDEX                         (8)
 
 /** The index of the first normalisation related invalid Event test inside
  * the `gpv_InvalidEventConstructorTable` and `gpv_InvalidEventDestructorTable`
  * tables.
  */
-#define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (4)
+#define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (6)
 
 /******************************************************************************
  *  Global variables

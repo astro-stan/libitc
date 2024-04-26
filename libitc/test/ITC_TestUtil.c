@@ -46,13 +46,25 @@ static void newInvalidIdWithNestedParentOwner(
             (*ppt_Id)->pt_Right));
 }
 
-
 /**
- * @brief Create a new invalid ID with asymmetric root parent
+ * @brief Create a new invalid ID with asymmetric root parent with only left child
  *
  * @param pt_Id (out) The pointer to the ID
  */
-static void newInvalidIdWithAsymmetricRootParent(
+static void newInvalidIdWithAsymmetricRootParentLeft(
+    ITC_Id_t **ppt_Id
+)
+{
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&(*ppt_Id)->pt_Left, *ppt_Id));
+}
+
+/**
+ * @brief Create a new invalid ID with asymmetric root parent with only right child
+ *
+ * @param pt_Id (out) The pointer to the ID
+ */
+static void newInvalidIdWithAsymmetricRootParentRight(
     ITC_Id_t **ppt_Id
 )
 {
@@ -61,11 +73,11 @@ static void newInvalidIdWithAsymmetricRootParent(
 }
 
 /**
- * @brief Create a new invalid ID with asymmetric nested parent
+ * @brief Create a new invalid ID with asymmetric nested parent with only left child
  *
  * @param pt_Id (out) The pointer to the ID
  */
-static void newInvalidIdWithAsymmetricNestedParent(
+static void newInvalidIdWithAsymmetricNestedParentLeft(
     ITC_Id_t **ppt_Id
 )
 {
@@ -76,6 +88,24 @@ static void newInvalidIdWithAsymmetricNestedParent(
         ITC_TestUtil_newSeedId(
             &(*ppt_Id)->pt_Right->pt_Left,
             (*ppt_Id)->pt_Right));
+}
+
+/**
+ * @brief Create a new invalid ID with asymmetric nested parent with only right child
+ *
+ * @param pt_Id (out) The pointer to the ID
+ */
+static void newInvalidIdWithAsymmetricNestedParentRight(
+    ITC_Id_t **ppt_Id
+)
+{
+    TEST_SUCCESS(ITC_TestUtil_newNullId(ppt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Left, *ppt_Id));
+    TEST_SUCCESS(
+        ITC_TestUtil_newNullId(
+            &(*ppt_Id)->pt_Left->pt_Right,
+            (*ppt_Id)->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&(*ppt_Id)->pt_Right, *ppt_Id));
 }
 
 /**
@@ -180,10 +210,25 @@ static void destroyInvalidIdWithInvalidParentPointer(
 
 /**
  * @brief Create a new invalid Event with asymmetric root parent
+ * with only left child
  *
  * @param pt_Event (out) The pointer to the Event
  */
-static void newInvalidEventWithAsymmetricRootParent(
+static void newInvalidEventWithAsymmetricRootParentLeft(
+    ITC_Event_t **ppt_Event
+)
+{
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 1));
+}
+
+/**
+ * @brief Create a new invalid Event with asymmetric root parent
+ * with only right child
+ *
+ * @param pt_Event (out) The pointer to the Event
+ */
+static void newInvalidEventWithAsymmetricRootParentRight(
     ITC_Event_t **ppt_Event
 )
 {
@@ -193,10 +238,11 @@ static void newInvalidEventWithAsymmetricRootParent(
 
 /**
  * @brief Create a new invalid Event with asymmetric nested parent
+ * with only left child
  *
  * @param pt_Event (out) The pointer to the Event
  */
-static void newInvalidEventWithAsymmetricNestedParent(
+static void newInvalidEventWithAsymmetricNestedParentLeft(
     ITC_Event_t **ppt_Event
 )
 {
@@ -208,6 +254,26 @@ static void newInvalidEventWithAsymmetricNestedParent(
             &(*ppt_Event)->pt_Right->pt_Left,
             (*ppt_Event)->pt_Right,
             3));
+}
+
+/**
+ * @brief Create a new invalid Event with asymmetric nested parent
+ * with only right child
+ *
+ * @param pt_Event (out) The pointer to the Event
+ */
+static void newInvalidEventWithAsymmetricNestedParentRight(
+    ITC_Event_t **ppt_Event
+)
+{
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Left, *ppt_Event, 0));
+    TEST_SUCCESS(
+        ITC_TestUtil_newEvent(
+            &(*ppt_Event)->pt_Left->pt_Right,
+            (*ppt_Event)->pt_Left,
+            3));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&(*ppt_Event)->pt_Right, *ppt_Event, 2));
 }
 
 /**
@@ -327,8 +393,10 @@ static void destroyInvalidEventWithInvalidParentPointer(
 
 void (*const gpv_InvalidIdConstructorTable[])(ITC_Id_t **) =
 {
-    newInvalidIdWithAsymmetricRootParent,
-    newInvalidIdWithAsymmetricNestedParent,
+    newInvalidIdWithAsymmetricRootParentLeft,
+    newInvalidIdWithAsymmetricRootParentRight,
+    newInvalidIdWithAsymmetricNestedParentLeft,
+    newInvalidIdWithAsymmetricNestedParentRight,
     newInvalidIdWithRootParentOwner,
     newInvalidIdWithNestedParentOwner,
     newInvalidIdWithNullParentPointer,
@@ -349,6 +417,8 @@ void (*const gpv_InvalidIdDestructorTable[])(ITC_Id_t **) =
     /* Cast the funcion pointer to the type of the table
      * This is ugly but beats needlessly having to write a destructor
      * for each invalid ID */
+    (void (*)(ITC_Id_t **))ITC_Id_destroy,
+    (void (*)(ITC_Id_t **))ITC_Id_destroy,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
@@ -375,8 +445,10 @@ const uint32_t gu32_InvalidIdTablesSize =
 
 void (*const gpv_InvalidEventConstructorTable[])(ITC_Event_t **) =
 {
-    newInvalidEventWithAsymmetricRootParent,
-    newInvalidEventWithAsymmetricNestedParent,
+    newInvalidEventWithAsymmetricRootParentLeft,
+    newInvalidEventWithAsymmetricRootParentRight,
+    newInvalidEventWithAsymmetricNestedParentLeft,
+    newInvalidEventWithAsymmetricNestedParentRight,
     newInvalidEventWithNullParentPointer,
     newInvalidEventWithInvalidParentPointer,
     /* Normalisation related invalid Events.
@@ -396,6 +468,8 @@ void (*const gpv_InvalidEventDestructorTable[])(ITC_Event_t **) =
     /* Cast the funcion pointer to the type of the table
      * This is ugly but beats needlessly having to write a destructor
      * for each invalid Event */
+    (void (*)(ITC_Event_t **))ITC_Event_destroy,
+    (void (*)(ITC_Event_t **))ITC_Event_destroy,
     (void (*)(ITC_Event_t **))ITC_Event_destroy,
     (void (*)(ITC_Event_t **))ITC_Event_destroy,
     destroyInvalidEventWithNullParentPointer,
