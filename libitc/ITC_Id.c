@@ -34,8 +34,8 @@ static ITC_Status_t validateId(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    const ITC_Id_t *pt_ParentCurrentId = NULL; /* The current ID node */
-    const ITC_Id_t *pt_ParentRootId = NULL; /* The parent of the root node */
+    const ITC_Id_t *pt_CurrentIdParent = NULL; /* The current ID node */
+    const ITC_Id_t *pt_RootIdParent = NULL; /* The parent of the root node */
 
     if(!pt_Id)
     {
@@ -44,20 +44,20 @@ static ITC_Status_t validateId(
     else
     {
         /* Remember the root parent ID as this might be a subtree */
-        pt_ParentRootId = pt_Id->pt_Parent;
+        pt_RootIdParent = pt_Id->pt_Parent;
 
-        pt_ParentCurrentId = pt_ParentRootId;
+        pt_CurrentIdParent = pt_RootIdParent;
     }
 
     /* Perform a pre-order traversal */
     while (t_Status == ITC_STATUS_SUCCESS && pt_Id)
     {
         /* Checks:
-         *  - The parent pointer must match pt_ParentCurrentId.
+         *  - The parent pointer must match pt_CurrentIdParent.
          *  - Must be a leaf or a valid parent node
          *  - Must be a normalised ID node (if the check is enabled)
          */
-        if (pt_ParentCurrentId != pt_Id->pt_Parent ||
+        if (pt_CurrentIdParent != pt_Id->pt_Parent ||
             (!ITC_ID_IS_LEAF_ID(pt_Id) &&
              !ITC_ID_IS_VALID_PARENT(pt_Id)) ||
             (b_CheckIsNormalised && !ITC_ID_IS_NORMALISED_ID(pt_Id)))
@@ -70,7 +70,7 @@ static ITC_Status_t validateId(
             if (pt_Id->pt_Left)
             {
                 /* Remember the parent address */
-                pt_ParentCurrentId = pt_Id;
+                pt_CurrentIdParent = pt_Id;
 
                 pt_Id = pt_Id->pt_Left;
             }
@@ -87,17 +87,17 @@ static ITC_Status_t validateId(
             {
                 /* Loop until the current element is no longer reachable
                  * through the parent's right child */
-                while (pt_ParentCurrentId != pt_ParentRootId &&
-                    pt_ParentCurrentId->pt_Right == pt_Id)
+                while (pt_CurrentIdParent != pt_RootIdParent &&
+                    pt_CurrentIdParent->pt_Right == pt_Id)
                 {
                     pt_Id = pt_Id->pt_Parent;
-                    pt_ParentCurrentId = pt_ParentCurrentId->pt_Parent;
+                    pt_CurrentIdParent = pt_CurrentIdParent->pt_Parent;
                 }
 
                 /* There is a right subtree that has not been explored yet */
-                if (pt_ParentCurrentId != pt_ParentRootId)
+                if (pt_CurrentIdParent != pt_RootIdParent)
                 {
-                    pt_Id = pt_ParentCurrentId->pt_Right;
+                    pt_Id = pt_CurrentIdParent->pt_Right;
                 }
                 else
                 {
@@ -168,13 +168,13 @@ static ITC_Status_t cloneId(
 )
 {
     ITC_Status_t t_Status; /* The current status */
-    const ITC_Id_t *pt_ParentRootId; /* The parent of the root */
+    const ITC_Id_t *pt_RootIdParent; /* The parent of the root */
     ITC_Id_t *pt_CurrentIdClone; /* The current ID clone */
 
     /* Init clone pointer */
     *ppt_ClonedId = NULL;
     /* Remember the parent of the root as this might be a subree */
-    pt_ParentRootId = pt_Id->pt_Parent;
+    pt_RootIdParent = pt_Id->pt_Parent;
 
     /* Allocate the root */
     t_Status = newId(
@@ -187,7 +187,7 @@ static ITC_Status_t cloneId(
     }
 
     while(t_Status == ITC_STATUS_SUCCESS &&
-            pt_Id != pt_ParentRootId)
+            pt_Id != pt_RootIdParent)
     {
         if (pt_Id->pt_Left && !pt_CurrentIdClone->pt_Left)
         {
@@ -582,48 +582,69 @@ static ITC_Status_t splitIdI(
     return t_Status;
 }
 
-
 /**
- * @brief Turn a parent ID into a leaf
+ * @brief Normalise a (1, 1) or (0, 0) ID
  *
  * Performs the operation and tries to do damange control (revert to original
  * state) if any of the steps fail.
  *
- * @note It is assumed the child ID nodes exist and have not been deallocated
+ * @note It is assumed the child ID nodes are leafs, have not bee freed and
+ * and have the same ownership - i.e (1, 1) or (0, 0)
  *
  * @param pt_Id The ID on which to perform the operation
  * children
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-static ITC_Status_t destroyDestroyId(
+static ITC_Status_t normId11Or00(
     ITC_Id_t *pt_Id
 )
 {
-    ITC_Status_t t_Status;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
     ITC_Status_t t_OpStatus;
-    bool b_IsOwnerLeft;
 
-    /* Remember the node ownership */
-    b_IsOwnerLeft = pt_Id->pt_Left->b_IsOwner;
+    /* Remember the node ownership. Assume both nodes have the same ownership */
+    const bool b_IsOwner = pt_Id->pt_Left->b_IsOwner;
 
-    /* Destroy the children */
+    /* Destroy the left leaf child */
     t_Status = ITC_Id_destroy(&pt_Id->pt_Left);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Destroy the right leaf child */
         t_Status = ITC_Id_destroy(&pt_Id->pt_Right);
 
+        /* Restore both children */
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Restore the other child */
-            t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwnerLeft);
+            /* Restore the left leaf child */
+            t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwner);
 
             if (t_OpStatus != ITC_STATUS_SUCCESS)
             {
                 /* Return last error */
                 t_Status = t_OpStatus;
             }
+
+            /* Restore the right leaf child */
+            t_OpStatus = newId(&pt_Id->pt_Right, pt_Id, b_IsOwner);
+
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                /* Return last error */
+                t_Status = t_OpStatus;
+            }
+        }
+    }
+    else
+    {
+        /* Restore the left leaf child */
+        t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwner);
+
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return last error */
+            t_Status = t_OpStatus;
         }
     }
 
@@ -649,7 +670,7 @@ static ITC_Status_t normIdI(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Remember the parent as this might be a subtree */
-    const ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+    const ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent;
 
     /* Start from the left most child */
     while (pt_Id->pt_Left)
@@ -661,7 +682,7 @@ static ITC_Status_t normIdI(
     while(t_Status == ITC_STATUS_SUCCESS && pt_Id)
     {
         /* If pt_Id is the root node (no parent) - break */
-        if(pt_Id->pt_Parent == pt_ParentRootId)
+        if(pt_Id->pt_Parent == pt_RootIdParent)
         {
             pt_Id = NULL;
         }
@@ -691,7 +712,7 @@ static ITC_Status_t normIdI(
             if (ITC_ID_IS_SEED_SEED_ID(pt_Id))
             {
                 /* Destroy the children */
-                t_Status = destroyDestroyId(pt_Id);
+                t_Status = normId11Or00(pt_Id);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
@@ -702,7 +723,7 @@ static ITC_Status_t normIdI(
             else if (ITC_ID_IS_NULL_NULL_ID(pt_Id))
             {
                 /* Destroy the children */
-                t_Status = destroyDestroyId(pt_Id);
+                t_Status = normId11Or00(pt_Id);
 
                 if (t_Status == ITC_STATUS_SUCCESS)
                 {
@@ -741,20 +762,20 @@ static ITC_Status_t sumIdI(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     ITC_Id_t **ppt_CurrentId = ppt_Id;
-    ITC_Id_t *pt_ParentCurrentId = NULL;
-    const ITC_Id_t *pt_ParentRootId1;
-    const ITC_Id_t *pt_ParentRootId2;
+    ITC_Id_t *pt_CurrentIdParent = NULL;
+    const ITC_Id_t *pt_RootId1Parent;
+    const ITC_Id_t *pt_RootId2Parent;
 
     /* Init the ID */
     *ppt_CurrentId = NULL;
 
     /* Remember the root parent as this might be a subtree */
-    pt_ParentRootId1 = pt_Id1->pt_Parent;
-    pt_ParentRootId2 = pt_Id2->pt_Parent;
+    pt_RootId1Parent = pt_Id1->pt_Parent;
+    pt_RootId2Parent = pt_Id2->pt_Parent;
 
     while(t_Status == ITC_STATUS_SUCCESS &&
-          pt_Id1 != pt_ParentRootId1 &&
-          pt_Id2 != pt_ParentRootId2)
+          pt_Id1 != pt_RootId1Parent &&
+          pt_Id2 != pt_RootId2Parent)
     {
         /* sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2)) */
         if(!ITC_ID_IS_LEAF_ID(pt_Id1) &&
@@ -764,7 +785,7 @@ static ITC_Status_t sumIdI(
              * This might exist from a previous iteration. This is fine. */
             if(!(*ppt_CurrentId))
             {
-                t_Status = newId(ppt_CurrentId, pt_ParentCurrentId, false);
+                t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, false);
             }
 
             if (t_Status == ITC_STATUS_SUCCESS)
@@ -773,7 +794,7 @@ static ITC_Status_t sumIdI(
                 if(!(*ppt_CurrentId)->pt_Left)
                 {
                     /* Save the parent pointer on the stack */
-                    pt_ParentCurrentId = *ppt_CurrentId;
+                    pt_CurrentIdParent = *ppt_CurrentId;
 
                     ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
                     pt_Id1 = pt_Id1->pt_Left;
@@ -783,7 +804,7 @@ static ITC_Status_t sumIdI(
                 else if(!(*ppt_CurrentId)->pt_Right)
                 {
                     /* Save the parent pointer on the stack */
-                    pt_ParentCurrentId = *ppt_CurrentId;
+                    pt_CurrentIdParent = *ppt_CurrentId;
 
                     ppt_CurrentId = &(*ppt_CurrentId)->pt_Right;
                     pt_Id1 = pt_Id1->pt_Right;
@@ -801,10 +822,10 @@ static ITC_Status_t sumIdI(
                     if (t_Status == ITC_STATUS_SUCCESS)
                     {
                         /* Save the parent pointer on the stack */
-                        pt_ParentCurrentId = (*ppt_CurrentId)->pt_Parent;
+                        pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
 
                         /* Climb back to the parent node */
-                        ppt_CurrentId = &pt_ParentCurrentId;
+                        ppt_CurrentId = &pt_CurrentIdParent;
                         pt_Id1 = pt_Id1->pt_Parent;
                         pt_Id2 = pt_Id2->pt_Parent;
                     }
@@ -815,7 +836,7 @@ static ITC_Status_t sumIdI(
         else if (ITC_ID_IS_NULL_ID(pt_Id1))
         {
             t_Status = cloneId(
-                pt_Id2, ppt_CurrentId, pt_ParentCurrentId);
+                pt_Id2, ppt_CurrentId, pt_CurrentIdParent);
 
             if (t_Status == ITC_STATUS_SUCCESS)
             {
@@ -825,7 +846,7 @@ static ITC_Status_t sumIdI(
                 * element on the next iteration and may get destroyed by
                 * `normIdI`
                 */
-                ppt_CurrentId = &pt_ParentCurrentId;
+                ppt_CurrentId = &pt_CurrentIdParent;
                 pt_Id1 = pt_Id1->pt_Parent;
                 pt_Id2 = pt_Id2->pt_Parent;
             }
@@ -835,7 +856,7 @@ static ITC_Status_t sumIdI(
         {
 
             t_Status = cloneId(
-                pt_Id1, ppt_CurrentId, pt_ParentCurrentId);
+                pt_Id1, ppt_CurrentId, pt_CurrentIdParent);
 
             if (t_Status == ITC_STATUS_SUCCESS)
             {
@@ -845,7 +866,7 @@ static ITC_Status_t sumIdI(
                 * element on the next iteration and may get destroyed by
                 * `normIdI`
                 */
-                ppt_CurrentId = &pt_ParentCurrentId;
+                ppt_CurrentId = &pt_CurrentIdParent;
                 pt_Id1 = pt_Id1->pt_Parent;
                 pt_Id2 = pt_Id2->pt_Parent;
             }
@@ -915,8 +936,8 @@ ITC_Status_t ITC_Id_destroy(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Status_t t_FreeStatus = ITC_STATUS_SUCCESS; /* The last free status */
     ITC_Id_t *pt_CurrentId = NULL; /* The current element */
-    ITC_Id_t *pt_ParentCurrentId = NULL;
-    ITC_Id_t *pt_ParentRootId = NULL;
+    ITC_Id_t *pt_CurrentIdParent = NULL;
+    ITC_Id_t *pt_RootIdParent = NULL;
 
     if (!ppt_Id)
     {
@@ -926,10 +947,10 @@ ITC_Status_t ITC_Id_destroy(
     {
         pt_CurrentId = *ppt_Id;
         /* Remember the parent as this might be a subtree */
-        pt_ParentRootId = pt_CurrentId->pt_Parent;
+        pt_RootIdParent = pt_CurrentId->pt_Parent;
 
         /* Keep trying to free elements even if some frees fail */
-        while(pt_CurrentId && pt_CurrentId != pt_ParentRootId)
+        while(pt_CurrentId && pt_CurrentId != pt_RootIdParent)
         {
             /* Advance into left subtree */
             if(pt_CurrentId->pt_Left)
@@ -944,18 +965,18 @@ ITC_Status_t ITC_Id_destroy(
             else
             {
                 /* Remember the parent element */
-                pt_ParentCurrentId = pt_CurrentId->pt_Parent;
+                pt_CurrentIdParent = pt_CurrentId->pt_Parent;
 
-                if(pt_ParentCurrentId)
+                if(pt_CurrentIdParent)
                 {
                     /* Remove the current element address from the parent */
-                    if(pt_ParentCurrentId->pt_Left == pt_CurrentId)
+                    if(pt_CurrentIdParent->pt_Left == pt_CurrentId)
                     {
-                        pt_ParentCurrentId->pt_Left = NULL;
+                        pt_CurrentIdParent->pt_Left = NULL;
                     }
                     else
                     {
-                        pt_ParentCurrentId->pt_Right = NULL;
+                        pt_CurrentIdParent->pt_Right = NULL;
                     }
                 }
 
@@ -969,7 +990,7 @@ ITC_Status_t ITC_Id_destroy(
                 }
 
                 /* Go up the tree */
-                pt_CurrentId = pt_ParentCurrentId;
+                pt_CurrentId = pt_CurrentIdParent;
             }
         }
     }
