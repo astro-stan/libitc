@@ -36,8 +36,8 @@ static ITC_Status_t validateEvent(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    const ITC_Event_t *pt_ParentCurrentEvent; /* The current Event node */
-    const ITC_Event_t *pt_ParentRootEvent; /* The parent of the root node */
+    const ITC_Event_t *pt_CurrentEventParent; /* The current Event node */
+    const ITC_Event_t *pt_RootEventParent; /* The parent of the root node */
 
     if(!pt_Event)
     {
@@ -46,20 +46,20 @@ static ITC_Status_t validateEvent(
     else
     {
         /* Remember the root parent Event as this might be a subtree */
-        pt_ParentRootEvent = pt_Event->pt_Parent;
+        pt_RootEventParent = pt_Event->pt_Parent;
 
-        pt_ParentCurrentEvent = pt_ParentRootEvent;
+        pt_CurrentEventParent = pt_RootEventParent;
     }
 
     /* Perform a pre-order traversal */
     while (t_Status == ITC_STATUS_SUCCESS && pt_Event)
     {
         /* Checks:
-         *  - The parent pointer must match pt_ParentCurrentEvent.
+         *  - The parent pointer must match pt_CurrentEventParent.
          *  - Must be a leaf or a valid parent node
          *  - Must be a normalised Event node (if the check is enabled)
          */
-        if (pt_ParentCurrentEvent != pt_Event->pt_Parent ||
+        if (pt_CurrentEventParent != pt_Event->pt_Parent ||
             (!ITC_EVENT_IS_LEAF_EVENT(pt_Event) &&
              !ITC_EVENT_IS_VALID_PARENT(pt_Event)) ||
             (b_CheckIsNormalised &&
@@ -73,7 +73,7 @@ static ITC_Status_t validateEvent(
             if (pt_Event->pt_Left)
             {
                 /* Remember the parent address */
-                pt_ParentCurrentEvent = pt_Event;
+                pt_CurrentEventParent = pt_Event;
 
                 pt_Event = pt_Event->pt_Left;
             }
@@ -90,17 +90,17 @@ static ITC_Status_t validateEvent(
             {
                 /* Loop until the current element is no longer reachable
                  * through the parent's right child */
-                while (pt_ParentCurrentEvent != pt_ParentRootEvent &&
-                    pt_ParentCurrentEvent->pt_Right == pt_Event)
+                while (pt_CurrentEventParent != pt_RootEventParent &&
+                    pt_CurrentEventParent->pt_Right == pt_Event)
                 {
                     pt_Event = pt_Event->pt_Parent;
-                    pt_ParentCurrentEvent = pt_ParentCurrentEvent->pt_Parent;
+                    pt_CurrentEventParent = pt_CurrentEventParent->pt_Parent;
                 }
 
                 /* There is a right subtree that has not been explored yet */
-                if (pt_ParentCurrentEvent != pt_ParentRootEvent)
+                if (pt_CurrentEventParent != pt_RootEventParent)
                 {
-                    pt_Event = pt_ParentCurrentEvent->pt_Right;
+                    pt_Event = pt_CurrentEventParent->pt_Right;
                 }
                 else
                 {
@@ -172,13 +172,13 @@ static ITC_Status_t cloneEvent(
 )
 {
     ITC_Status_t t_Status; /* The current status */
-    const ITC_Event_t *pt_ParentRootId; /* The parent of the root */
+    const ITC_Event_t *pt_RootIdParent; /* The parent of the root */
     ITC_Event_t *pt_CurrentEventClone; /* The current event clone */
 
     /* Init clone pointer */
     *ppt_ClonedEvent = NULL;
     /* Remember the parent of the root as this might be a subree */
-    pt_ParentRootId = pt_Event->pt_Parent;
+    pt_RootIdParent = pt_Event->pt_Parent;
 
     /* Allocate the root */
     t_Status = newEvent(
@@ -191,7 +191,7 @@ static ITC_Status_t cloneEvent(
     }
 
     while(t_Status == ITC_STATUS_SUCCESS &&
-            pt_Event != pt_ParentRootId)
+            pt_Event != pt_RootIdParent)
     {
         if (pt_Event->pt_Left && !pt_CurrentEventClone->pt_Left)
         {
@@ -525,10 +525,10 @@ static ITC_Status_t normEventE(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Remember the parent as this might be a subtree */
-    ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
+    ITC_Event_t *pt_RootEventParent = pt_Event->pt_Parent;
 
     while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_Event != pt_ParentRootEvent)
+           pt_Event != pt_RootEventParent)
     {
         /* norm((n, e1, e2)) */
         if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event))
@@ -618,14 +618,14 @@ static ITC_Status_t joinEventE(
     ITC_Status_t t_Status; /* The current status */
 
     ITC_Event_t *pt_CurrentEvent1 = NULL;
-    ITC_Event_t *pt_RootCurrentEvent1 = NULL;
+    ITC_Event_t *pt_RootEvent1 = NULL;
     ITC_Event_t *pt_CurrentEvent2 = NULL;
-    ITC_Event_t *pt_RootCurrentEvent2 = NULL;
+    ITC_Event_t *pt_RootEvent2 = NULL;
 
     ITC_Event_t *pt_SwapEvent = NULL;
 
     ITC_Event_t **ppt_CurrentEvent = ppt_Event;
-    ITC_Event_t *pt_ParentCurrentEvent = NULL;
+    ITC_Event_t *pt_CurrentEventParent = NULL;
 
     /* Init Event */
     *ppt_CurrentEvent = NULL;
@@ -637,19 +637,19 @@ static ITC_Status_t joinEventE(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Save the root so it can be easily deallocated */
-        pt_RootCurrentEvent1 = pt_CurrentEvent1;
+        pt_RootEvent1 = pt_CurrentEvent1;
 
         t_Status = cloneEvent(pt_Event2, &pt_CurrentEvent2, NULL);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
-            pt_RootCurrentEvent2 = pt_CurrentEvent2;
+            pt_RootEvent2 = pt_CurrentEvent2;
         }
     }
 
     while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_CurrentEvent1 != pt_RootCurrentEvent1->pt_Parent &&
-           pt_CurrentEvent2 != pt_RootCurrentEvent2->pt_Parent)
+           pt_CurrentEvent1 != pt_RootEvent1->pt_Parent &&
+           pt_CurrentEvent2 != pt_RootEvent2->pt_Parent)
     {
         /* join(n1, n2) = max(n1, n2) */
         if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1) &&
@@ -657,7 +657,7 @@ static ITC_Status_t joinEventE(
         {
             t_Status = newEvent(
                 ppt_CurrentEvent,
-                pt_ParentCurrentEvent,
+                pt_CurrentEventParent,
                 MAX(pt_CurrentEvent1->t_Count, pt_CurrentEvent2->t_Count));
 
             if (t_Status == ITC_STATUS_SUCCESS)
@@ -668,7 +668,7 @@ static ITC_Status_t joinEventE(
                 * element on the next iteration and may get destroyed by
                 * `normEventI`
                 */
-                ppt_CurrentEvent = &pt_ParentCurrentEvent;
+                ppt_CurrentEvent = &pt_CurrentEventParent;
                 pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
                 pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
             }
@@ -686,7 +686,7 @@ static ITC_Status_t joinEventE(
              * This might exist from a previous iteration. This is fine. */
             if (!*ppt_CurrentEvent)
             {
-                t_Status = newEvent(ppt_CurrentEvent, pt_ParentCurrentEvent, 0);
+                t_Status = newEvent(ppt_CurrentEvent, pt_CurrentEventParent, 0);
             }
 
             if (t_Status == ITC_STATUS_SUCCESS)
@@ -695,7 +695,7 @@ static ITC_Status_t joinEventE(
                     !(*ppt_CurrentEvent)->pt_Right)
                 {
                     /* Save the parent pointer on the stack */
-                    pt_ParentCurrentEvent = *ppt_CurrentEvent;
+                    pt_CurrentEventParent = *ppt_CurrentEvent;
 
                     /* If n1 > n2: flip them around */
                     if (pt_CurrentEvent1->t_Count > pt_CurrentEvent2->t_Count)
@@ -754,10 +754,10 @@ static ITC_Status_t joinEventE(
                     if (t_Status == ITC_STATUS_SUCCESS)
                     {
                         /* Save the parent pointer on the stack */
-                        pt_ParentCurrentEvent = (*ppt_CurrentEvent)->pt_Parent;
+                        pt_CurrentEventParent = (*ppt_CurrentEvent)->pt_Parent;
 
                         /* Climb back to the parent node */
-                        ppt_CurrentEvent = &pt_ParentCurrentEvent;
+                        ppt_CurrentEvent = &pt_CurrentEventParent;
                         pt_CurrentEvent2 = pt_CurrentEvent2->pt_Parent;
                         pt_CurrentEvent1 = pt_CurrentEvent1->pt_Parent;
                     }
@@ -781,16 +781,16 @@ static ITC_Status_t joinEventE(
     }
 
     /* Destroy the copied input events */
-    if (pt_RootCurrentEvent1)
+    if (pt_RootEvent1)
     {
         /* There is nothing else to do if the destroy fails. */
-        (void)ITC_Event_destroy(&pt_RootCurrentEvent1);
+        (void)ITC_Event_destroy(&pt_RootEvent1);
     }
 
-    if (pt_RootCurrentEvent2)
+    if (pt_RootEvent2)
     {
         /* There is nothing else to do if the destroy fails. */
-        (void)ITC_Event_destroy(&pt_RootCurrentEvent2);
+        (void)ITC_Event_destroy(&pt_RootEvent2);
     }
 
     /* If something goes wrong during the joining process - the Event is invalid
@@ -829,8 +829,8 @@ static ITC_Status_t leqEventE(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    const ITC_Event_t *pt_ParentCurrentEvent1;
-    const ITC_Event_t *pt_ParentRootEvent1;
+    const ITC_Event_t *pt_CurrentEvent1Parent;
+    const ITC_Event_t *pt_RootEvent1Parent;
 
     /* Holds the event count from the root to the current parent node */
     ITC_Event_Counter_t t_ParentsCountEvent1 = 0;
@@ -849,9 +849,9 @@ static ITC_Status_t leqEventE(
     *pb_IsLeq = true;
 
     /* Remember the root parent Event as this might be a subtree */
-    pt_ParentRootEvent1 = pt_Event1->pt_Parent;
+    pt_RootEvent1Parent = pt_Event1->pt_Parent;
 
-    pt_ParentCurrentEvent1 = pt_ParentRootEvent1;
+    pt_CurrentEvent1Parent = pt_RootEvent1Parent;
 
     /* Perform a pre-order traversal.
      *
@@ -920,17 +920,17 @@ static ITC_Status_t leqEventE(
                 else
                 {
                     /* Get the current parent node */
-                    pt_ParentCurrentEvent1 = pt_Event1->pt_Parent;
+                    pt_CurrentEvent1Parent = pt_Event1->pt_Parent;
 
                     /* Loop until the current node is no longer its
                      * parent's right child node */
                     while (t_Status == ITC_STATUS_SUCCESS &&
-                           pt_ParentCurrentEvent1 != pt_ParentRootEvent1 &&
-                           pt_ParentCurrentEvent1->pt_Right == pt_Event1)
+                           pt_CurrentEvent1Parent != pt_RootEvent1Parent &&
+                           pt_CurrentEvent1Parent->pt_Right == pt_Event1)
                     {
                         pt_Event1 = pt_Event1->pt_Parent;
-                        pt_ParentCurrentEvent1 =
-                            pt_ParentCurrentEvent1->pt_Parent;
+                        pt_CurrentEvent1Parent =
+                            pt_CurrentEvent1Parent->pt_Parent;
 
                         /* Decrement the parent height */
                         t_Status = decEventCounter(
@@ -962,11 +962,11 @@ static ITC_Status_t leqEventE(
 
                     /* There is a right subtree that has not been explored
                     * yet */
-                    if (pt_ParentCurrentEvent1 != pt_ParentRootEvent1)
+                    if (pt_CurrentEvent1Parent != pt_RootEvent1Parent)
                     {
                         /* Jump from the left node of the current parent to
                          * right one */
-                        pt_Event1 = pt_ParentCurrentEvent1->pt_Right;
+                        pt_Event1 = pt_CurrentEvent1Parent->pt_Right;
 
                         /* Do the same for pt_Event2 if it hasn't skipped
                          * any descends due to its tree being shallow */
@@ -1005,12 +1005,12 @@ static ITC_Status_t maxEventE(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-    ITC_Event_t *pt_ParentRootEvent;
+    ITC_Event_t *pt_RootEventParent;
 
     /* Remember the parent as this might be a subtree */
-    pt_ParentRootEvent = pt_Event->pt_Parent;
+    pt_RootEventParent = pt_Event->pt_Parent;
 
-    while (t_Status == ITC_STATUS_SUCCESS && pt_Event != pt_ParentRootEvent)
+    while (t_Status == ITC_STATUS_SUCCESS && pt_Event != pt_RootEventParent)
     {
         if (ITC_EVENT_IS_LEAF_EVENT(pt_Event))
         {
@@ -1067,8 +1067,8 @@ static ITC_Status_t fillEventE(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Remember the root parents as these might be Event or ID subtrees */
-    ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
-    ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+    ITC_Event_t *pt_RootEventParent = pt_Event->pt_Parent;
+    ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent;
 
     /* The previously iterated ID subtree.
      * Used to keep track of which nodes have been explored */
@@ -1078,8 +1078,8 @@ static ITC_Status_t fillEventE(
     *pb_WasFilled = false;
 
     while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_Event != pt_ParentRootEvent &&
-           pt_Id != pt_ParentRootId)
+           pt_Event != pt_RootEventParent &&
+           pt_Id != pt_RootIdParent)
     {
         /* fill(0, e) = e or fill(i, n) = n */
         if(ITC_ID_IS_NULL_ID(pt_Id) ||
@@ -1295,8 +1295,8 @@ static ITC_Status_t growEventE(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Remember the root parents as these might be Event or ID subtrees */
-    ITC_Event_t *pt_ParentRootEvent = pt_Event->pt_Parent;
-    ITC_Id_t *pt_ParentRootId = pt_Id->pt_Parent;
+    ITC_Event_t *pt_RootEventParent = pt_Event->pt_Parent;
+    ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent;
 
     /* The previously iterated ID subtree.
      * Used to keep track of which nodes have been explored */
@@ -1330,8 +1330,8 @@ static ITC_Status_t growEventE(
     uint64_t *pu64_CostPtr = &u64_CostLeft;
 
     while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_Event != pt_ParentRootEvent &&
-           pt_Id != pt_ParentRootId)
+           pt_Event != pt_RootEventParent &&
+           pt_Id != pt_RootIdParent)
     {
         /* This is a special case to protect against an infinite loop if a NULL
          * ID is encountered. */
@@ -1507,10 +1507,10 @@ ITC_Status_t ITC_Event_destroy(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_FreeStatus; /* The last free status */
-    ITC_Event_t *pt_CurrentEvent; /* The current element */
-    ITC_Event_t *pt_ParentCurrentEvent;
-    ITC_Event_t *pt_ParentRootId;
+    ITC_Status_t t_FreeStatus = ITC_STATUS_SUCCESS; /* The last free status */
+    ITC_Event_t *pt_CurrentEvent = NULL; /* The current element */
+    ITC_Event_t *pt_CurrentEventParent = NULL;
+    ITC_Event_t *pt_RootEventParent = NULL;
 
     if (!ppt_Event)
     {
@@ -1519,10 +1519,11 @@ ITC_Status_t ITC_Event_destroy(
     else if (*ppt_Event)
     {
         pt_CurrentEvent = *ppt_Event;
-        pt_ParentRootId = pt_CurrentEvent->pt_Parent;
+        /* Remember the parent as this might be a subtree */
+        pt_RootEventParent = pt_CurrentEvent->pt_Parent;
 
         /* Keep trying to free elements even if some frees fail */
-        while(pt_CurrentEvent && pt_CurrentEvent != pt_ParentRootId)
+        while(pt_CurrentEvent && pt_CurrentEvent != pt_RootEventParent)
         {
             /* Advance into left subtree */
             if(pt_CurrentEvent->pt_Left)
@@ -1537,31 +1538,32 @@ ITC_Status_t ITC_Event_destroy(
             else
             {
                 /* Remember the parent element */
-                pt_ParentCurrentEvent = pt_CurrentEvent->pt_Parent;
+                pt_CurrentEventParent = pt_CurrentEvent->pt_Parent;
 
-                if(pt_ParentCurrentEvent)
+                if(pt_CurrentEventParent)
                 {
                     /* Remove the current element address from the parent */
-                    if(pt_ParentCurrentEvent->pt_Left == pt_CurrentEvent)
+                    if(pt_CurrentEventParent->pt_Left == pt_CurrentEvent)
                     {
-                        pt_ParentCurrentEvent->pt_Left = NULL;
+                        pt_CurrentEventParent->pt_Left = NULL;
                     }
                     else
                     {
-                        pt_ParentCurrentEvent->pt_Right = NULL;
+                        pt_CurrentEventParent->pt_Right = NULL;
                     }
                 }
 
                 /* Free the current element */
                 t_FreeStatus = ITC_Port_free(pt_CurrentEvent);
 
-                if (t_Status == ITC_STATUS_SUCCESS)
+                /* Return last error */
+                if (t_FreeStatus != ITC_STATUS_SUCCESS)
                 {
                     t_Status = t_FreeStatus;
                 }
 
                 /* Go up the tree */
-                pt_CurrentEvent = pt_ParentCurrentEvent;
+                pt_CurrentEvent = pt_CurrentEventParent;
             }
         }
     }
