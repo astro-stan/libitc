@@ -547,7 +547,7 @@ static ITC_Status_t normEventE(
            pt_Event != pt_RootEventParent)
     {
         /* norm((n, e1, e2)) */
-        if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+        if (ITC_EVENT_IS_PARENT_EVENT(pt_Event))
         {
             /* Normalise e1 */
             if (!ITC_EVENT_IS_NORMALISED_EVENT(pt_Event->pt_Left))
@@ -695,8 +695,8 @@ static ITC_Status_t joinEventE(
          * - If n1 <= n2:
          *      norm((n1, join(l1, lift(l2, n2 - n1)), join(r1, lift(r2, n2 - n1))))
          */
-        else if(!ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent1) &&
-                !ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
+        else if(ITC_EVENT_IS_PARENT_EVENT(pt_CurrentEvent1) &&
+                ITC_EVENT_IS_PARENT_EVENT(pt_CurrentEvent2))
         {
             /* Create the parent node.
              * This might exist from a previous iteration. This is fine. */
@@ -1033,12 +1033,12 @@ static ITC_Status_t maxEventE(
             /* The Event is maximised. Nothing to do. */
             pt_Event = pt_Event->pt_Parent;
         }
-        else if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
+        else if (ITC_EVENT_IS_PARENT_EVENT(pt_Event->pt_Left))
         {
             /* Explore left subtree */
             pt_Event = pt_Event->pt_Left;
         }
-        else if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
+        else if (ITC_EVENT_IS_PARENT_EVENT(pt_Event->pt_Right))
         {
             /* Explore right subtree */
             pt_Event = pt_Event->pt_Right;
@@ -1140,7 +1140,7 @@ static ITC_Status_t fillEventE(
             else
             {
                 /* el = max(el) */
-                if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Left))
+                if (ITC_EVENT_IS_PARENT_EVENT(pt_Event->pt_Left))
                 {
                     /* Turn el into a leaf Event */
                     t_Status = maxEventE(pt_Event->pt_Left);
@@ -1194,7 +1194,7 @@ static ITC_Status_t fillEventE(
             else
             {
                 /* er = max(er) */
-                if (!ITC_EVENT_IS_LEAF_EVENT(pt_Event->pt_Right))
+                if (ITC_EVENT_IS_PARENT_EVENT(pt_Event->pt_Right))
                 {
                     /* Turn er into a leaf Event */
                     t_Status = maxEventE(pt_Event->pt_Right);

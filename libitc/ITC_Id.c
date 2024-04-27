@@ -397,7 +397,7 @@ static ITC_Status_t splitIdI(
             }
         }
         /* split(0, i), split(i, 0), split(i1, i2) */
-        else if(!ITC_ID_IS_LEAF_ID(pt_Id))
+        else if(ITC_ID_IS_PARENT_ID(pt_Id))
         {
             /* Create left child container.
              * This might exist from a previous iteration. This is fine. */
@@ -688,8 +688,8 @@ static ITC_Status_t normIdI(
             /* Go to the right child of the pt_Id parent */
             pt_Id = pt_Id->pt_Parent->pt_Right;
 
-            /* Find the left most parent */
-            while (pt_Id && !ITC_ID_IS_LEAF_ID(pt_Id))
+            /* Find the left most node */
+            while (pt_Id && ITC_ID_IS_PARENT_ID(pt_Id))
             {
                 /* Go to the left child if there is one, otherwise go to the
                  * right child */
@@ -769,8 +769,8 @@ static ITC_Status_t sumIdI(
           pt_Id2 != pt_RootId2Parent)
     {
         /* sum((l1, r1), (l2, r2)) = norm(sum(l1, l2), sum(r1, r2)) */
-        if(!ITC_ID_IS_LEAF_ID(pt_Id1) &&
-           !ITC_ID_IS_LEAF_ID(pt_Id2))
+        if(ITC_ID_IS_PARENT_ID(pt_Id1) &&
+           ITC_ID_IS_PARENT_ID(pt_Id2))
         {
             /* Create the parent node.
              * This might exist from a previous iteration. This is fine. */
