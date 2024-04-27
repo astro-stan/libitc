@@ -34,6 +34,10 @@ ITC_Status_t ITC_Event_new(
 /**
  * @brief Free an allocated ITC Event
  *
+ * @warning Even if the function call fails, the Event might be partically freed
+ * and not safe to use. For this reason, the returned `*ppt_Event` will always
+ * be set to `NULL`.
+ *
  * @param ppt_Event (in) The pointer to the Event to deallocate. (out) NULL
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
@@ -128,6 +132,9 @@ ITC_Status_t ITC_Event_leq(
  *
  * Tries to add a new event that will result in simplifying the Event tree
  *
+ * @warning If the function fails, the Event might be left in a partially
+ * updated state and should not be used further.
+ *
  * @param pt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
  * @param pb_WasFilled Whether filling the Event was successful or not
@@ -148,6 +155,9 @@ ITC_Status_t ITC_Event_fill(
  *
  * Try filling the Event first (using `ITC_Event_fill`). If that fails, use this
  * function to grow the Event instead.
+ *
+ * @warning If the function fails, the Event might be left in a partially
+ * updated state and should not be used further.
  *
  * @param pt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval

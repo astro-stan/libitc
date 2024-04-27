@@ -41,6 +41,10 @@ ITC_Status_t ITC_Id_newNull(
 /**
  * @brief Free an allocated ITC ID
  *
+ * @warning Even if the function call fails, the ID might be partically freed
+ * and not safe to use. For this reason, the returned `*ppt_ID` will always be
+ * set to `NULL`.
+ *
  * @param ppt_Id (in) The pointer to the ID to deallocate. (out) NULL
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success

@@ -254,6 +254,8 @@ static ITC_Status_t cloneEvent(
  *  - lift(n, m) = (n + m)
  *  - lift((n, e1, e2), m) = (n + m, e1, e2)
  *
+ * @note If an overflow is detected, the counter will be returned unmodified.
+ *
  * @param pt_Counter The counter to increment
  * @param t_IncCount The amount to increment with
  * @return ITC_Status_t The status of the operation
@@ -288,6 +290,8 @@ static ITC_Status_t incEventCounter(
  * The rules for a `sink` operation are:
  *  - sink(n, m) = (n - m)
  *  - sink((n, e1, e2), m) = (n - m, e1, e2)
+ *
+ * @note If an underflow is detected, the counter will be returned unmodified.
  *
  * @param pt_Counter The counter to decrement
  * @param t_DecCount The amount to decrement with
@@ -346,7 +350,7 @@ static ITC_Status_t liftSinkSinkEvent(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Sink the children */
+        /* Sink the left child */
         t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
 
         if (t_Status == ITC_STATUS_SUCCESS)
@@ -355,7 +359,7 @@ static ITC_Status_t liftSinkSinkEvent(
 
             if (t_Status != ITC_STATUS_SUCCESS)
             {
-                /* Restore the other child */
+                /* Restore the left child */
                 t_OpStatus = incEventCounter(
                     &pt_Event->pt_Left->t_Count, t_Count);
 
@@ -406,29 +410,32 @@ static ITC_Status_t liftDestroyDestroyEvent(
     ITC_Status_t t_Status;
     ITC_Status_t t_OpStatus;
     ITC_Event_Counter_t t_LeftCount;
+    ITC_Event_Counter_t t_RightCount;
     ITC_Event_Counter_t t_MaxCount;
 
     /* Remember the counts */
     t_LeftCount = pt_Event->pt_Left->t_Count;
-    t_MaxCount = MAX(t_LeftCount, pt_Event->pt_Right->t_Count);
+    t_RightCount = pt_Event->pt_Right->t_Count;
+    t_MaxCount = MAX(t_LeftCount, t_RightCount);
 
     /* Lift the event counter of the root node */
     t_Status = incEventCounter(&pt_Event->t_Count, t_MaxCount);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Destroy the children */
+        /* Destroy the left leaf child */
         t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
 
         if (t_Status == ITC_STATUS_SUCCESS)
         {
+            /* Destroy the right leaf child */
             t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
 
             if (t_Status != ITC_STATUS_SUCCESS)
             {
-                /* Restore the other child */
+                /* Restore the right leaf child */
                 t_OpStatus = newEvent(
-                    &pt_Event->pt_Left, pt_Event, t_LeftCount);
+                    &pt_Event->pt_Right, pt_Event, t_RightCount);
 
                 if (t_OpStatus != ITC_STATUS_SUCCESS)
                 {
@@ -440,6 +447,15 @@ static ITC_Status_t liftDestroyDestroyEvent(
 
         if (t_Status != ITC_STATUS_SUCCESS)
         {
+            /* Restore the left leaf child */
+            t_OpStatus = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
+
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                /* Return last error */
+                t_Status = t_OpStatus;
+            }
+
             /* Restore the event counter of the root node */
             t_OpStatus = decEventCounter(&pt_Event->t_Count, t_MaxCount);
 
@@ -799,7 +815,7 @@ static ITC_Status_t joinEventE(
     {
         /* There is nothing else to do if the destroy fails. Also it is more
          * important to convey the join failed, rather than the destroy */
-        (void)ITC_Event_destroy(ppt_CurrentEvent);
+        (void)ITC_Event_destroy(ppt_Event);
     }
 
     return t_Status;
