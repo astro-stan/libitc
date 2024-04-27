@@ -2,7 +2,6 @@
  * @file ITC_port.h
  * @author Stan
  * @brief Port specific definitions
- * @brief Configuration options for the ITC implementation
  *
  * @copyright Copyright (c) 2024
  *

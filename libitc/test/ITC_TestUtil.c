@@ -1,3 +1,11 @@
+/**
+ * @file ITC_TestUtil.h
+ * @author Stan
+ * @brief Testing utilities
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "unity.h"
 
 #include "ITC_Test_package.h"

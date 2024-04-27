@@ -1,3 +1,11 @@
+/**
+ * @file ITC_Id_Test.h
+ * @author Stan
+ * @brief Unit tests for the Interval Tree Clock's ID mechanism
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "ITC_Id.h"
 #include "ITC_Id_package.h"
 #include "ITC_Id_Test.h"

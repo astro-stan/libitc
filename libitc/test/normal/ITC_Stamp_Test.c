@@ -1,3 +1,11 @@
+/**
+ * @file ITC_Stamp_Test.h
+ * @author Stan
+ * @brief Unit tests for the Interval Tree Clock's Stamp mechanism
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "ITC_Stamp.h"
 #include "ITC_Stamp_Test.h"
 

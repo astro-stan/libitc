@@ -1,3 +1,11 @@
+/**
+ * @file ITC_Event_Test.h
+ * @author Stan
+ * @brief Unit tests for the Interval Tree Clock's Event mechanism
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
 #include "ITC_Event.h"
 #include "ITC_Event_package.h"
 #include "ITC_Event_Test.h"
