@@ -397,7 +397,7 @@ static ITC_Status_t splitIdI(
             }
         }
         /* split(0, i), split(i, 0), split(i1, i2) */
-        else if(ITC_ID_IS_PARENT_ID(pt_Id))
+        else
         {
             /* Create left child container.
              * This might exist from a previous iteration. This is fine. */
@@ -459,13 +459,9 @@ static ITC_Status_t splitIdI(
                      * This happens on the next iteration after the children
                      * have been created.
                      */
-                    else if (pt_Id)
-                    {
-                        pt_Id = pt_Id->pt_Parent;
-                    }
                     else
                     {
-                        t_Status = ITC_STATUS_CORRUPT_ID;
+                        pt_Id = pt_Id->pt_Parent;
                     }
                 }
                 /* split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i)
@@ -510,18 +506,13 @@ static ITC_Status_t splitIdI(
                      * This happens on the next iteration after the children
                      * have been created.
                      */
-                    else if (pt_Id)
+                    else
                     {
                         pt_Id = pt_Id->pt_Parent;
                     }
-                    else
-                    {
-                        t_Status = ITC_STATUS_CORRUPT_ID;
-                    }
                 }
                 /* split((i1, i2)) = ((i1, 0), (0, i2)) */
-                else if (ITC_ID_IS_LEAF_ID(*ppt_CurrentId1)
-                         && ITC_ID_IS_LEAF_ID(*ppt_CurrentId2))
+                else
                 {
                     t_Status = newId(
                         &(*ppt_CurrentId1)->pt_Right,
@@ -552,20 +543,12 @@ static ITC_Status_t splitIdI(
                             *ppt_CurrentId2);
                     }
 
-                    if (t_Status == ITC_STATUS_SUCCESS && pt_Id)
+                    if (t_Status == ITC_STATUS_SUCCESS)
                     {
                         pt_Id = pt_Id->pt_Parent;
                     }
                 }
-                else
-                {
-                    t_Status = ITC_STATUS_CORRUPT_ID;
-                }
             }
-        }
-        else
-        {
-            t_Status = ITC_STATUS_CORRUPT_ID;
         }
     }
 

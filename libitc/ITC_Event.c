@@ -786,13 +786,9 @@ static ITC_Status_t joinEventE(
             t_Status = createChildEventNodes(pt_CurrentEvent1, 0, 0);
         }
         /* join((n1, l1, r1), n2) = join((n1, l1, r1), (n2, 0, 0)) */
-        else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent2))
-        {
-            t_Status = createChildEventNodes(pt_CurrentEvent2, 0, 0);
-        }
         else
         {
-            t_Status = ITC_STATUS_CORRUPT_EVENT;
+            t_Status = createChildEventNodes(pt_CurrentEvent2, 0, 0);
         }
     }
 
