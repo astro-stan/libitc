@@ -614,18 +614,8 @@ static ITC_Status_t normId11Or00(
         /* Destroy the right leaf child */
         t_Status = ITC_Id_destroy(&pt_Id->pt_Right);
 
-        /* Restore both children */
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Restore the left leaf child */
-            t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwner);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-
             /* Restore the right leaf child */
             t_OpStatus = newId(&pt_Id->pt_Right, pt_Id, b_IsOwner);
 
@@ -636,7 +626,8 @@ static ITC_Status_t normId11Or00(
             }
         }
     }
-    else
+
+    if (t_Status != ITC_STATUS_SUCCESS)
     {
         /* Restore the left leaf child */
         t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwner);

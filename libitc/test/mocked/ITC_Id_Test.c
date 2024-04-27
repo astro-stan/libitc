@@ -227,8 +227,8 @@ void ITC_Id_Test_normaliseIdIsRecoveredOnFailure(void)
 
     /* Test the ID is the same but the children have been restored */
     TEST_ITC_ID_IS_SEED_SEED_ID(gpt_ParentId);
-    TEST_ASSERT_EQUAL_PTR(pt_NewId1, gpt_ParentId->pt_Left);
-    TEST_ASSERT_EQUAL_PTR(pt_NewId2, gpt_ParentId->pt_Right);
+    TEST_ASSERT_EQUAL_PTR(pt_NewId2, gpt_ParentId->pt_Left);
+    TEST_ASSERT_EQUAL_PTR(pt_NewId1, gpt_ParentId->pt_Right);
 }
 
 /* Test failed summing of two IDs is properly cleaned up */
