@@ -973,9 +973,9 @@ ITC_Status_t ITC_Id_destroy(
         /* Nothing to do */
     }
 
-    /* Sanitize the freed pointer */
-    if (t_Status == ITC_STATUS_SUCCESS)
+    if (t_Status != ITC_STATUS_INVALID_PARAM)
     {
+        /* Sanitize the freed pointer regardless of the exit status */
         *ppt_Id = NULL;
     }
 

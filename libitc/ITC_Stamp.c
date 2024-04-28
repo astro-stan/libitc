@@ -315,22 +315,17 @@ ITC_Status_t ITC_Stamp_destroy(
             }
         }
 
-        /* Only free the Stamp container if all members have been freed */
-        if (t_Status == ITC_STATUS_SUCCESS)
+        t_FreeStatus = ITC_Port_free(*ppt_Stamp);
+
+        if (t_FreeStatus != ITC_STATUS_SUCCESS)
         {
-            t_FreeStatus = ITC_Port_free(*ppt_Stamp);
-
-            if (t_FreeStatus != ITC_STATUS_SUCCESS)
-            {
-                t_Status = t_FreeStatus;
-            }
+            t_Status = t_FreeStatus;
         }
-
     }
 
-    /* Sanitize the freed pointer */
-    if (t_Status == ITC_STATUS_SUCCESS)
+    if (t_Status != ITC_STATUS_INVALID_PARAM)
     {
+        /* Sanitize the freed pointer regardless of the exit status */
         *ppt_Stamp = NULL;
     }
 
