@@ -31,7 +31,7 @@ ITC_Status_t ITC_Stamp_newSeed(
  * @brief Allocate a new ITC peek Stamp based on an existing Stamp
  *
  * @param pt_Stamp The existing Stamp
- * @param ppt_PeekStamp The pointer to the peek Stamp
+ * @param ppt_PeekStamp (out) The pointer to the peek Stamp
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -42,6 +42,10 @@ ITC_Status_t ITC_Stamp_newPeek(
 
 /**
  * @brief Free an allocated ITC Stamp
+ *
+ * @warning Even if the function call fails, the Stamp might be partically freed
+ * and not safe to use. For this reason, the returned `*ppt_Stamp` will always
+ * be set to `NULL`.
  *
  * @param ppt_Stamp (in) The pointer to the Stamp to deallocate. (out) NULL
  * @return ITC_Status_t The status of the operation
@@ -54,10 +58,8 @@ ITC_Status_t ITC_Stamp_destroy(
 /**
  * @brief Clone an existing ITC Stamp
  *
- * @note Memory for the new ITC Stamp will be dynamically allocated.
- * On error, the cloned Stamp is automatically deallocated.
  * @param pt_Stamp The existing Stamp
- * @param ppt_ClonedStamp The pointer to the cloned Stamp
+ * @param ppt_ClonedStamp (out) The pointer to the cloned Stamp
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -72,8 +74,8 @@ ITC_Status_t ITC_Stamp_clone(
  * event history.
  *
  * @param pt_Stamp The existing Stamp
- * @param ppt_Stamp1 The first Stamp
- * @param ppt_Stamp2 The second Stamp
+ * @param ppt_Stamp1 (out) The first Stamp
+ * @param ppt_Stamp2 (out) The second Stamp
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -85,6 +87,9 @@ ITC_Status_t ITC_Stamp_fork(
 
 /**
  * @brief Add a new Event to the Stamp
+ *
+ * @warning If the function fails, the Stamp might be left in a partially
+ * updated state and should not be used further.
  *
  * @param pt_Stamp The existing Stamp
  * @return ITC_Status_t The status of the operation
@@ -100,7 +105,7 @@ ITC_Status_t ITC_Stamp_event(
  *
  * @param pt_Stamp1 The first Stamp
  * @param pt_Stamp2 The second Stamp
- * @param ppt_Stamp The new Stamp
+ * @param ppt_Stamp (out) The pointer to the joined Stamp
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -124,7 +129,7 @@ ITC_Status_t ITC_Stamp_join(
  *
  * @param pt_Stamp1 The first Stamp
  * @param pt_Stamp2 The second Stamp
- * @param pt_Result The result of the comparison
+ * @param pt_Result (out) The result of the comparison
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */

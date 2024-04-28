@@ -49,10 +49,8 @@ ITC_Status_t ITC_Event_destroy(
 /**
  * @brief Clone an existing ITC Event
  *
- * @note Memory for the new ITC Event will be dynamically allocated.
- * On error, the cloned Event is automatically deallocated.
  * @param pt_Event The existing Event
- * @param ppt_ClonedEvent The pointer to the cloned Event
+ * @param ppt_ClonedEvent (out) The pointer to the cloned Event
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -102,7 +100,7 @@ ITC_Status_t ITC_Event_maximise(
  *
  * @param pt_Event1 The first Event
  * @param pt_Event2 The second Event
- * @param ppt_Event The new Event
+ * @param ppt_Event (out) The pointer to the joined Event
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -161,7 +159,6 @@ ITC_Status_t ITC_Event_fill(
  *
  * @param pt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
- * @param pb_WasFilled Whether filling the Event was successful or not
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */

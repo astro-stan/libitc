@@ -59,7 +59,7 @@ ITC_Status_t ITC_Id_destroy(
  * @note Memory for the new ITC ID will be dynamically allocated.
  * On error, the cloned ID is automatically deallocated.
  * @param pt_Id The existing ID
- * @param ppt_ClonedId The pointer to the cloned ID
+ * @param ppt_ClonedId (out) The pointer to the cloned ID
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -83,8 +83,8 @@ ITC_Status_t ITC_Id_validate(
  * @brief Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  *
  * @param pt_Id The existing ID
- * @param ppt_Id1 The first ID
- * @param ppt_Id2 The second ID
+ * @param ppt_Id1 (out) The pointer to the first split ID
+ * @param ppt_Id2 (out) The pointer to the second split  ID
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
@@ -110,7 +110,7 @@ ITC_Status_t ITC_Id_normalise(
  *
  * @param pt_Id1 The first ID
  * @param pt_Id2 The second ID
- * @param ppt_Id The new ID
+ * @param ppt_Id (out) The pointer to the summed ID
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
