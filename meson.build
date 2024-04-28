@@ -1,6 +1,6 @@
 project('itc', 'c',
   version : '0.1',
-  license: ['LGPL'],
+  license: ['AGPL-3.0'],
   license_files: ['LICENSE'],
   meson_version: '>=1.4.0',
   subproject_dir: 'vendor',
