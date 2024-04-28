@@ -1093,6 +1093,65 @@ void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
 }
 
+/* Test joining a complex event with a simpler parent event succeeds */
+void ITC_Event_Test_joinSimpleAndComplexParentEventsSucceeds(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    ITC_Event_t *pt_JoinEvent;
+
+    /* clang-format off */
+    /* Construct the original Events */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Left, pt_Event1->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Right, pt_Event1->pt_Right, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Right->pt_Left, pt_Event1->pt_Right->pt_Right, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right->pt_Right->pt_Right, pt_Event1->pt_Right->pt_Right, 2));
+
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 2));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
+    /* clang-format on */
+
+    /* Test joining the events */
+    TEST_SUCCESS(ITC_Event_join(pt_Event1, pt_Event2, &pt_JoinEvent));
+
+    /* clang-format off */
+    /* Test the joined event is (1, 1, (0, 0, (1, 0, 2))) event */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right->pt_Right, 2);
+    /* clang-format on */
+
+    /* Destroy the joined event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+
+    /* Test joining the events the other way around */
+    TEST_SUCCESS(ITC_Event_join(pt_Event2, pt_Event1, &pt_JoinEvent));
+
+    /* clang-format off */
+    /* Test the joined event is (1, 1, (0, 0, (1, 0, 2))) event */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Left, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_JoinEvent->pt_Right->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_JoinEvent->pt_Right->pt_Right->pt_Right, 2);
+    /* clang-format on */
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_JoinEvent));
+}
+
 /* Test joining two complex events succeeds */
 void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
 {

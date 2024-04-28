@@ -748,9 +748,6 @@ static ITC_Status_t joinEventE(
                 }
                 else
                 {
-                    /* Copy n1. This is always the smaller of the two */
-                    (*ppt_CurrentEvent)->t_Count = pt_CurrentEvent1->t_Count;
-
                     /* If the events were swapped during the descend (i.e
                      * n1 was bigger than n2), swap them them back before
                      * continuing */
@@ -760,6 +757,11 @@ static ITC_Status_t joinEventE(
                         pt_CurrentEvent1 = pt_CurrentEvent2;
                         pt_CurrentEvent2 = pt_SwapEvent;
                     }
+
+                    /* Copy the root value (n1) - n1 is always the smaller of
+                     * the two. Take it from `pt_CurrentEvent2` as that is
+                     * always the smaller one due to the swap condition above.*/
+                    (*ppt_CurrentEvent)->t_Count = pt_CurrentEvent2->t_Count;
 
                     /* Normalise Event.
                      * This may destroy all child nodes stored under
