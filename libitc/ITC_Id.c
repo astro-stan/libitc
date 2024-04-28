@@ -1,9 +1,10 @@
 /**
  * @file ITC_Id.c
- * @author Stan
  * @brief Implementation of the Interval Tree Clock's ID mechanism
  *
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
+ * license. Refer to the LICENSE file for details or visit:
+ * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
 #include "ITC_Id.h"

@@ -1,9 +1,10 @@
 /**
  * @file ITC_Event_Test_package.h
- * @author Stan
  * @brief Package testing definitions for Interval Tree Clock's Event mechanism
  *
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
+ * license. Refer to the LICENSE file for details or visit:
+ * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
 #ifndef ITC_EVENT_TEST_PACKAGE_H_
