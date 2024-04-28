@@ -1690,5 +1690,6 @@ void ITC_Id_Test_sumIdSplitSeedAndSumItBackToSeedSucceeds(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_SplitId112));
     TEST_SUCCESS(ITC_Id_destroy(&pt_TmpId));
 
+    TEST_ITC_ID_IS_SEED_ID(pt_SummedId);
     TEST_SUCCESS(ITC_Id_destroy(&pt_SummedId));
 }
