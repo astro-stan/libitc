@@ -23,7 +23,6 @@ jobs:
         uses: rlalik/setup-cpp-compiler@master
         with:
           compiler: ${{ matrix.compiler }}
-      - uses: actions/setup-python@v5
       - run: pip install ninja meson
       - uses: actions/checkout@v4
       - run: CC=${{ matrix.compiler }} meson setup --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }} -Doptimization=${{ env.OPTIMIZATION }} -Ddebug=${{ env.DEBUG }} -Dtests=true
