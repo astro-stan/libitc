@@ -6,12 +6,12 @@ on:
     branches: [ $default-branch ]
   pull_request:
     branches: [ $default-branch ]
-    
+
 env:
   BUILD_DIR_PREFIX: test-build
   OPTIMIZATION: 0
   DEBUG: 'true'
-  
+
 jobs:
   unit-tests:
     name: "Unit Tests"
@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest']
-        compiler: ['gcc'] 
+        compiler: ['gcc']
     steps:
       - name: Install compiler
         uses: rlalik/setup-cpp-compiler@master
@@ -30,3 +30,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: CC=${{ matrix.compiler }} meson setup --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }} -Doptimization=${{ env.OPTIMIZATION }} -Ddebug=${{ env.DEBUG }} -Dtests=true
       - run: CC=${{ matrix.compiler }} meson test -C ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
+ 
