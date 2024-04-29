@@ -37,8 +37,10 @@ static ITC_Status_t validateEvent(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    const ITC_Event_t *pt_CurrentEventParent; /* The current Event node */
-    const ITC_Event_t *pt_RootEventParent; /* The parent of the root node */
+    /* The current Event parent */
+    const ITC_Event_t *pt_CurrentEventParent = NULL;
+    /* The parent of the root Event */
+    const ITC_Event_t *pt_RootEventParent = NULL;
 
     if(!pt_Event)
     {
