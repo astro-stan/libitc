@@ -22,4 +22,5 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         with:
           commit: ${{github.event.workflow_run.head_sha}}
-          report_paths: '${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml'
+          report_paths: '${{ github.repository }}/test-report.xml'
+          include_passed: true
