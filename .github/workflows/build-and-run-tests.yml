@@ -36,7 +36,7 @@ jobs:
         run: ruby "$(find . -name parse_output.rb -type f)" -xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-log.txt && mv report.xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
-        if: ${{ github.ref_name != 'main' }} # Run on failure but not if on main branch
+        if: ${{ !cancelled() && github.ref_name != 'main' }} # Run on failure but not if on main branch
         with:
           name: junit-test-results
           path: '${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml'
