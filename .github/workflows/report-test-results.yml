@@ -3,6 +3,7 @@ on:
   workflow_run:
     workflows: [Build And Run Tests]
     types: [completed]
+    branches-ignore: [main]
 
 permissions:
   checks: write
