@@ -51,6 +51,7 @@ static void checkEventLessThan(
 
     TEST_ASSERT_TRUE(b_IsLeq12);
     TEST_ASSERT_FALSE(b_IsLeq21);
+    TEST_FAIL();
 }
 
 /* Test *pt_Event1 > *pt_Event2 */
