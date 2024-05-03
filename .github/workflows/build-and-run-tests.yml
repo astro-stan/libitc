@@ -1,0 +1,43 @@
+---
+name: Build And Run Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  BUILD_DIR_PREFIX: test-build
+  OPTIMIZATION: 0
+  DEBUG: 'true'
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest']
+        compiler: ['gcc']
+    steps:
+      - name: Install compiler
+        uses: rlalik/setup-cpp-compiler@master
+        with:
+          compiler: ${{ matrix.compiler }}
+      - name: Install ninja and meson
+        run: pip install ninja meson
+      - uses: actions/checkout@v4
+      - name: Build Tests
+        run: CC=${{ matrix.compiler }} meson setup --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }} -Doptimization=${{ env.OPTIMIZATION }} -Ddebug=${{ env.DEBUG }} -Dtests=true
+      - name: Run Tests
+        run: CC=${{ matrix.compiler }} meson test -C ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }} --logbase test-log
+      - name: Generate Test Report
+        run: ruby "$(find . -name parse_output.rb -type f)" -xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-log.txt && mv report.xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        if: ${{ github.ref_name != 'main' }} # Run on failure but not if on main branch
+        with:
+          name: junit-test-results
+          path: '${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml'
+          retention-days: 1
