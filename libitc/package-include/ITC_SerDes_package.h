@@ -3,7 +3,7 @@
  * @brief Package definitions for the Interval Tree Clock's serialisation and
  * deserialisation mechanism
  *
- * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
+ * @copyright Copyright (c) 2024 libitc project. Released under AGPL-3.0
  * license. Refer to the LICENSE file for details or visit:
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
@@ -41,8 +41,8 @@ ITC_Status_t ITC_SerDes_serialiseId(
  * @param pu8_Buffer The buffer holding the serialised Id data
  * @param u32_BufferSize The size of the buffer in bytes
  * @param ppt_Id The pointer to the deserialised Id
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_SerDes_deserialiseId(
     const uint8_t *pu8_Buffer,
