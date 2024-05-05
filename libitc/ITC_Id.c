@@ -999,6 +999,7 @@ static ITC_Status_t deserialiseId(
     *ppt_Id = NULL;
     ppt_CurrentId = ppt_Id;
 
+    /* The last serialised node cannot be a parent */
     if (pu8_Buffer[u32_BufferSize - 1] == ITC_SERDES_PARENT_ID_HEADER)
     {
         t_Status = ITC_STATUS_CORRUPT_ID;
@@ -1006,85 +1007,82 @@ static ITC_Status_t deserialiseId(
 
     while (u32_Offset < u32_BufferSize && t_Status == ITC_STATUS_SUCCESS)
     {
-        if (!ppt_CurrentId)
+        /* Deserialise a parent ID node */
+        if (pu8_Buffer[u32_Offset] == ITC_SERDES_PARENT_ID_HEADER)
         {
-            t_Status = ITC_STATUS_CORRUPT_ID;
-        }
-        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_PARENT_ID_HEADER)
-        {
-            /* Increment the offset */
-            u32_Offset += sizeof(ITC_SerDes_Header_t);
-
-            /* Create the parent ID */
             t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, false);
-
-            /* Get ready for the next header */
-            pt_CurrentIdParent = *ppt_CurrentId;
-            ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
         }
-        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER)
+        /* Deserialise a leaf ID node */
+        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER ||
+                 pu8_Buffer[u32_Offset] == ITC_SERDES_SEED_ID_HEADER)
         {
-            /* Increment the offset */
-            u32_Offset += sizeof(ITC_SerDes_Header_t);
-
-            /* Create the leaf ID */
-            t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, false);
-
-            /* Get ready for the next header */
-            if (t_Status == ITC_STATUS_SUCCESS)
-            {
-                while (pt_CurrentIdParent && pt_CurrentIdParent->pt_Right)
-                {
-                    ppt_CurrentId = &pt_CurrentIdParent;
-                    pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
-                }
-
-                if (pt_CurrentIdParent)
-                {
-                    ppt_CurrentId = &pt_CurrentIdParent->pt_Right;
-                }
-                else
-                {
-                    ppt_CurrentId = NULL;
-                }
-            }
+            t_Status = newId(
+                ppt_CurrentId, pt_CurrentIdParent,
+                (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER) ? false
+                                                                      : true);
         }
-        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_SEED_ID_HEADER)
-        {
-            /* Increment the offset */
-            u32_Offset += sizeof(ITC_SerDes_Header_t);
-
-            /* Create the leaf ID */
-            t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, true);
-
-            /* Get ready for the next header */
-            if (t_Status == ITC_STATUS_SUCCESS)
-            {
-                while (pt_CurrentIdParent && pt_CurrentIdParent->pt_Right)
-                {
-                    ppt_CurrentId = &pt_CurrentIdParent;
-                    pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
-                }
-
-                if (pt_CurrentIdParent)
-                {
-                    ppt_CurrentId = &pt_CurrentIdParent->pt_Right;
-                }
-                else
-                {
-                    ppt_CurrentId = NULL;
-                }
-            }
-        }
+        /* Unknown node header value */
         else
         {
             t_Status = ITC_STATUS_CORRUPT_ID;
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Get ready for the next header:
+             *
+             * - If the current header was a parent - descend into left child
+             * - If the current header was a leaf - find the first unallocated
+             *   right child node
+             */
+            if (pu8_Buffer[u32_Offset] == ITC_SERDES_PARENT_ID_HEADER)
+            {
+                pt_CurrentIdParent = *ppt_CurrentId;
+                ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+            }
+            else
+            {
+                /* Backtrack the tree until an unallocated right child is found
+                 * or there are no more parent nodes */
+                while (pt_CurrentIdParent && pt_CurrentIdParent->pt_Right)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent;
+                    pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
+                }
+
+                /* Descend into the unallocated right child of the parent */
+                if (pt_CurrentIdParent)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent->pt_Right;
+                }
+                /* There aren't any unallocated right child nodes in the tree.
+                 *
+                 * Usually this would signal the end of the loop as the only
+                 * time this should happen is when the full input buffer has
+                 * been deserialised (i.e.`u32_NextOffset >= u32_BufferSize`),
+                 * since the tree is serialised in a pre-order traversal fasion.
+                 *
+                 * However, if the input buffer is malformed in some way it is
+                 * possible that there are elements in it that havent't been
+                 * deserialised yet (i.e. `u32_NextOffset < u32_BufferSize`).
+                 *
+                 * This should be treated as error as otherwise the user might
+                 * not get the expected (or full) ID tree. */
+                else if ((u32_Offset + sizeof(ITC_SerDes_Header_t)) <
+                         u32_BufferSize)
+                {
+                    t_Status = ITC_STATUS_CORRUPT_ID;
+                }
+            }
+
+            /* Get the next header */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
         }
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Check the ID is valid */
+        /* Check the deserialised ID is valid */
         t_Status = validateId(*ppt_Id, true);
     }
 
