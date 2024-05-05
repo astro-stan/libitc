@@ -1,6 +1,6 @@
 /**
- * @file ITC_SerDes.h
- * @brief Definitions for the Interval Tree Clock's serialisation and
+ * @file ITC_SerDes_package.h
+ * @brief Package definitions for the Interval Tree Clock's serialisation and
  * deserialisation mechanism
  *
  * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
@@ -8,10 +8,10 @@
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
-#ifndef ITC_SERDES_H_
-#define ITC_SERDES_H_
+#ifndef ITC_SERDES_PACKAGE_H_
+#define ITC_SERDES_PACKAGE_H_
 
-#include "ITC_Stamp.h"
+#include "ITC_Id.h"
 #include "ITC_Status.h"
 
 /******************************************************************************
@@ -19,9 +19,9 @@
  ******************************************************************************/
 
 /**
- * @brief Serialise an existing ITC Stamp
+ * @brief Serialise an existing ITC Id
  *
- * @param ppt_Stamp The pointer to the Stamp
+ * @param ppt_Id The pointer to the Id
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
  * of the data inside the buffer in bytes.
@@ -29,25 +29,25 @@
  * @retval `ITC_STATUS_SUCCESS` on success
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
  */
-ITC_Status_t ITC_SerDes_serialiseStamp(
-    const ITC_Stamp_t *pt_Stamp,
+ITC_Status_t ITC_SerDes_serialiseId(
+    const ITC_Id_t *pt_Id,
     uint8_t *pu8_Buffer,
     uint32_t *pu32_BufferSize
 );
 
 /**
- * @brief Deserialise an ITC Stamp
+ * @brief Deserialise an ITC Id
  *
- * @param pu8_Buffer The buffer holding the serialised Stamp data
+ * @param pu8_Buffer The buffer holding the serialised Id data
  * @param u32_BufferSize The size of the buffer in bytes
- * @param ppt_Stamp The pointer to the deserialised Stamp
+ * @param ppt_Id The pointer to the deserialised Id
  * @return ITC_Status_t The status of the operation
  * @retval ITC_STATUS_SUCCESS on success
  */
-ITC_Status_t ITC_SerDes_deserialiseStamp(
+ITC_Status_t ITC_SerDes_deserialiseId(
     const uint8_t *pu8_Buffer,
     const uint32_t u32_BufferSize,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Id_t **ppt_Id
 );
 
-#endif /* ITC_SERDES_H_ */
+#endif /* ITC_SERDES_PACKAGE_H_ */
