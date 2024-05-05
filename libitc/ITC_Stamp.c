@@ -8,6 +8,7 @@
  *
  */
 #include "ITC_Stamp.h"
+#include "ITC_SerDes.h"
 
 #include "ITC_Event_package.h"
 #include "ITC_Id_package.h"
@@ -550,4 +551,30 @@ ITC_Status_t ITC_Stamp_compare(
     }
 
     return t_Status;
+}
+
+/******************************************************************************
+ * Serialise an existing ITC Stamp
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_serialiseStamp(
+    const ITC_Stamp_t *pt_Stamp,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    return ITC_STATUS_FAILURE;
+}
+
+/******************************************************************************
+ * Deserialise an ITC Stamp
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_deserialiseStamp(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Stamp_t **ppt_Stamp
+)
+{
+    return ITC_STATUS_FAILURE;
 }
