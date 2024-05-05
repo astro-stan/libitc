@@ -34,7 +34,7 @@ static ITC_Status_t validateBuffer(
     const uint32_t *pu32_BufferSize
 )
 {
-    if (!pu8_Buffer || !pu32_BufferSize)
+    if (!pu8_Buffer || !pu32_BufferSize || !(*pu32_BufferSize))
     {
         return ITC_STATUS_INVALID_PARAM;
     }
@@ -976,6 +976,129 @@ static ITC_Status_t serialiseId(
     return t_Status;
 }
 
+/**
+ * @brief Deserialise an ITC Id
+ *
+ * @param pu8_Buffer The buffer holding the serialised Id data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param ppt_Id The pointer to the deserialised Id
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t deserialiseId(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Id_t **ppt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t **ppt_CurrentId = NULL; /* The current ID */
+    ITC_Id_t *pt_CurrentIdParent = NULL;
+    uint32_t u32_Offset = 0; /* The current offset */
+
+    *ppt_Id = NULL;
+    ppt_CurrentId = ppt_Id;
+
+    if (pu8_Buffer[u32_BufferSize - 1] == ITC_SERDES_PARENT_ID_HEADER)
+    {
+        t_Status = ITC_STATUS_CORRUPT_ID;
+    }
+
+    while (u32_Offset < u32_BufferSize && t_Status == ITC_STATUS_SUCCESS)
+    {
+        if (!ppt_CurrentId)
+        {
+            t_Status = ITC_STATUS_CORRUPT_ID;
+        }
+        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_PARENT_ID_HEADER)
+        {
+            /* Increment the offset */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+            /* Create the parent ID */
+            t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, false);
+
+            /* Get ready for the next header */
+            pt_CurrentIdParent = *ppt_CurrentId;
+            ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+        }
+        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER)
+        {
+            /* Increment the offset */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+            /* Create the leaf ID */
+            t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, false);
+
+            /* Get ready for the next header */
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                while (pt_CurrentIdParent && pt_CurrentIdParent->pt_Right)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent;
+                    pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
+                }
+
+                if (pt_CurrentIdParent)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent->pt_Right;
+                }
+                else
+                {
+                    ppt_CurrentId = NULL;
+                }
+            }
+        }
+        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_SEED_ID_HEADER)
+        {
+            /* Increment the offset */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+            /* Create the leaf ID */
+            t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, true);
+
+            /* Get ready for the next header */
+            if (t_Status == ITC_STATUS_SUCCESS)
+            {
+                while (pt_CurrentIdParent && pt_CurrentIdParent->pt_Right)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent;
+                    pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
+                }
+
+                if (pt_CurrentIdParent)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent->pt_Right;
+                }
+                else
+                {
+                    ppt_CurrentId = NULL;
+                }
+            }
+        }
+        else
+        {
+            t_Status = ITC_STATUS_CORRUPT_ID;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check the ID is valid */
+        t_Status = validateId(*ppt_Id, true);
+    }
+
+    if (t_Status != ITC_STATUS_SUCCESS)
+    {
+        /* There is nothing else to do if the destroy fails. Also it is more
+         * important to convey the deserialisation failed, rather than the
+         * destroy */
+        (void)ITC_Id_destroy(ppt_Id);
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -1232,11 +1355,11 @@ ITC_Status_t ITC_SerDes_serialiseId(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateId(pt_Id, true);
+    t_Status = validateBuffer(pu8_Buffer, pu32_BufferSize);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateBuffer(pu8_Buffer, pu32_BufferSize);
+        t_Status = validateId(pt_Id, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1257,5 +1380,22 @@ ITC_Status_t ITC_SerDes_deserialiseId(
     ITC_Id_t **ppt_Id
 )
 {
-    return ITC_STATUS_FAILURE;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
+    if (!ppt_Id)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateBuffer(pu8_Buffer, &u32_BufferSize);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = deserialiseId(pu8_Buffer, u32_BufferSize, ppt_Id);
+    }
+
+    return t_Status;
 }

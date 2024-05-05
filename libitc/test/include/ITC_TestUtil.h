@@ -37,7 +37,7 @@
  ******************************************************************************/
 
 /**
- * @brief Table of constructors for varous types of invalid IDs
+ * @brief Table of constructors for various types of invalid IDs
  *  Each constructor must return an invalid ITC_Id_t**.
  *
  *  It is expected that a a destructor for the invalid ID exists at the
@@ -46,7 +46,7 @@
 extern void (*const gpv_InvalidIdConstructorTable[])(ITC_Id_t **);
 
 /**
- * @brief Table of destructors for varous types of invalid IDs
+ * @brief Table of destructors for various types of invalid IDs
  *  Each destructor must fully deallocate the invalid ID.
  *
  *  It is expected that a a constructor for the invalid ID exists at the
@@ -61,7 +61,22 @@ extern void (*const gpv_InvalidIdDestructorTable[])(ITC_Id_t **);
 extern const uint32_t gu32_InvalidIdTablesSize;
 
 /**
- * @brief Table of constructors for varous types of invalid Events
+ * @brief Table of constructors for various types of invalid serialised IDs
+ *  Each constructor must return an invalid serialised ID buffer and it size.
+ *
+ *  It is expected that the buffers are statically allocated and no desctuctor
+ *  is necessary.
+ */
+extern void (*const gpv_InvalidSerialisedIdConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize);
+
+/**
+ * @brief The size of the `gpv_InvalidSerialisedIdConstructorTable` array.
+ */
+extern const uint32_t gu32_InvalidSerialisedIdTableSize;
+
+/**
+ * @brief Table of constructors for various types of invalid Events
  *  Each constructor must return an invalid ITC_Event_t**.
  *
  *  It is expected that a a destructor for the invalid Event exists at the
@@ -70,7 +85,7 @@ extern const uint32_t gu32_InvalidIdTablesSize;
 extern void (*const gpv_InvalidEventConstructorTable[])(ITC_Event_t **);
 
 /**
- * @brief Table of destructors for varous types of invalid Events
+ * @brief Table of destructors for various types of invalid Events
  *  Each destructor must fully deallocate the invalid Event.
  *
  *  It is expected that a a constructor for the invalid Event exists at the
