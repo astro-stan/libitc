@@ -25,8 +25,8 @@
  * Should be used to validate all incoming Stamps before any processing is done.
  *
  * @param pt_Stamp The Stamp to validate
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t validateStamp(
     const ITC_Stamp_t *const pt_Stamp
@@ -66,8 +66,8 @@ static ITC_Status_t validateStamp(
  * Stamp. Ignored if pt_Id == NULL
  * @param b_CloneEvent Whether to clone or simply assign the passed Event to the
  * Stamp. Ignored if pt_Event == NULL
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t newStamp(
     ITC_Stamp_t **ppt_Stamp,
@@ -175,8 +175,8 @@ static ITC_Status_t newStamp(
  * @param pt_Stamp1 The first Stamp
  * @param pt_Stamp2 The second Stamp
  * @param pt_Result The result of the comparison
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t compareStamps(
     const ITC_Stamp_t *const pt_Stamp1,
