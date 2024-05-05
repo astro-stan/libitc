@@ -2,7 +2,7 @@
  * @file ITC_TestUtil.h
  * @brief Testing utilities
  *
- * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
+ * @copyright Copyright (c) 2024 libitc project. Released under AGPL-3.0
  * license. Refer to the LICENSE file for details or visit:
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
@@ -93,8 +93,8 @@ extern const uint32_t gu32_InvalidEventTablesSize;
  *
  * @param ppt_Id (out) The pointer to the NULL ID
  * @param pt_Parent The pointer to the parent ID. Otherwise NULL
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_TestUtil_newNullId(
     ITC_Id_t **ppt_Id,
@@ -106,8 +106,8 @@ ITC_Status_t ITC_TestUtil_newNullId(
  *
  * @param ppt_Id (out) The pointer to the seed ID
  * @param pt_Parent The pointer to the parent ID. Otherwise NULL
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_TestUtil_newSeedId(
     ITC_Id_t **ppt_Id,
@@ -120,8 +120,8 @@ ITC_Status_t ITC_TestUtil_newSeedId(
  *
  * @param ppt_Event (out) The pointer to the Event
  * @param pt_Parent The pointer to the parent Event. Otherwise NULL
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_TestUtil_newEvent(
     ITC_Event_t **ppt_Event,
