@@ -2,7 +2,7 @@
  * @file ITC_Event_package.h
  * @brief Package definitions for the Interval Tree Clock's Event mechanism
  *
- * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
+ * @copyright Copyright (c) 2024 libitc project. Released under AGPL-3.0
  * license. Refer to the LICENSE file for details or visit:
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
@@ -25,8 +25,8 @@
  * @brief Allocate a new ITC Event and initialise it
  *
  * @param ppt_Event (out) The pointer to the Event
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_new(
     ITC_Event_t **ppt_Event
@@ -40,8 +40,8 @@ ITC_Status_t ITC_Event_new(
  * be set to `NULL`.
  *
  * @param ppt_Event (in) The pointer to the Event to deallocate. (out) NULL
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_destroy(
     ITC_Event_t **ppt_Event
@@ -52,8 +52,8 @@ ITC_Status_t ITC_Event_destroy(
  *
  * @param pt_Event The existing Event
  * @param ppt_ClonedEvent (out) The pointer to the cloned Event
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_clone(
     const ITC_Event_t *const pt_Event,
@@ -64,8 +64,8 @@ ITC_Status_t ITC_Event_clone(
  * @brief Validate an Event
  *
  * @param pt_Event The Event to validate
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_validate(
     const ITC_Event_t *const pt_Event
@@ -75,8 +75,8 @@ ITC_Status_t ITC_Event_validate(
  * @brief Normalise an Event
  *
  * @param pt_Event The Event to normalise
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_normalise(
     ITC_Event_t *pt_Event
@@ -89,8 +89,8 @@ ITC_Status_t ITC_Event_normalise(
  * the largest total sum of events in the tree.
  *
  * @param pt_Event The Event to maximise
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_maximise(
     ITC_Event_t *pt_Event
@@ -102,8 +102,8 @@ ITC_Status_t ITC_Event_maximise(
  * @param pt_Event1 The first Event
  * @param pt_Event2 The second Event
  * @param ppt_Event (out) The pointer to the joined Event
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_join(
     const ITC_Event_t *const pt_Event1,
@@ -117,8 +117,8 @@ ITC_Status_t ITC_Event_join(
  * @param pt_Event1 The first Event
  * @param pt_Event2 The second Event
  * @param pb_IsLeq (out) `true` if `*pt_Event1 <= *pt_Event2`. Otherwise `false`
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_leq(
     const ITC_Event_t *const pt_Event1,
@@ -137,8 +137,8 @@ ITC_Status_t ITC_Event_leq(
  * @param pt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
  * @param pb_WasFilled Whether filling the Event was successful or not
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_fill(
     ITC_Event_t *pt_Event,
@@ -160,8 +160,8 @@ ITC_Status_t ITC_Event_fill(
  *
  * @param pt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_grow(
     ITC_Event_t *pt_Event,

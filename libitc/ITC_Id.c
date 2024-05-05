@@ -2,7 +2,7 @@
  * @file ITC_Id.c
  * @brief Implementation of the Interval Tree Clock's ID mechanism
  *
- * @copyright Copyright (c) 2024 libITC project. Released under AGPL-3.0
+ * @copyright Copyright (c) 2024 libitc project. Released under AGPL-3.0
  * license. Refer to the LICENSE file for details or visit:
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
@@ -26,8 +26,8 @@
  *
  * @param pt_Id The ID to validate
  * @param b_CheckIsNormalised Whether to check if the ID is normalised
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t validateId(
     const ITC_Id_t *pt_Id,
@@ -117,8 +117,8 @@ static ITC_Status_t validateId(
  * @param ppt_Id (out) The pointer to the new ID
  * @param ppt_Parent The pointer to the parent ID in the tree. Otherwise NULL.
  * @param b_IsOwner Whether the ID owns its interval or not.
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t newId(
     ITC_Id_t **ppt_Id,
@@ -159,8 +159,8 @@ static ITC_Status_t newId(
  * @param pt_Id The existing ID
  * @param ppt_ClonedId The pointer to the cloned ID
  * @param pt_ParentId The pointer to parent ID. Otherwise NULL
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t cloneId(
     const ITC_Id_t *pt_Id,
@@ -342,8 +342,8 @@ static ITC_Status_t splitId1(
  * @param pt_Id The existing ID
  * @param ppt_Id1 The first ID
  * @param ppt_Id2 The second ID
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t splitIdI(
     const ITC_Id_t *pt_Id,
@@ -577,8 +577,8 @@ static ITC_Status_t splitIdI(
  *
  * @param pt_Id The ID on which to perform the operation
  * children
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t normId11Or00(
     ITC_Id_t *pt_Id
@@ -635,8 +635,8 @@ static ITC_Status_t normId11Or00(
  *  - norm(i) = i
  *
  * @param pt_Id The ID to normalise
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t normIdI(
     ITC_Id_t *pt_Id
@@ -725,8 +725,8 @@ static ITC_Status_t normIdI(
  * @param pt_Id1 The first ID
  * @param pt_Id2 The second ID
  * @param ppt_Id The new ID
- * @return ITC_Status_t The status of the operation
- * @retval ITC_STATUS_SUCCESS on success
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t sumIdI(
     const ITC_Id_t *pt_Id1,
