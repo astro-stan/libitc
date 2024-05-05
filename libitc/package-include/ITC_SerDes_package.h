@@ -12,6 +12,7 @@
 #define ITC_SERDES_PACKAGE_H_
 
 #include "ITC_Id.h"
+#include "ITC_Event.h"
 #include "ITC_Status.h"
 
 /******************************************************************************
@@ -48,6 +49,38 @@ ITC_Status_t ITC_SerDes_deserialiseId(
     const uint8_t *pu8_Buffer,
     const uint32_t u32_BufferSize,
     ITC_Id_t **ppt_Id
+);
+
+/**
+ * @brief Serialise an existing ITC Event
+ *
+ * @param ppt_Event The pointer to the Event
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+ITC_Status_t ITC_SerDes_serialiseEvent(
+    const ITC_Event_t *pt_Event,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+);
+
+/**
+ * @brief Deserialise an ITC Event
+ *
+ * @param pu8_Buffer The buffer holding the serialised Event data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param ppt_Event The pointer to the deserialised Event
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_SerDes_deserialiseEvent(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Event_t **ppt_Event
 );
 
 #endif /* ITC_SERDES_PACKAGE_H_ */

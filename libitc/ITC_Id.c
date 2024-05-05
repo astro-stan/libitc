@@ -914,7 +914,7 @@ static ITC_Status_t serialiseId(
     /* Perform a pre-order traversal */
     while (pt_Id && t_Status == ITC_STATUS_SUCCESS)
     {
-        if (u32_Offset + sizeof(ITC_SerDes_Header_t) > *pu32_BufferSize)
+        if ((u32_Offset + sizeof(ITC_SerDes_Header_t)) > *pu32_BufferSize)
         {
             t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
         }

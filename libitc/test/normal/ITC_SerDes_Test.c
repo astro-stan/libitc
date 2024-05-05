@@ -17,6 +17,7 @@
 #include "ITC_TestUtil.h"
 
 #include "ITC_Id_package.h"
+#include "ITC_Event_package.h"
 
 #include "ITC_Stamp.h"
 
@@ -117,10 +118,11 @@ void ITC_SerDes_Test_serialiseIdLeafSuccessful(void)
         ITC_SerDes_serialiseId(pt_Id, &ru8_Buffer[0], &u32_BufferSize));
 
     /* Test the serialised data is what is expected */
-    TEST_ASSERT_EQUAL(sizeof(ITC_SerDes_Header_t), u32_BufferSize);
-    TEST_ASSERT_EQUAL_MEMORY(&ru8_ExpectedSeedIdSerialisedData[0],
-                             &ru8_Buffer[0],
-                             sizeof(ru8_ExpectedSeedIdSerialisedData));
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedSeedIdSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedSeedIdSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedSeedIdSerialisedData));
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -136,10 +138,11 @@ void ITC_SerDes_Test_serialiseIdLeafSuccessful(void)
         ITC_SerDes_serialiseId(pt_Id, &ru8_Buffer[0], &u32_BufferSize));
 
     /* Test the serialised data is what is expected */
-    TEST_ASSERT_EQUAL(sizeof(ITC_SerDes_Header_t), u32_BufferSize);
-    TEST_ASSERT_EQUAL_MEMORY(&ru8_ExpectedNullIdSerialisedData[0],
-                             &ru8_Buffer[0],
-                             sizeof(ru8_ExpectedNullIdSerialisedData));
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedNullIdSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedNullIdSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedNullIdSerialisedData));
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -206,10 +209,11 @@ void ITC_SerDes_Test_serialiseIdLeafSubtreeSuccessful(void)
             &u32_BufferSize));
 
     /* Test the serialised data is what is expected */
-    TEST_ASSERT_EQUAL(sizeof(ITC_SerDes_Header_t), u32_BufferSize);
-    TEST_ASSERT_EQUAL_MEMORY(&ru8_ExpectedSeedIdSerialisedData[0],
-                             &ru8_Buffer[0],
-                             sizeof(ru8_ExpectedSeedIdSerialisedData));
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedSeedIdSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedSeedIdSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedSeedIdSerialisedData));
 
     /* Reset the buffer size */
     u32_BufferSize = sizeof(ru8_Buffer);
@@ -222,10 +226,11 @@ void ITC_SerDes_Test_serialiseIdLeafSubtreeSuccessful(void)
             &u32_BufferSize));
 
     /* Test the serialised data is what is expected */
-    TEST_ASSERT_EQUAL(sizeof(ITC_SerDes_Header_t), u32_BufferSize);
-    TEST_ASSERT_EQUAL_MEMORY(&ru8_ExpectedNullIdSerialisedData[0],
-                             &ru8_Buffer[0],
-                             sizeof(ru8_ExpectedNullIdSerialisedData));
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedNullIdSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedNullIdSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedNullIdSerialisedData));
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -268,10 +273,7 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
             &u32_BufferSize));
 
     /* Test the serialised data is what is expected */
-    TEST_ASSERT_EQUAL(
-        sizeof(ITC_SerDes_Header_t) *
-            ARRAY_COUNT(ru8_ExpectedIdSerialisedData),
-        u32_BufferSize);
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedIdSerialisedData), u32_BufferSize);
     TEST_ASSERT_EQUAL_MEMORY(
         &ru8_ExpectedIdSerialisedData[0],
         &ru8_Buffer[0],
@@ -392,6 +394,218 @@ void ITC_SerDes_Test_deserialiseParentIdSuccessful(void)
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test serialising an Event fails with invalid param */
+void ITC_SerDes_Test_serialiseEventFailInvalidParam(void)
+{
+    ITC_Event_t *pt_Dummy = NULL;
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEvent(
+            pt_Dummy,
+            &ru8_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEvent(
+            NULL,
+            &ru8_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEvent(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test serialising an Event fails with corrupt Event */
+void ITC_SerDes_Test_serialiseEventFailWithCorruptEvent(void)
+{
+    ITC_Event_t *pt_Event;
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseEvent(
+                pt_Event,
+                &ru8_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+}
+
+/* Test serialising a leaf Event succeeds */
+void ITC_SerDes_Test_serialiseEventLeafSuccessful(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    uint8_t ru8_ExpectedEventSerialisedData[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        123
+    };
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 123));
+
+    /* Serialise the Event */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEvent(pt_Event, &ru8_Buffer[0], &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedEventSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedEventSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedEventSerialisedData));
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising a leaf Event fails with insufficent resources */
+void ITC_SerDes_Test_serialiseEventFailWithInsufficentResources(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+    uint8_t ru8_Buffer[5] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+
+    /* Serialise the Event */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEvent(
+            pt_Event,
+            &ru8_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    u32_BufferSize = 0;
+
+    /* Serialise the Event */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEvent(
+            pt_Event->pt_Left,
+            &ru8_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising a leaf Event subtree succeeds */
+void ITC_SerDes_Test_serialiseEventLeafSubtreeSuccessful(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    uint8_t ru8_ExpectedEventSerialisedData[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        0
+    };
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+
+    /* Serialise the Event */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEvent(
+            pt_Event->pt_Left,
+            &ru8_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedEventSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedEventSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedEventSerialisedData));
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising a parent Event succeeds */
+void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+    uint8_t ru8_Buffer[18] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Serialised (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    uint8_t ru8_ExpectedEventSerialisedData[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
+        0,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
+        0,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 2),
+        (4242U >> 8U) & 0xFFU,
+        4242U & 0xFFU,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        0,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
+        (123123123U >> 24U) & 0xFFU,
+        (123123123U >> 16U) & 0xFFU,
+        (123123123U >> 8U) & 0xFFU,
+        123123123U & 0xFFU,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        0,
+    };
+
+    /* clang-format off */
+    /* Create a new (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4242));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 123123123));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    /* clang-format on */
+
+    /* Serialise the Event */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEvent(
+            pt_Event,
+            &ru8_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedEventSerialisedData), u32_BufferSize);
+    TEST_ASSERT_EQUAL_MEMORY(
+        &ru8_ExpectedEventSerialisedData[0],
+        &ru8_Buffer[0],
+        sizeof(ru8_ExpectedEventSerialisedData));
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
 /* Test serialising a Stamp fails with invalid param */
