@@ -24,4 +24,5 @@ libitc_src = files([
     'ITC_Event.c',
     'ITC_Stamp.c',
     'ITC_Port.c',
+    'ITC_SerDes_Util.c',
 ])

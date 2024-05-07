@@ -20,6 +20,56 @@
  ******************************************************************************/
 
 /**
+ * @brief Validate serialization/deserialization buffer
+ *
+ * @param pu8_Buffer The buffer
+ * @param pu32_BufferSize The buffer size
+ * @param u32_MinSize The minimum buffer size
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if *pu32_BufferSize < u32_MinSize
+ */
+ITC_Status_t ITC_SerDes_Util_validateBuffer(
+    const uint8_t *pu8_Buffer,
+    const uint32_t *pu32_BufferSize,
+    const uint32_t u32_MinSize
+);
+
+/**
+ * @brief Serialise an Event counter in network-endian
+ *
+ * @param t_Counter The counter to serialise
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+ITC_Status_t ITC_SerDes_Util_eventCounterToNetwork(
+    ITC_Event_Counter_t t_Counter,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+);
+
+/**
+ * @brief Deserialise an Event counter from network-endian
+ *
+ * @param pu8_Buffer The buffer holding the serialised data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param pt_Counter The pointer to the counter
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE` if
+ * `u32_BufferSize > sizeof(ITC_Event_Counter_t)`
+ */
+ITC_Status_t ITC_SerDes_Util_eventCounterFromNetwork(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Event_Counter_t *pt_Counter
+);
+
+/**
  * @brief Serialise an existing ITC Id
  *
  * @param ppt_Id The pointer to the Id

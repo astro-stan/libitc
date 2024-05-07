@@ -686,6 +686,15 @@ void ITC_SerDes_Test_deserialiseEventFailWithUnsupportedCounterSize(void)
             false,
             (sizeof(ITC_Event_Counter_t) + 1)),
         1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
     };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 

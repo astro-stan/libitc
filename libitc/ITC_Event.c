@@ -24,27 +24,6 @@
  ******************************************************************************/
 
 /**
- * @brief Validate serialization/deserialization buffer
- *
- * @param pu8_Buffer The buffer
- * @param pu32_BufferSize The buffer size
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-static ITC_Status_t validateBuffer(
-    const uint8_t *pu8_Buffer,
-    const uint32_t *pu32_BufferSize
-)
-{
-    if (!pu8_Buffer || !pu32_BufferSize || !(*pu32_BufferSize))
-    {
-        return ITC_STATUS_INVALID_PARAM;
-    }
-
-    return ITC_STATUS_SUCCESS;
-}
-
-/**
  * @brief Validate an existing ITC Event
  *
  * Should be used to validate all incoming Events before any processing is done.
@@ -1519,79 +1498,6 @@ static ITC_Status_t growEventE(
 }
 
 /**
- * @brief Serialise an Event counter in network-endian
- *
- * @param t_Counter The counter to serialise
- * @param pu8_Buffer The buffer to hold the serialised data
- * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
- * of the data inside the buffer in bytes.
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
- */
-static ITC_Status_t serialiseEventCounter(
-    ITC_Event_Counter_t t_Counter,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
-)
-{
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Event_Counter_t t_CounterCopy = t_Counter;
-    /* The number of bytes needed to serialise the counter */
-    uint32_t u32_BytesNeeded = 0;
-
-    /* Determine the bytes needed to serialise the counter */
-    do
-    {
-        t_CounterCopy >>= 8U;
-        u32_BytesNeeded++;
-    } while (t_CounterCopy != 0);
-
-    if (u32_BytesNeeded > *pu32_BufferSize)
-    {
-        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
-    }
-    else
-    {
-        /* Serialise in network-endian */
-        for (uint32_t u32_I = u32_BytesNeeded; u32_I > 0; u32_I--)
-        {
-            pu8_Buffer[u32_I - 1] = (uint8_t)(t_Counter & 0xFFU);
-            t_Counter >>= 8U;
-        }
-
-        /* Return the size of the data in the buffer */
-        *pu32_BufferSize = u32_BytesNeeded;
-    }
-
-    return t_Status;
-}
-
-/**
- * @brief Deerialise an Event counter from network-endian
- *
- * @param pu8_Buffer The buffer holding the serialised data
- * @param u32_BufferSize The size of the buffer in bytes
- * @param pt_Counter The pointer to the counter
- */
-static void deserialiseEventCounter(
-    const uint8_t *pu8_Buffer,
-    const uint32_t u32_BufferSize,
-    ITC_Event_Counter_t *pt_Counter
-)
-{
-    /* Init the counter */
-    *pt_Counter = 0;
-
-    /* Deserialise from network-endian */
-    for (uint32_t u32_I = 0; u32_I < u32_BufferSize; u32_I++)
-    {
-        *pt_Counter <<= 8U;
-        *pt_Counter |= pu8_Buffer[u32_I];
-    }
-}
-
-/**
  * @brief Serialise an existing ITC Event
  *
  * @param ppt_Event The pointer to the Event
@@ -1635,7 +1541,7 @@ static ITC_Status_t serialiseEvent(
                 *pu32_BufferSize - (u32_Offset + sizeof(ITC_SerDes_Header_t));
 
             /* Serialise the event counter */
-            t_Status = serialiseEventCounter(
+            t_Status = ITC_SerDes_Util_eventCounterToNetwork(
                 pt_Event->t_Count,
                 &pu8_Buffer[u32_Offset + sizeof(ITC_SerDes_Header_t)],
                 &u32_CurrentEventCounterSize);
@@ -1750,18 +1656,13 @@ static ITC_Status_t deserialiseEvent(
             u32_NextHeaderOffset =
                 u32_Offset + u32_CounterLen + sizeof(ITC_SerDes_Header_t);
 
-            /* The counter is bigger than the maximum supported length */
-            if (u32_CounterLen > sizeof(ITC_Event_Counter_t))
-            {
-                t_Status = ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE;
-            }
             /* Check for serialisation data validity:
              * - Check there is enough data left in the buffer to deserialise
              *   the current node
              * - Check the last serialised node is not a parent
              */
-            else if ((u32_NextHeaderOffset > u32_BufferSize) ||
-                     (b_IsParent && u32_NextHeaderOffset == u32_BufferSize))
+            if ((u32_NextHeaderOffset > u32_BufferSize) ||
+                (b_IsParent && u32_NextHeaderOffset == u32_BufferSize))
             {
                 t_Status = ITC_STATUS_CORRUPT_EVENT;
             }
@@ -1783,14 +1684,18 @@ static ITC_Status_t deserialiseEvent(
             if (u32_CounterLen > 0)
             {
                 /* Deserialise the event counter */
-                deserialiseEventCounter(
+                t_Status = ITC_SerDes_Util_eventCounterFromNetwork(
                     &pu8_Buffer[u32_Offset],
                     u32_CounterLen,
                     &(*ppt_CurrentEvent)->t_Count);
 
-                /* Increment the offset */
-                u32_Offset += u32_CounterLen;
             }
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Increment the offset */
+            u32_Offset += u32_CounterLen;
 
             /* If the current header was a parent - descend into left child */
             if (b_IsParent)
@@ -2183,7 +2088,10 @@ ITC_Status_t ITC_SerDes_serialiseEvent(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateBuffer(pu8_Buffer, pu32_BufferSize);
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        pu8_Buffer,
+        pu32_BufferSize,
+        sizeof(ITC_SerDes_Header_t));
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -2217,7 +2125,10 @@ ITC_Status_t ITC_SerDes_deserialiseEvent(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateBuffer(pu8_Buffer, &u32_BufferSize);
+        t_Status = ITC_SerDes_Util_validateBuffer(
+            pu8_Buffer,
+            &u32_BufferSize,
+            sizeof(ITC_SerDes_Header_t));
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)

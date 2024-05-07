@@ -22,27 +22,6 @@
  ******************************************************************************/
 
 /**
- * @brief Validate serialization/deserialization buffer
- *
- * @param pu8_Buffer The buffer
- * @param pu32_BufferSize The buffer size
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-static ITC_Status_t validateBuffer(
-    const uint8_t *pu8_Buffer,
-    const uint32_t *pu32_BufferSize
-)
-{
-    if (!pu8_Buffer || !pu32_BufferSize || !(*pu32_BufferSize))
-    {
-        return ITC_STATUS_INVALID_PARAM;
-    }
-
-    return ITC_STATUS_SUCCESS;
-}
-
-/**
  * @brief Validate an existing ITC ID
  *
  * Should be used to validate all incoming IDs before any processing is done.
@@ -1353,7 +1332,10 @@ ITC_Status_t ITC_SerDes_serialiseId(
 {
     ITC_Status_t t_Status; /* The current status */
 
-    t_Status = validateBuffer(pu8_Buffer, pu32_BufferSize);
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        pu8_Buffer,
+        pu32_BufferSize,
+        sizeof(ITC_SerDes_Header_t));
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1387,7 +1369,10 @@ ITC_Status_t ITC_SerDes_deserialiseId(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateBuffer(pu8_Buffer, &u32_BufferSize);
+        t_Status = ITC_SerDes_Util_validateBuffer(
+            pu8_Buffer,
+            &u32_BufferSize,
+            sizeof(ITC_SerDes_Header_t));
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
