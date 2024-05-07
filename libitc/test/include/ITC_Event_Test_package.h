@@ -37,7 +37,7 @@
     {                                                                          \
         TEST_ASSERT_TRUE_MESSAGE(                                              \
             ITC_EVENT_IS_LEAF_EVENT(pt_Event), "Not a leaf Event node");       \
-        TEST_ASSERT_EQUAL((pt_Event)->t_Count, (t_Count_));                    \
+        TEST_ASSERT_EQUAL((t_Count_), (pt_Event)->t_Count);                    \
     }                                                                          \
     while(0)                                                                   \
 
@@ -48,7 +48,7 @@
         TEST_ASSERT_TRUE_MESSAGE(                                              \
             ITC_EVENT_IS_VALID_PARENT(pt_Event),                               \
             "Not a valid parent Event node");                                  \
-        TEST_ASSERT_EQUAL((pt_Event)->t_Count, (t_Count_));                    \
+        TEST_ASSERT_EQUAL((t_Count_), (pt_Event)->t_Count);                    \
     }                                                                          \
     while(0)
 
