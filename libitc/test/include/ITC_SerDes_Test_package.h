@@ -38,6 +38,10 @@
 /* The mask of the `IS_PARENT` flag in a serialised ITC Event header */
 #define ITC_SERDES_EVENT_IS_PARENT_MASK                                  (0x01U)
 
+/* The mask of the whole Event header */
+#define ITC_SERDES_EVENT_HEADER_MASK                                           \
+    (ITC_SERDES_EVENT_IS_PARENT_MASK | ITC_SERDES_EVENT_COUNTER_LEN_MASK)
+
 /* The offset of the counter length field in a serialised ITC Event header */
 #define ITC_SERDES_EVENT_COUNTER_LEN_OFFSET                                 (1U)
 /* The mask of the counter length field in a serialised ITC Event header.

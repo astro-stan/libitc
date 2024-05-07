@@ -99,6 +99,21 @@ extern void (*const gpv_InvalidEventDestructorTable[])(ITC_Event_t **);
  */
 extern const uint32_t gu32_InvalidEventTablesSize;
 
+/**
+ * @brief Table of constructors for various types of invalid serialised Events
+ *  Each constructor must return an invalid serialised Event buffer and it size.
+ *
+ *  It is expected that the buffers are statically allocated and no desctuctor
+ *  is necessary.
+ */
+extern void (*const gpv_InvalidSerialisedEventConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize);
+
+/**
+ * @brief The size of the `gpv_InvalidSerialisedEventConstructorTable` array.
+ */
+extern const uint32_t gu32_InvalidSerialisedEventTableSize;
+
 /******************************************************************************
  *  Public functions
  ******************************************************************************/

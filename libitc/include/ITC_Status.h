@@ -46,6 +46,9 @@
 /** Operation failed due to the ITC Event counter underflowing */
 #define ITC_STATUS_EVENT_COUNTER_UNDERFLOW                                  (9U)
 
+/** Operation failed due to the serialised ITC Event counter being too big */
+#define ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE                          (10U)
+
 /******************************************************************************
  * Types
  ******************************************************************************/

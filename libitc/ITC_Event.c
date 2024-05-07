@@ -1568,6 +1568,30 @@ static ITC_Status_t serialiseEventCounter(
 }
 
 /**
+ * @brief Deerialise an Event counter from network-endian
+ *
+ * @param pu8_Buffer The buffer holding the serialised data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param pt_Counter The pointer to the counter
+ */
+static void deserialiseEventCounter(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Event_Counter_t *pt_Counter
+)
+{
+    /* Init the counter */
+    *pt_Counter = 0;
+
+    /* Deserialise from network-endian */
+    for (uint32_t u32_I = 0; u32_I < u32_BufferSize; u32_I++)
+    {
+        *pt_Counter <<= 8U;
+        *pt_Counter |= pu8_Buffer[u32_I];
+    }
+}
+
+/**
  * @brief Serialise an existing ITC Event
  *
  * @param ppt_Event The pointer to the Event
@@ -1675,6 +1699,155 @@ static ITC_Status_t serialiseEvent(
     {
         /* Return the size of the data in the buffer */
         *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Deserialise an ITC Event
+ *
+ * @param pu8_Buffer The buffer holding the serialised Event data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param ppt_Event The pointer to the deserialised Event
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t deserialiseEvent(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Event_t **ppt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Event_t **ppt_CurrentEvent = NULL; /* The current Event */
+    ITC_Event_t *pt_CurrentEventParent = NULL;
+    uint32_t u32_Offset = 0; /* The current offset */
+    uint32_t u32_CounterLen; /* The serialised Event counter length */
+    uint32_t u32_NextHeaderOffset; /* Used for serialisation data validation */
+    bool b_IsParent;
+
+    *ppt_Event = NULL;
+    ppt_CurrentEvent = ppt_Event;
+
+    while (u32_Offset < u32_BufferSize && t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Unknown node header value */
+        if (pu8_Buffer[u32_Offset] & ~ITC_SERDES_EVENT_HEADER_MASK)
+        {
+            t_Status = ITC_STATUS_CORRUPT_EVENT;
+        }
+        else
+        {
+            /* Get the node type */
+            b_IsParent = ITC_SERDES_EVENT_GET_IS_PARENT(pu8_Buffer[u32_Offset]);
+
+            /* Get the serialised Event counter length */
+            u32_CounterLen =
+                ITC_SERDES_EVENT_GET_COUNTER_LEN(pu8_Buffer[u32_Offset]);
+
+            /* Calculate the offset of the next node header */
+            u32_NextHeaderOffset =
+                u32_Offset + u32_CounterLen + sizeof(ITC_SerDes_Header_t);
+
+            /* The counter is bigger than the maximum supported length */
+            if (u32_CounterLen > sizeof(ITC_Event_Counter_t))
+            {
+                t_Status = ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE;
+            }
+            /* Check for serialisation data validity:
+             * - Check there is enough data left in the buffer to deserialise
+             *   the current node
+             * - Check the last serialised node is not a parent
+             */
+            else if ((u32_NextHeaderOffset > u32_BufferSize) ||
+                     (b_IsParent && u32_NextHeaderOffset == u32_BufferSize))
+            {
+                t_Status = ITC_STATUS_CORRUPT_EVENT;
+            }
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Create a new node */
+            t_Status = newEvent(ppt_CurrentEvent, pt_CurrentEventParent, 0);
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Increment the offset */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+            /* Special case - if the counter length is 0, then the
+             * serialised Event had an Event counter == 0 */
+            if (u32_CounterLen > 0)
+            {
+                /* Deserialise the event counter */
+                deserialiseEventCounter(
+                    &pu8_Buffer[u32_Offset],
+                    u32_CounterLen,
+                    &(*ppt_CurrentEvent)->t_Count);
+
+                /* Increment the offset */
+                u32_Offset += u32_CounterLen;
+            }
+
+            /* If the current header was a parent - descend into left child */
+            if (b_IsParent)
+            {
+                pt_CurrentEventParent = *ppt_CurrentEvent;
+                ppt_CurrentEvent = &(*ppt_CurrentEvent)->pt_Left;
+            }
+            /* If the current header was a leaf - find the first unallocated
+             * right child node or error out if there isn't one */
+            else
+            {
+                /* Backtrack the tree until an unallocated right child is found
+                 * or there are no more parent nodes */
+                while (pt_CurrentEventParent && pt_CurrentEventParent->pt_Right)
+                {
+                    ppt_CurrentEvent = &pt_CurrentEventParent;
+                    pt_CurrentEventParent = (*ppt_CurrentEvent)->pt_Parent;
+                }
+
+                /* Descend into the unallocated right child of the parent */
+                if (pt_CurrentEventParent)
+                {
+                    ppt_CurrentEvent = &pt_CurrentEventParent->pt_Right;
+                }
+                /* There aren't any unallocated right child nodes in the tree.
+                 *
+                 * Usually this would signal the end of the loop as the only
+                 * time this should happen is when the full input buffer has
+                 * been deserialised (i.e.`u32_Offset >= u32_BufferSize`),
+                 * since the tree is serialised in a pre-order traversal fasion.
+                 *
+                 * However, if the input buffer is malformed in some way it is
+                 * possible that there are elements in it that havent't been
+                 * deserialised yet (i.e. `u32_Offset < u32_BufferSize`).
+                 *
+                 * This should be treated as error as otherwise the user might
+                 * not get the expected (or full) Event tree. */
+                else if (u32_Offset < u32_BufferSize)
+                {
+                    t_Status = ITC_STATUS_CORRUPT_EVENT;
+                }
+            }
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check the deserialised Event is valid */
+        t_Status = validateEvent(*ppt_Event, true);
+    }
+
+    if (t_Status != ITC_STATUS_SUCCESS)
+    {
+        /* There is nothing else to do if the destroy fails. Also it is more
+         * important to convey the deserialisation failed, rather than the
+         * destroy */
+        (void)ITC_Event_destroy(ppt_Event);
     }
 
     return t_Status;
@@ -2035,5 +2208,22 @@ ITC_Status_t ITC_SerDes_deserialiseEvent(
     ITC_Event_t **ppt_Event
 )
 {
-    return ITC_STATUS_FAILURE;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
+    if (!ppt_Event)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateBuffer(pu8_Buffer, &u32_BufferSize);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = deserialiseEvent(pu8_Buffer, u32_BufferSize, ppt_Event);
+    }
+
+    return t_Status;
 }

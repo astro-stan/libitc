@@ -337,7 +337,7 @@ void ITC_SerDes_Test_deserialiseIdFailWithCorruptId(void)
 }
 
 /* Test deserialising a leaf ID suceeds */
-void ITC_SerDes_Test_deserialiseIdSuccessful(void)
+void ITC_SerDes_Test_deserialiseLeafIdSuccessful(void)
 {
     ITC_Id_t *pt_Id;
     uint8_t ru8_Buffer[] = { ITC_SERDES_SEED_ID_HEADER };
@@ -619,6 +619,160 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
         &ru8_ExpectedEventSerialisedData[0],
         &ru8_Buffer[0],
         sizeof(ru8_ExpectedEventSerialisedData));
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test deserialising an Event fails with invalid param */
+void ITC_SerDes_Test_deserialiseEventFailInvalidParam(void)
+{
+    ITC_Event_t *pt_Dummy = NULL;
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseEvent(
+            &ru8_Buffer[0],
+            0,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseEvent(
+            NULL,
+            u32_BufferSize,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseEvent(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test deserialising an Event fails with corrupt Event */
+void ITC_SerDes_Test_deserialiseEventFailWithCorruptEvent(void)
+{
+    ITC_Event_t *pt_Event;
+    const uint8_t *pu8_Buffer = NULL;
+    uint32_t u32_BufferSize = 0;
+
+    /* Test different invalid serialised Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidSerialisedEventTableSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidSerialisedEventConstructorTable[u32_I](
+            &pu8_Buffer, &u32_BufferSize);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_deserialiseEvent(
+                pu8_Buffer,
+                u32_BufferSize,
+                &pt_Event),
+            ITC_STATUS_CORRUPT_EVENT);
+    }
+}
+
+/* Test deserialising an Event fails with unsupported counter size */
+void ITC_SerDes_Test_deserialiseEventFailWithUnsupportedCounterSize(void)
+{
+    ITC_Event_t *pt_Event;
+    uint8_t ru8_Buffer[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(
+            false,
+            (sizeof(ITC_Event_Counter_t) + 1)),
+        1,
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseEvent(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            &pt_Event),
+        ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE);
+}
+
+/* Test deserialising a leaf Event suceeds */
+void ITC_SerDes_Test_deserialiseLeafEventSuccessful(void)
+{
+    ITC_Event_t *pt_Event;
+    uint8_t ru8_Buffer[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        123,
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+    uint8_t ru8_0EventBuffer[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0)
+    };
+    uint32_t u32_0EventBufferSize = sizeof(ru8_0EventBuffer);
+
+    /* Test deserialising a leaf Event */
+    TEST_SUCCESS(
+        ITC_SerDes_deserialiseEvent(&ru8_Buffer[0], u32_BufferSize, &pt_Event));
+
+    /* Test this is a leaf Event with the correct event count */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 123);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+
+    /* Test deserialising a leaf Event */
+    TEST_SUCCESS(
+        ITC_SerDes_deserialiseEvent(
+            &ru8_0EventBuffer[0],
+            u32_0EventBufferSize,
+            &pt_Event));
+
+    /* Test this is a leaf Event with the correct event count */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test deserialising a parent Event suceeds */
+void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
+{
+    ITC_Event_t *pt_Event;
+    /* Serialised (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    uint8_t ru8_Buffer[] = {
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 2),
+        (4242U >> 8U) & 0xFFU,
+        4242U & 0xFFU,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
+        (123123123U >> 24U) & 0xFFU,
+        (123123123U >> 16U) & 0xFFU,
+        (123123123U >> 8U) & 0xFFU,
+        123123123U & 0xFFU,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test deserialising the Event */
+    TEST_SUCCESS(
+        ITC_SerDes_deserialiseEvent(&ru8_Buffer[0], u32_BufferSize, &pt_Event));
+
+    /* clang-format off */
+    /* Test this is a (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Left, 4242);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, 123123123);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
+    /* clang-format on */
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
