@@ -1528,7 +1528,6 @@ static ITC_Status_t growEventE(
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
- * @return ITC_Status_t
  */
 static ITC_Status_t serialiseEventCounter(
     ITC_Event_Counter_t t_Counter,
@@ -1603,7 +1602,8 @@ static ITC_Status_t serialiseEvent(
         {
             t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
         }
-        else
+        /* Serialise the Event counter */
+        else if (pt_Event->t_Count > 0)
         {
             /* Calculate the remaining space in the buffer, while leaving space
              * for the header */
@@ -1615,52 +1615,57 @@ static ITC_Status_t serialiseEvent(
                 pt_Event->t_Count,
                 &pu8_Buffer[u32_Offset + sizeof(ITC_SerDes_Header_t)],
                 &u32_CurrentEventCounterSize);
+        }
+        /* Special case - the Event counter is 0, nothing to serialise */
+        else
+        {
+            u32_CurrentEventCounterSize = 0;
+        }
 
-            if (t_Status == ITC_STATUS_SUCCESS)
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Create the header */
+            pu8_Buffer[u32_Offset] = ITC_SERDES_CREATE_EVENT_HEADER(
+                ITC_EVENT_IS_PARENT_EVENT(pt_Event),
+                u32_CurrentEventCounterSize);
+
+            /* Increment the offset */
+            u32_Offset +=
+                sizeof(ITC_SerDes_Header_t) + u32_CurrentEventCounterSize;
+
+            /* Descend into left tree */
+            if (pt_Event->pt_Left)
             {
-                /* Create the header */
-                pu8_Buffer[u32_Offset] = ITC_SERDES_CREATE_EVENT_HEADER(
-                    ITC_EVENT_IS_PARENT_EVENT(pt_Event),
-                    u32_CurrentEventCounterSize);
+                pt_Event = pt_Event->pt_Left;
+            }
+            /* Valid parent ITC Event trees always have both left and right
+            * nodes. Thus, there is no need to check if the current node
+            * doesn't have a left child but has a right one.
+            *
+            * Instead directly start backtracking up the tree */
+            else
+            {
+                /* Remember the parent */
+                pt_CurrentEventParent = pt_Event->pt_Parent;
 
-                /* Increment the offset */
-                u32_Offset +=
-                    sizeof(ITC_SerDes_Header_t) + u32_CurrentEventCounterSize;
-
-                /* Descend into left tree */
-                if (pt_Event->pt_Left)
+                /* Loop until the current element is no longer reachable
+                * through the parent's right child */
+                while (pt_CurrentEventParent != pt_RootEventParent &&
+                    pt_CurrentEventParent->pt_Right == pt_Event)
                 {
-                    pt_Event = pt_Event->pt_Left;
+                    pt_Event = pt_Event->pt_Parent;
+                    pt_CurrentEventParent =
+                        pt_CurrentEventParent->pt_Parent;
                 }
-                /* Valid parent ITC Event trees always have both left and right
-                * nodes. Thus, there is no need to check if the current node
-                * doesn't have a left child but has a right one.
-                *
-                * Instead directly start backtracking up the tree */
+
+                /* There is a right subtree that has not been explored yet*/
+                if (pt_CurrentEventParent != pt_RootEventParent)
+                {
+                    pt_Event = pt_CurrentEventParent->pt_Right;
+                }
                 else
                 {
-                    /* Remember the parent */
-                    pt_CurrentEventParent = pt_Event->pt_Parent;
-
-                    /* Loop until the current element is no longer reachable
-                    * through the parent's right child */
-                    while (pt_CurrentEventParent != pt_RootEventParent &&
-                        pt_CurrentEventParent->pt_Right == pt_Event)
-                    {
-                        pt_Event = pt_Event->pt_Parent;
-                        pt_CurrentEventParent =
-                            pt_CurrentEventParent->pt_Parent;
-                    }
-
-                    /* There is a right subtree that has not been explored yet*/
-                    if (pt_CurrentEventParent != pt_RootEventParent)
-                    {
-                        pt_Event = pt_CurrentEventParent->pt_Right;
-                    }
-                    else
-                    {
-                        pt_Event = NULL;
-                    }
+                    pt_Event = NULL;
                 }
             }
         }
