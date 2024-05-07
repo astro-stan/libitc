@@ -33,6 +33,10 @@
 /* The header of a serialised parent ITC ID */
 #define ITC_SERDES_PARENT_ID_HEADER                                      (0x01U)
 
+/* The minimum possible length of a serialisation/deserialsation ID buffer
+ * (a leaf ID) - requires 1 `ITC_SerDes_Header_t` */
+#define ITC_SERDES_ID_MIN_BUFFER_LEN               (sizeof(ITC_SerDes_Header_t))
+
 /* The offset of the `IS_PARENT` flag in a serialised ITC Event header */
 #define ITC_SERDES_EVENT_IS_PARENT_OFFSET                                   (0U)
 /* The mask of the `IS_PARENT` flag in a serialised ITC Event header */
@@ -48,6 +52,10 @@
  * This allows for a maximum of a 4-bit counter, which allows encoding the size
  * of up to a 15-byte Event counter (i.e. sizeof(ITC_Event_Counter_t) <= 15) */
 #define ITC_SERDES_EVENT_COUNTER_LEN_MASK                                (0x1EU)
+
+/* The minimum possible length of a serialisation/deserialsation Event buffer
+ * (a leaf Event) - requires 1 `ITC_SerDes_Header_t` */
+#define ITC_SERDES_EVENT_MIN_BUFFER_LEN            (sizeof(ITC_SerDes_Header_t))
 
 /* Get the `IS_PARENT` flag of a serialised Event node */
 #define ITC_SERDES_EVENT_GET_IS_PARENT(t_Header)                               \

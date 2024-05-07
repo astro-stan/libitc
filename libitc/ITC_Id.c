@@ -1335,7 +1335,7 @@ ITC_Status_t ITC_SerDes_serialiseId(
     t_Status = ITC_SerDes_Util_validateBuffer(
         pu8_Buffer,
         pu32_BufferSize,
-        sizeof(ITC_SerDes_Header_t));
+        ITC_SERDES_ID_MIN_BUFFER_LEN);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1372,7 +1372,7 @@ ITC_Status_t ITC_SerDes_deserialiseId(
         t_Status = ITC_SerDes_Util_validateBuffer(
             pu8_Buffer,
             &u32_BufferSize,
-            sizeof(ITC_SerDes_Header_t));
+            ITC_SERDES_ID_MIN_BUFFER_LEN);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
