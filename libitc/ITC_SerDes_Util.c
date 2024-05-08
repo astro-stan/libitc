@@ -37,6 +37,78 @@ ITC_Status_t ITC_SerDes_Util_validateBuffer(
 }
 
 /******************************************************************************
+ * Serialise an `uint32_t` in network-endian
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_Util_u32ToNetwork(
+    uint32_t u32_Value,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    uint32_t u32_ValueCopy = u32_Value;
+    /* The number of bytes needed to serialise the value */
+    uint32_t u32_BytesNeeded = 0;
+
+    /* Determine the bytes needed to serialise the value */
+    do
+    {
+        u32_ValueCopy >>= 8U;
+        u32_BytesNeeded++;
+    } while (u32_ValueCopy != 0);
+
+    if (u32_BytesNeeded > *pu32_BufferSize)
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+    else
+    {
+        /* Serialise in network-endian */
+        for (uint32_t u32_I = u32_BytesNeeded; u32_I > 0; u32_I--)
+        {
+            pu8_Buffer[u32_I - 1] = (uint8_t)(u32_Value & 0xFFU);
+            u32_Value >>= 8U;
+        }
+
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_BytesNeeded;
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Deserialise an `uint32_t` from network-endian
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_Util_u32FromNetwork(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    uint32_t *pu32_Value
+)
+{
+    if (u32_BufferSize > sizeof(uint32_t))
+    {
+        /* The buffer is to big to fit into an uint32_t.
+         * This is probably an input error */
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
+    /* Init the value */
+    *pu32_Value = 0;
+
+    /* Deserialise from network-endian */
+    for (uint32_t u32_I = 0; u32_I < u32_BufferSize; u32_I++)
+    {
+        *pu32_Value <<= 8U;
+        *pu32_Value |= pu8_Buffer[u32_I];
+    }
+
+    return ITC_STATUS_SUCCESS;
+}
+
+/******************************************************************************
  * Serialise an Event counter in network-endian
  ******************************************************************************/
 

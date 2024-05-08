@@ -9,12 +9,16 @@
  */
 #include "ITC_Stamp.h"
 #include "ITC_SerDes.h"
+#include "ITC_SerDes_private.h"
+#include "ITC_SerDes_package.h"
 
 #include "ITC_Event_package.h"
 #include "ITC_Id_package.h"
 #include "ITC_Port.h"
 
 #include <stdbool.h>
+
+#include <string.h>
 
 /******************************************************************************
  * Private functions
@@ -234,6 +238,266 @@ static ITC_Status_t compareStamps(
             else
             {
                 *pt_Result = ITC_STAMP_COMPARISON_CONCURRENT;
+            }
+        }
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Serialise an existing ITC Stamp
+ *
+ * @param ppt_Stamp The pointer to the Stamp
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t serialiseStamp(
+    const ITC_Stamp_t *pt_Stamp,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+    ITC_SerDes_Header_t t_StampHeader = 0;
+    uint32_t u32_Offset = 0; /* The current offset into the buffer */
+    uint32_t u32_ComponentLength; /* The current serialised component size*/
+    /* The serialised `u32_ComponentLength` */
+    uint8_t ru8_ComponentLength[sizeof(uint32_t)] = { 0 };
+    /* The length of `ru8_ComponentLength` */
+    uint32_t u32_ComponentLengthLength;
+
+    /* Leave space for the header */
+    u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+    /* Calculate the size of the buffer */
+    u32_ComponentLength = *pu32_BufferSize - u32_Offset;
+
+    /* Serialise ID component */
+    t_Status = ITC_SerDes_serialiseId(
+        pt_Stamp->pt_Id,
+        &pu8_Buffer[u32_Offset],
+        &u32_ComponentLength);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Set the size of the buffer */
+        u32_ComponentLengthLength = sizeof(ru8_ComponentLength);
+
+        /* Serialise the ID component length
+         * Reusing this as the event counter is at a minimum a `uint32_t` */
+        t_Status = ITC_SerDes_Util_u32ToNetwork(
+            (ITC_Event_Counter_t)u32_ComponentLength,
+            &ru8_ComponentLength[0],
+            &u32_ComponentLengthLength);
+    }
+
+    /* Check there is enough space left in the buffer before continuing */
+    if (t_Status == ITC_STATUS_SUCCESS &&
+        (*pu32_BufferSize <=
+         (u32_Offset + u32_ComponentLengthLength + u32_ComponentLength)))
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Move contents to free space for the ID component length */
+        memmove(
+            &pu8_Buffer[u32_Offset + u32_ComponentLengthLength],
+            &pu8_Buffer[u32_Offset],
+            u32_ComponentLength);
+
+        /* Copy the serialised ID component length */
+        memcpy(
+            &pu8_Buffer[u32_Offset],
+            &ru8_ComponentLength[0],
+            u32_ComponentLengthLength);
+
+        /* Set the `ID component length` length in the header */
+        t_StampHeader = ITC_SERDES_STAMP_SET_ID_COMPONENT_LEN_LEN(
+            t_StampHeader, u32_ComponentLengthLength);
+
+        /* Increment the offset */
+        u32_Offset += u32_ComponentLength + u32_ComponentLengthLength;
+
+        /* Set the size of the buffer */
+        u32_ComponentLength = *pu32_BufferSize - u32_Offset;
+
+        /* Serialise Event component */
+        t_Status = ITC_SerDes_serialiseEvent(
+            pt_Stamp->pt_Event,
+            &pu8_Buffer[u32_Offset],
+            &u32_ComponentLength);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Set the size of the buffer */
+        u32_ComponentLengthLength = sizeof(ru8_ComponentLength);
+
+        /* Serialise the Event component length
+         * Reusing this as the event counter is at a minimum a `uint32_t` */
+        t_Status = ITC_SerDes_Util_u32ToNetwork(
+            (ITC_Event_Counter_t)u32_ComponentLength,
+            &ru8_ComponentLength[0],
+            &u32_ComponentLengthLength);
+    }
+
+    /* Check there is enough space left in the buffer before continuing */
+    if (t_Status == ITC_STATUS_SUCCESS &&
+        (*pu32_BufferSize <=
+         (u32_Offset + u32_ComponentLengthLength + u32_ComponentLength)))
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Move contents to free space for the Event component length */
+        memmove(
+            &pu8_Buffer[u32_Offset + u32_ComponentLengthLength],
+            &pu8_Buffer[u32_Offset],
+            u32_ComponentLength);
+
+        /* Copy the serialised Event component length */
+        memcpy(
+            &pu8_Buffer[u32_Offset],
+            &ru8_ComponentLength[0],
+            u32_ComponentLengthLength);
+
+        /* Set the `Event component length` length in the header */
+        t_StampHeader = ITC_SERDES_STAMP_SET_EVENT_COMPONENT_LEN_LEN(
+            t_StampHeader, u32_ComponentLengthLength);
+
+        /* Increment the offset */
+        u32_Offset += u32_ComponentLength + u32_ComponentLengthLength;
+
+        /* Add the Stamp header */
+        pu8_Buffer[0] = t_StampHeader;
+
+        /* Return the size of the buffer */
+        *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Deserialise an ITC Stamp
+ *
+ * @param pu8_Buffer The buffer holding the serialised Stamp data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param ppt_Stamp The pointer to the deserialised Stamp
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t deserialiseStamp(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Stamp_t **ppt_Stamp
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+    ITC_SerDes_Header_t t_StampHeader;
+    uint32_t u32_Offset = 0; /* The current offset into the buffer */
+    uint32_t u32_ComponentLength; /* The current serialised component size */
+    /* The length of the `serialised component length` length */
+    uint32_t u32_ComponentLengthLength;
+
+    ITC_Id_t *pt_Id = NULL;
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Init stamp */
+    *ppt_Stamp = NULL;
+
+    /* Get the stamp header */
+    t_StampHeader = pu8_Buffer[0];
+
+    /* Increment the offset */
+    u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+    /* Set the size of the buffer */
+    u32_ComponentLengthLength =
+        ITC_SERDES_STAMP_GET_ID_COMPONENT_LEN_LEN(t_StampHeader);
+
+    /* Deserialise the ID component length
+     * Reusing this as the event counter is at a minimum a `uint32_t` */
+    t_Status = ITC_SerDes_Util_u32FromNetwork(
+        &pu8_Buffer[u32_Offset],
+        u32_ComponentLengthLength,
+        (ITC_Event_Counter_t *)&u32_ComponentLength);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Increment offset */
+        u32_Offset += u32_ComponentLengthLength;
+
+        /* Deserialise the ID component */
+        t_Status = ITC_SerDes_deserialiseId(
+            &pu8_Buffer[u32_Offset],
+            u32_ComponentLength,
+            &pt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Increment the offset */
+        u32_Offset += u32_ComponentLength;
+
+        /* Set the size of the buffer */
+        u32_ComponentLengthLength =
+            ITC_SERDES_STAMP_GET_EVENT_COMPONENT_LEN_LEN(t_StampHeader);
+
+        /* Deserialise the Event component length
+        * Reusing this as the event counter is at a minimum a `uint32_t` */
+        t_Status = ITC_SerDes_Util_u32FromNetwork(
+            &pu8_Buffer[u32_Offset],
+            u32_ComponentLengthLength,
+            (ITC_Event_Counter_t *)&u32_ComponentLength);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Increment offset */
+        u32_Offset += u32_ComponentLengthLength;
+
+        /* Deserialise the Event component */
+        t_Status = ITC_SerDes_deserialiseEvent(
+            &pu8_Buffer[u32_Offset],
+            u32_ComponentLength,
+            &pt_Event);
+    }
+
+    /* Create the Stamp */
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = newStamp(ppt_Stamp, pt_Id, pt_Event, false, false, false);
+    }
+
+    if (t_Status != ITC_STATUS_SUCCESS)
+    {
+        /* There is nothing else to do if a destroy call fails. Also it is more
+         * important to convey the deserialisation failed, rather than the
+         * destroy, so ignore return statuses */
+
+        if (*ppt_Stamp)
+        {
+            (void)ITC_Stamp_destroy(ppt_Stamp);
+        }
+        else
+        {
+            if (pt_Id)
+            {
+                (void)ITC_Id_destroy(&pt_Id);
+            }
+            if (pt_Event)
+            {
+                (void)ITC_Event_destroy(&pt_Event);
             }
         }
     }
@@ -563,7 +827,24 @@ ITC_Status_t ITC_SerDes_serialiseStamp(
     uint32_t *pu32_BufferSize
 )
 {
-    return ITC_STATUS_FAILURE;
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        pu8_Buffer,
+        pu32_BufferSize,
+        ITC_SERDES_STAMP_MIN_BUFFER_LEN);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = serialiseStamp(pt_Stamp, pu8_Buffer, pu32_BufferSize);
+    }
+
+    return t_Status;
 }
 
 /******************************************************************************
@@ -576,5 +857,25 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
     ITC_Stamp_t **ppt_Stamp
 )
 {
-    return ITC_STATUS_FAILURE;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
+    if (!ppt_Stamp)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_SerDes_Util_validateBuffer(
+            pu8_Buffer,
+            &u32_BufferSize,
+            ITC_SERDES_STAMP_MIN_BUFFER_LEN);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = deserialiseStamp(pu8_Buffer, u32_BufferSize, ppt_Stamp);
+    }
+
+    return t_Status;
 }

@@ -36,6 +36,39 @@ ITC_Status_t ITC_SerDes_Util_validateBuffer(
 );
 
 /**
+ * @brief Serialise an `uint32_t` in network-endian
+ *
+ * @param u32_Value The value to serialise
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+ITC_Status_t ITC_SerDes_Util_u32ToNetwork(
+    uint32_t u32_Value,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+);
+
+/**
+ * @brief Deserialise an `uint32_t` from network-endian
+ *
+ * @param pu8_Buffer The buffer holding the serialised data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param pu32_Value The pointer to the value
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INVALID_PARAM` if `u32_BufferSize > sizeof(uint32_t)`
+ */
+ITC_Status_t ITC_SerDes_Util_u32FromNetwork(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    uint32_t *pu32_Value
+);
+
+/**
  * @brief Serialise an Event counter in network-endian
  *
  * @param t_Counter The counter to serialise
