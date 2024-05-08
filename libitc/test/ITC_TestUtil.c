@@ -828,6 +828,48 @@ static void newInvalidSerialisedParentEventWithInvalidNestedHeader(
 }
 
 /**
+ * @brief Create a new invalid serialised Event with no header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedEventWithNoHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        1, // Just an event count, no header
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised nested Event with no header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedNestedEventWithNoHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        2, // Just an event count, no header
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
  * @brief Create a new invalid serialised not normalised Event
  *
  * @param ppu8_Buffer (out) The pointer to the buffer
@@ -1271,6 +1313,8 @@ void (*const gpv_InvalidSerialisedEventConstructorTable[])(
     newInvalidSerialisedParentEventWithMultiParentRoot,
     newInvalidSerialisedParentEventWithInvalidHeader,
     newInvalidSerialisedParentEventWithInvalidNestedHeader,
+    newInvalidSerialisedEventWithNoHeader,
+    newInvalidSerialisedNestedEventWithNoHeader,
     newInvalidSerialisedNotNormalisedEvent,
     newInvalidSerialisedEventWithSmallerEventCounterLength,
     newInvalidSerialisedEventWithHigherEventCounterLength,
