@@ -899,6 +899,231 @@ static void newInvalidSerialisedEventWithHigherEventCounterLength(
     *pu32_BufferSize = sizeof(ru8_Buffer);
 }
 
+/**
+ * @brief Create a new invalid Stamp with no ID component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidStampWithNoID(ITC_Stamp_t **ppt_Stamp)
+{
+    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
+    TEST_SUCCESS(ITC_Id_destroy(&(*ppt_Stamp)->pt_Id));
+}
+
+/**
+ * @brief Create a new invalid Stamp with no Event component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidStampWithNoEvent(ITC_Stamp_t **ppt_Stamp)
+{
+    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
+    TEST_SUCCESS(ITC_Event_destroy(&(*ppt_Stamp)->pt_Event));
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with no ID component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithNoID(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_STAMP_HEADER(0, 1),
+        5,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
+        1,
+        2,
+        3,
+        4,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with no Event component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithNoEvent(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 0),
+        5,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with no header
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithNoHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        3,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with smaller ID component length
+ * length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithSmallerIDComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with bigger ID component length
+ * length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithBiggerIDComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        3,
+        1,
+        0,
+        2,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with smaller Event component
+ * length length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithSmallerEventComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with bigger Event component
+ * length length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithBiggerEventComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        0,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with invalid header
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithInvalidHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_SERDES_STAMP_HEADER_MASK << 1,
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
 /******************************************************************************
  *  Global variables
  ******************************************************************************/
@@ -1057,6 +1282,63 @@ void (*const gpv_InvalidSerialisedEventConstructorTable[])(
 
 const uint32_t gu32_InvalidSerialisedEventTableSize =
     ARRAY_COUNT(gpv_InvalidSerialisedEventConstructorTable);
+
+/******************************************************************************
+ * Table of constructors for various types of invalid Stamps
+ ******************************************************************************/
+
+void (*const gpv_InvalidStampConstructorTable[])(ITC_Stamp_t **) =
+{
+    newInvalidStampWithNoID,
+    newInvalidStampWithNoEvent,
+};
+
+/******************************************************************************
+ * Table of destructors for various types of invalid Stamps
+ ******************************************************************************/
+
+void (*const gpv_InvalidStampDestructorTable[])(ITC_Stamp_t **) =
+{
+    /* Cast the funcion pointer to the type of the table
+     * This is ugly but beats needlessly having to write a destructor
+     * for each invalid Stamp */
+    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
+    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
+};
+
+/******************************************************************************
+ * The size of the `gpv_InvalidStampConstructorTable` and `gpv_InvalidStampDestructorTable` arrays.
+ ******************************************************************************/
+
+const uint32_t gu32_InvalidStampTablesSize =
+    ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+
+/******************************************************************************
+ * Table of constructors for various types of invalid serialised Stamps
+ ******************************************************************************/
+
+void (*const gpv_InvalidSerialisedStampConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize) =
+{
+    /* Stamps here are specially crafted to trigger the `CORRUPT_STAMP` exception
+     * `CORRUPT_EVENT` and `CORRUPT_ID` exceptions are checked for in their
+     * respective unit tests. */
+    newInvalidSerialisedStampWithNoID,
+    newInvalidSerialisedStampWithNoEvent,
+    newInvalidSerialisedStampWithNoHeader,
+    newInvalidSerialisedStampWithSmallerIDComponentLengthlength,
+    newInvalidSerialisedStampWithBiggerIDComponentLengthlength,
+    newInvalidSerialisedStampWithSmallerEventComponentLengthlength,
+    newInvalidSerialisedStampWithBiggerEventComponentLengthlength,
+    newInvalidSerialisedStampWithInvalidHeader,
+};
+
+/******************************************************************************
+ * The size of the `gpv_InvalidSerialisedStampConstructorTable` array
+ ******************************************************************************/
+
+const uint32_t gu32_InvalidSerialisedStampTableSize =
+    ARRAY_COUNT(gpv_InvalidSerialisedStampConstructorTable);
 
 /******************************************************************************
  *  Public functions

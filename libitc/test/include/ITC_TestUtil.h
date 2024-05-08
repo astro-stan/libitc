@@ -12,6 +12,7 @@
 
 #include "ITC_Id.h"
 #include "ITC_Event.h"
+#include "ITC_Stamp.h"
 #include "ITC_Status.h"
 
 #include <stdint.h>
@@ -113,6 +114,45 @@ extern void (*const gpv_InvalidSerialisedEventConstructorTable[])(
  * @brief The size of the `gpv_InvalidSerialisedEventConstructorTable` array.
  */
 extern const uint32_t gu32_InvalidSerialisedEventTableSize;
+
+/**
+ * @brief Table of constructors for various types of invalid Stamps
+ *  Each constructor must return an invalid ITC_Stamp_t**.
+ *
+ *  It is expected that a a destructor for the invalid Stamp exists at the
+ *  corresponding index in `gpv_InvalidStampDestructorTable`
+ */
+extern void (*const gpv_InvalidStampConstructorTable[])(ITC_Stamp_t **);
+
+/**
+ * @brief Table of destructors for various types of invalid Stamps
+ *  Each destructor must fully deallocate the invalid Stamp.
+ *
+ *  It is expected that a a constructor for the invalid Stamp exists at the
+ *  corresponding index in `gpv_InvalidStampConstructorTable`
+ */
+extern void (*const gpv_InvalidStampDestructorTable[])(ITC_Stamp_t **);
+
+/**
+ * @brief The size of the `gpv_InvalidStampConstructorTable` and
+ *  `gpv_InvalidStampDestructorTable` arrays.
+ */
+extern const uint32_t gu32_InvalidStampTablesSize;
+
+/**
+ * @brief Table of constructors for various types of invalid serialised Stamps
+ *  Each constructor must return an invalid serialised Stamp buffer and it size.
+ *
+ *  It is expected that the buffers are statically allocated and no desctuctor
+ *  is necessary.
+ */
+extern void (*const gpv_InvalidSerialisedStampConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize);
+
+/**
+ * @brief The size of the `gpv_InvalidSerialisedStampConstructorTable` array.
+ */
+extern const uint32_t gu32_InvalidSerialisedStampTableSize;
 
 /******************************************************************************
  *  Public functions

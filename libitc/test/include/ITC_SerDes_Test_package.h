@@ -38,16 +38,16 @@
 /* The mask of the `IS_PARENT` flag in a serialised ITC Event header */
 #define ITC_SERDES_EVENT_IS_PARENT_MASK                                  (0x01U)
 
-/* The mask of the whole Event header */
-#define ITC_SERDES_EVENT_HEADER_MASK                                           \
-    (ITC_SERDES_EVENT_IS_PARENT_MASK | ITC_SERDES_EVENT_COUNTER_LEN_MASK)
-
 /* The offset of the counter length field in a serialised ITC Event header */
 #define ITC_SERDES_EVENT_COUNTER_LEN_OFFSET                                 (1U)
 /* The mask of the counter length field in a serialised ITC Event header.
  * This allows for a maximum of a 4-bit counter, which allows encoding the size
  * of up to a 15-byte Event counter (i.e. sizeof(ITC_Event_Counter_t) <= 15) */
 #define ITC_SERDES_EVENT_COUNTER_LEN_MASK                                (0x1EU)
+
+/* The mask of the whole Event header */
+#define ITC_SERDES_EVENT_HEADER_MASK                                           \
+    (ITC_SERDES_EVENT_IS_PARENT_MASK | ITC_SERDES_EVENT_COUNTER_LEN_MASK)
 
 /* Get the `IS_PARENT` flag of a serialised Event node */
 #define ITC_SERDES_EVENT_GET_IS_PARENT(t_Header)                               \
@@ -87,6 +87,65 @@
        (ITC_SerDes_Header_t)0U, b_IsParent) |                                  \
    ITC_SERDES_EVENT_SET_COUNTER_LEN(                                           \
         (ITC_SerDes_Header_t)0U, u8_CounterLen))
+
+/* The offset of the ID component len size in a serialised ITC Stamp header */
+#define ITC_SERDES_STAMP_ID_COMPONENT_LEN_OFFSET                            (0U)
+/* The mask of the ID component len size in a serialised ITC Stamp header.
+ * This allows for a maximum of a 3-bit counter, which allows encoding up to
+ * a 7-byte ID component len size */
+#define ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK                           (0x07U)
+
+/* The offset of the Event component len size in a serialised ITC Stamp header*/
+#define ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_OFFSET                         (3U)
+/* The mask of the Event component len size in a serialised ITC Stamp header.
+ * This allows for a maximum of a 3-bit counter, which allows encoding up to
+ * a 7-byte Event component len size */
+#define ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_MASK                        (0x38U)
+
+/* The mask of the whole Stamp header */
+#define ITC_SERDES_STAMP_HEADER_MASK                                           \
+  (ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK |                                    \
+   ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_MASK)
+
+/* Get the `ID component length` length from a serialised Stamp node */
+#define ITC_SERDES_STAMP_GET_ID_COMPONENT_LEN_LEN(t_Header)                    \
+    ITC_SERDES_HEADER_GET(                                                     \
+        t_Header,                                                              \
+        ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK,                                \
+        ITC_SERDES_STAMP_ID_COMPONENT_LEN_OFFSET)                              \
+
+/** Set the `ID component length` length of a serialised Stamp node
+ * @warning The `u8_Len` must be `<= 7` */
+#define ITC_SERDES_STAMP_SET_ID_COMPONENT_LEN_LEN(t_Header, u8_Len)            \
+    ITC_SERDES_HEADER_SET(                                                     \
+        t_Header,                                                              \
+        u8_Len,                                                                \
+        ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK,                                \
+        ITC_SERDES_STAMP_ID_COMPONENT_LEN_OFFSET)
+
+/* Get the `Event component length` length from a serialised Stamp node */
+#define ITC_SERDES_STAMP_GET_EVENT_COMPONENT_LEN_LEN(t_Header)                 \
+    ITC_SERDES_HEADER_GET(                                                     \
+        t_Header,                                                              \
+        ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_MASK,                             \
+        ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_OFFSET)                           \
+
+/** Set the `Event component length` length of a serialised Stamp node
+ * @warning The `u8_Len` must be `<= 7` */
+#define ITC_SERDES_STAMP_SET_EVENT_COMPONENT_LEN_LEN(t_Header, u8_Len)         \
+    ITC_SERDES_HEADER_SET(                                                     \
+        t_Header,                                                              \
+        u8_Len,                                                                \
+        ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_MASK,                             \
+        ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_OFFSET)
+
+/** Create the header for a serialised ITC Stamp
+ * @warning The `u8_LenId` and `u8_LenEvent` must be `<= 7` */
+#define ITC_SERDES_CREATE_STAMP_HEADER(u8_LenId, u8_LenEvent)                  \
+  ((ITC_SerDes_Header_t)ITC_SERDES_STAMP_SET_ID_COMPONENT_LEN_LEN(             \
+       (ITC_SerDes_Header_t)0U, u8_LenId) |                                    \
+   ITC_SERDES_STAMP_SET_EVENT_COMPONENT_LEN_LEN(                               \
+        (ITC_SerDes_Header_t)0U, u8_LenEvent))
 
 /******************************************************************************
  * Types
