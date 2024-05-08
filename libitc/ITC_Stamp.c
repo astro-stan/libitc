@@ -889,7 +889,8 @@ ITC_Status_t ITC_SerDes_serialiseStamp(
     t_Status = ITC_SerDes_Util_validateBuffer(
         pu8_Buffer,
         pu32_BufferSize,
-        ITC_SERDES_STAMP_MIN_BUFFER_LEN);
+        ITC_SERDES_STAMP_MIN_BUFFER_LEN,
+        true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -926,7 +927,8 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
         t_Status = ITC_SerDes_Util_validateBuffer(
             pu8_Buffer,
             &u32_BufferSize,
-            ITC_SERDES_STAMP_MIN_BUFFER_LEN);
+            ITC_SERDES_STAMP_MIN_BUFFER_LEN,
+            false);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)

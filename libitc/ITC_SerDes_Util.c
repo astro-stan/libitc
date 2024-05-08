@@ -21,7 +21,8 @@
 ITC_Status_t ITC_SerDes_Util_validateBuffer(
     const uint8_t *pu8_Buffer,
     const uint32_t *pu32_BufferSize,
-    const uint32_t u32_MinSize
+    const uint32_t u32_MinSize,
+    const bool b_SerialiseOp
 )
 {
     if (!pu8_Buffer || !pu32_BufferSize || !(*pu32_BufferSize))
@@ -30,7 +31,9 @@ ITC_Status_t ITC_SerDes_Util_validateBuffer(
     }
     else if (*pu32_BufferSize < u32_MinSize)
     {
-        return ITC_STATUS_INSUFFICIENT_RESOURCES;
+        /* Return an appropriate exception depending on the use case */
+        return (b_SerialiseOp) ? ITC_STATUS_INSUFFICIENT_RESOURCES
+                               : ITC_STATUS_INVALID_PARAM;
     }
 
     return ITC_STATUS_SUCCESS;

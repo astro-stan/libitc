@@ -2091,7 +2091,8 @@ ITC_Status_t ITC_SerDes_serialiseEvent(
     t_Status = ITC_SerDes_Util_validateBuffer(
         pu8_Buffer,
         pu32_BufferSize,
-        ITC_SERDES_EVENT_MIN_BUFFER_LEN);
+        ITC_SERDES_EVENT_MIN_BUFFER_LEN,
+        true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -2128,7 +2129,8 @@ ITC_Status_t ITC_SerDes_deserialiseEvent(
         t_Status = ITC_SerDes_Util_validateBuffer(
             pu8_Buffer,
             &u32_BufferSize,
-            ITC_SERDES_EVENT_MIN_BUFFER_LEN);
+            ITC_SERDES_EVENT_MIN_BUFFER_LEN,
+            false);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)

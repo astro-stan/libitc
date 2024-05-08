@@ -25,14 +25,20 @@
  * @param pu8_Buffer The buffer
  * @param pu32_BufferSize The buffer size
  * @param u32_MinSize The minimum buffer size
+ * @param b_SerialiseOp If this is an serialisation operation. Use false for
+ * deserialisation.
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
- * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if *pu32_BufferSize < u32_MinSize
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES`
+ *      if *pu32_BufferSize < u32_MinSize && b_SerialiseOp
+ * @retval `ITC_STATUS_INVALID_PARAM`
+ *      if *pu32_BufferSize < u32_MinSize && !b_SerialiseOp
  */
 ITC_Status_t ITC_SerDes_Util_validateBuffer(
     const uint8_t *pu8_Buffer,
     const uint32_t *pu32_BufferSize,
-    const uint32_t u32_MinSize
+    const uint32_t u32_MinSize,
+    const bool b_SerialiseOp
 );
 
 /**
