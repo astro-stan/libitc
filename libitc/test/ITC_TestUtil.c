@@ -231,6 +231,7 @@ static void newInvalidSerialisedParentIdWithNoChildren(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER
     };
 
@@ -252,6 +253,7 @@ static void newInvalidSerialisedNestedParentIdWithNoChildren(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
@@ -274,6 +276,7 @@ static void newInvalidSerialisedAsymmetricParentId(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
     };
@@ -296,6 +299,7 @@ static void newInvalidSerialisedAsymmetricNestedParentId(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
@@ -319,6 +323,7 @@ static void newInvalidSerialisedIdWithTooManyChildNodes(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_NULL_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
     };
@@ -341,6 +346,7 @@ static void newInvalidSerialisedParentIdWithTooManyNestedChildNodes(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
@@ -364,6 +370,7 @@ static void newInvalidSerialisedParentIdWithMultiParentRoot(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
@@ -389,6 +396,7 @@ static void newInvalidSerialisedParentIdWithInvalidHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         123,
     };
 
@@ -409,6 +417,7 @@ static void newInvalidSerialisedParentIdWithInvalidNestedHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
         123,
@@ -431,6 +440,7 @@ static void newInvalidSerialisedNotNormalisedId(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
@@ -629,6 +639,7 @@ static void newInvalidSerialisedParentEventWithNoChildren(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
     };
 
@@ -650,6 +661,7 @@ static void newInvalidSerialisedNestedParentEventWithNoChildren(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
         1,
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
@@ -673,6 +685,7 @@ static void newInvalidSerialisedAsymmetricParentEvent(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -696,6 +709,7 @@ static void newInvalidSerialisedAsymmetricNestedParentEvent(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
         1,
         ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
@@ -722,6 +736,7 @@ static void newInvalidSerialisedEventWithTooManyChildNodes(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -745,6 +760,7 @@ static void newInvalidSerialisedParentEventWithTooManyNestedChildNodes(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -770,6 +786,7 @@ static void newInvalidSerialisedParentEventWithMultiParentRoot(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
         123,
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
@@ -798,6 +815,7 @@ static void newInvalidSerialisedParentEventWithInvalidHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_EVENT_HEADER_MASK << 1,
     };
 
@@ -818,6 +836,7 @@ static void newInvalidSerialisedParentEventWithInvalidNestedHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
         ITC_SERDES_EVENT_HEADER_MASK << 2,
@@ -840,6 +859,7 @@ static void newInvalidSerialisedEventWithNoHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         1, // Just an event count, no header
     };
 
@@ -860,6 +880,7 @@ static void newInvalidSerialisedNestedEventWithNoHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         2, // Just an event count, no header
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
@@ -882,6 +903,7 @@ static void newInvalidSerialisedNotNormalisedEvent(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -907,6 +929,7 @@ static void newInvalidSerialisedEventWithSmallerEventCounterLength(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
         1,
@@ -931,6 +954,7 @@ static void newInvalidSerialisedEventWithHigherEventCounterLength(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 2),

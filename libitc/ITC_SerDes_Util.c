@@ -8,7 +8,7 @@
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
-#include "ITC_SerDes_package.h"
+#include "ITC_SerDes_Util_package.h"
 
 /******************************************************************************
  * Public functions

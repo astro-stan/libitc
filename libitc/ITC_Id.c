@@ -12,6 +12,7 @@
 #include "ITC_Id_private.h"
 #include "ITC_SerDes_package.h"
 #include "ITC_SerDes_private.h"
+#include "ITC_SerDes_Util_package.h"
 
 #include "ITC_Port.h"
 
@@ -873,13 +874,17 @@ static ITC_Status_t sumIdI(
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
  * of the data inside the buffer in bytes.
+ * @param b_AddVersion Whether to prepend the value of `ITC_VERSION_MAJOR` to
+ * the output.
+ * of the data inside the buffer in bytes.
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t serialiseId(
     const ITC_Id_t *pt_Id,
     uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    uint32_t *pu32_BufferSize,
+    const bool b_AddVersion
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -889,6 +894,15 @@ static ITC_Status_t serialiseId(
 
     /* Remember the root parent as this might be a subtree */
     pt_RootIdParent = pt_Id->pt_Parent;
+
+    if (b_AddVersion)
+    {
+        /* Prepend the lib version (provided by build system c args) */
+        pu8_Buffer[u32_Offset] = ITC_VERSION_MAJOR;
+
+        /* Increment offset */
+        u32_Offset += ITC_VERSION_MAJOR_LEN;
+    }
 
     /* Perform a pre-order traversal */
     while (pt_Id && t_Status == ITC_STATUS_SUCCESS)
@@ -960,6 +974,8 @@ static ITC_Status_t serialiseId(
  *
  * @param pu8_Buffer The buffer holding the serialised Id data
  * @param u32_BufferSize The size of the buffer in bytes
+ * @param b_HasVersion Whether the `ITC_VERSION_MAJOR` field is present in the
+ * serialised input
  * @param ppt_Id The pointer to the deserialised Id
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
@@ -967,6 +983,7 @@ static ITC_Status_t serialiseId(
 static ITC_Status_t deserialiseId(
     const uint8_t *pu8_Buffer,
     const uint32_t u32_BufferSize,
+    const bool b_HasVersion,
     ITC_Id_t **ppt_Id
 )
 {
@@ -978,8 +995,24 @@ static ITC_Status_t deserialiseId(
     *ppt_Id = NULL;
     ppt_CurrentId = ppt_Id;
 
+    /* If input contains a version check it matches the current lib version
+     * (provided by build system c args) */
+    if (b_HasVersion && pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
+    {
+        t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
+    }
+    else if (b_HasVersion)
+    {
+        u32_Offset += ITC_VERSION_MAJOR_LEN;
+    }
+    else
+    {
+        /* Nothing to do */
+    }
+
     /* The last serialised node cannot be a parent */
-    if (pu8_Buffer[u32_BufferSize - 1] == ITC_SERDES_PARENT_ID_HEADER)
+    if (t_Status == ITC_STATUS_SUCCESS &&
+        pu8_Buffer[u32_BufferSize - 1] == ITC_SERDES_PARENT_ID_HEADER)
     {
         t_Status = ITC_STATUS_CORRUPT_ID;
     }
@@ -1324,10 +1357,11 @@ ITC_Status_t ITC_Id_sum(
  * Serialise an existing ITC Id
  ******************************************************************************/
 
-ITC_Status_t ITC_SerDes_serialiseId(
+ITC_Status_t ITC_SerDes_Util_serialiseId(
     const ITC_Id_t *pt_Id,
     uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    uint32_t *pu32_BufferSize,
+    bool b_AddVersion
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -1335,7 +1369,8 @@ ITC_Status_t ITC_SerDes_serialiseId(
     t_Status = ITC_SerDes_Util_validateBuffer(
         pu8_Buffer,
         pu32_BufferSize,
-        ITC_SERDES_ID_MIN_BUFFER_LEN,
+        (b_AddVersion) ? ITC_SERDES_ID_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN
+                       : ITC_SERDES_ID_MIN_BUFFER_LEN,
         true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1345,7 +1380,8 @@ ITC_Status_t ITC_SerDes_serialiseId(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = serialiseId(pt_Id, pu8_Buffer, pu32_BufferSize);
+        t_Status = serialiseId(
+            pt_Id, pu8_Buffer, pu32_BufferSize, b_AddVersion);
     }
 
     return t_Status;
@@ -1355,9 +1391,10 @@ ITC_Status_t ITC_SerDes_serialiseId(
  * Deserialise an ITC Id
  ******************************************************************************/
 
-ITC_Status_t ITC_SerDes_deserialiseId(
+ITC_Status_t ITC_SerDes_Util_deserialiseId(
     const uint8_t *pu8_Buffer,
     const uint32_t u32_BufferSize,
+    const bool b_HasVersion,
     ITC_Id_t **ppt_Id
 )
 {
@@ -1373,14 +1410,50 @@ ITC_Status_t ITC_SerDes_deserialiseId(
         t_Status = ITC_SerDes_Util_validateBuffer(
             pu8_Buffer,
             &u32_BufferSize,
-            ITC_SERDES_ID_MIN_BUFFER_LEN,
+            (b_HasVersion) ? ITC_SERDES_ID_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN
+                           : ITC_SERDES_ID_MIN_BUFFER_LEN,
             false);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = deserialiseId(pu8_Buffer, u32_BufferSize, ppt_Id);
+        t_Status =
+            deserialiseId(pu8_Buffer, u32_BufferSize, b_HasVersion, ppt_Id);
     }
 
     return t_Status;
+}
+
+/******************************************************************************
+ * Serialise an existing ITC Id
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_serialiseId(
+    const ITC_Id_t *pt_Id,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    return ITC_SerDes_Util_serialiseId(
+        pt_Id,
+        pu8_Buffer,
+        pu32_BufferSize,
+        true);
+}
+
+/******************************************************************************
+ * Deserialise an ITC Id
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_deserialiseId(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Id_t **ppt_Id
+)
+{
+    return ITC_SerDes_Util_deserialiseId(
+        pu8_Buffer,
+        u32_BufferSize,
+        true,
+        ppt_Id);
 }

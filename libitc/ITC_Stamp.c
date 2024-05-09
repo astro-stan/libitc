@@ -10,7 +10,7 @@
 #include "ITC_Stamp.h"
 #include "ITC_SerDes.h"
 #include "ITC_SerDes_private.h"
-#include "ITC_SerDes_package.h"
+#include "ITC_SerDes_Util_package.h"
 
 #include "ITC_Event_package.h"
 #include "ITC_Id_package.h"
@@ -284,10 +284,11 @@ static ITC_Status_t serialiseStamp(
     u32_ComponentLength = *pu32_BufferSize - u32_Offset;
 
     /* Serialise ID component */
-    t_Status = ITC_SerDes_serialiseId(
+    t_Status = ITC_SerDes_Util_serialiseId(
         pt_Stamp->pt_Id,
         &pu8_Buffer[u32_Offset],
-        &u32_ComponentLength);
+        &u32_ComponentLength,
+        false);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -335,10 +336,11 @@ static ITC_Status_t serialiseStamp(
         u32_ComponentLength = *pu32_BufferSize - u32_Offset;
 
         /* Serialise Event component */
-        t_Status = ITC_SerDes_serialiseEvent(
+        t_Status = ITC_SerDes_Util_serialiseEvent(
             pt_Stamp->pt_Event,
             &pu8_Buffer[u32_Offset],
-            &u32_ComponentLength);
+            &u32_ComponentLength,
+            false);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -484,9 +486,10 @@ static ITC_Status_t deserialiseStamp(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Deserialise the ID component */
-        t_Status = ITC_SerDes_deserialiseId(
+        t_Status = ITC_SerDes_Util_deserialiseId(
             &pu8_Buffer[u32_Offset],
             u32_ComponentLength,
+            false,
             &pt_Id);
     }
 
@@ -531,9 +534,10 @@ static ITC_Status_t deserialiseStamp(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Deserialise the Event component */
-        t_Status = ITC_SerDes_deserialiseEvent(
+        t_Status = ITC_SerDes_Util_deserialiseEvent(
             &pu8_Buffer[u32_Offset],
             u32_ComponentLength,
+            false,
             &pt_Event);
     }
 

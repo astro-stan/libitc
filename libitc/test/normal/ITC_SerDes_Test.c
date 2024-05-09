@@ -104,9 +104,11 @@ void ITC_SerDes_Test_serialiseIdLeafSuccessful(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedSeedIdSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_SEED_ID_HEADER
     };
     uint8_t ru8_ExpectedNullIdSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_NULL_ID_HEADER
     };
 
@@ -190,9 +192,11 @@ void ITC_SerDes_Test_serialiseIdLeafSubtreeSuccessful(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedSeedIdSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_SEED_ID_HEADER
     };
     uint8_t ru8_ExpectedNullIdSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_NULL_ID_HEADER
     };
 
@@ -245,6 +249,7 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
 
     /* Serialised (0, ((1, 0), 1)) ID */
     uint8_t ru8_ExpectedIdSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
         ITC_SERDES_PARENT_ID_HEADER,
@@ -336,11 +341,33 @@ void ITC_SerDes_Test_deserialiseIdFailWithCorruptId(void)
     }
 }
 
+/* Test deserialising a ID with incompatible lib version */
+void ITC_SerDes_Test_deserialiseIdFailWithIncompatibleLibVersion(void)
+{
+    ITC_Id_t *pt_Id;
+    uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR + 1, /* Provided by build system c args */
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseId(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            &pt_Id),
+        ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
+}
+
 /* Test deserialising a leaf ID suceeds */
 void ITC_SerDes_Test_deserialiseLeafIdSuccessful(void)
 {
     ITC_Id_t *pt_Id;
-    uint8_t ru8_Buffer[] = { ITC_SERDES_SEED_ID_HEADER };
+    uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_SEED_ID_HEADER
+    };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     /* Test deserialising a seed ID */
@@ -354,7 +381,7 @@ void ITC_SerDes_Test_deserialiseLeafIdSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
     /* Test with a null ID */
-    ru8_Buffer[0] = ITC_SERDES_NULL_ID_HEADER;
+    ru8_Buffer[1] = ITC_SERDES_NULL_ID_HEADER;
 
     /* Test deserialising a seed ID */
     TEST_SUCCESS(
@@ -373,6 +400,7 @@ void ITC_SerDes_Test_deserialiseParentIdSuccessful(void)
     ITC_Id_t *pt_Id;
     /* Serialised (0, ((1, 0), 1)) ID */
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
         ITC_SERDES_PARENT_ID_HEADER,
@@ -459,11 +487,13 @@ void ITC_SerDes_Test_serialiseEventLeafSuccessful(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedEventSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         123
     };
 
     uint8_t ru8_Expected0EventSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0)
     };
 
@@ -544,6 +574,7 @@ void ITC_SerDes_Test_serialiseEventLeafSubtreeSuccessful(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedEventSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0)
     };
 
@@ -574,11 +605,12 @@ void ITC_SerDes_Test_serialiseEventLeafSubtreeSuccessful(void)
 void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
 {
     ITC_Event_t *pt_Event = NULL;
-    uint8_t ru8_Buffer[14] = { 0 };
+    uint8_t ru8_Buffer[15] = { 0 };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     /* Serialised (0, 1, (0, (4242, 0, 123123123), 0)) Event */
     uint8_t ru8_ExpectedEventSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -682,6 +714,7 @@ void ITC_SerDes_Test_deserialiseEventFailWithUnsupportedCounterSize(void)
 {
     ITC_Event_t *pt_Event;
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(
             false,
             (sizeof(ITC_Event_Counter_t) + 1)),
@@ -707,16 +740,37 @@ void ITC_SerDes_Test_deserialiseEventFailWithUnsupportedCounterSize(void)
         ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE);
 }
 
+/* Test deserialising a Event with incompatible lib version */
+void ITC_SerDes_Test_deserialiseEventFailWithIncompatibleLibVersion(void)
+{
+    ITC_Event_t *pt_Event;
+    uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR + 1, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseEvent(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            &pt_Event),
+        ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
+}
+
 /* Test deserialising a leaf Event suceeds */
 void ITC_SerDes_Test_deserialiseLeafEventSuccessful(void)
 {
     ITC_Event_t *pt_Event;
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         123,
     };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
     uint8_t ru8_0EventBuffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0)
     };
     uint32_t u32_0EventBufferSize = sizeof(ru8_0EventBuffer);
@@ -751,6 +805,7 @@ void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
     ITC_Event_t *pt_Event;
     /* Serialised (0, 1, (0, (4242, 0, 123123123), 0)) Event */
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
