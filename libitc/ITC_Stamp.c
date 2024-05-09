@@ -271,6 +271,12 @@ static ITC_Status_t serialiseStamp(
     /* The length of `ru8_ComponentLength` */
     uint32_t u32_ComponentLengthLength;
 
+    /* Add the lib version (provided by build system c args) */
+    pu8_Buffer[u32_Offset] = ITC_VERSION_MAJOR;
+
+    /* Increment offset */
+    u32_Offset += ITC_VERSION_MAJOR_LEN;
+
     /* Leave space for the header */
     u32_Offset += sizeof(ITC_SerDes_Header_t);
 
@@ -378,7 +384,7 @@ static ITC_Status_t serialiseStamp(
         u32_Offset += u32_ComponentLength + u32_ComponentLengthLength;
 
         /* Add the Stamp header */
-        pu8_Buffer[0] = t_StampHeader;
+        pu8_Buffer[ITC_VERSION_MAJOR_LEN] = t_StampHeader;
 
         /* Return the size of the buffer */
         *pu32_BufferSize = u32_Offset;
@@ -415,13 +421,26 @@ static ITC_Status_t deserialiseStamp(
     /* Init stamp */
     *ppt_Stamp = NULL;
 
-    /* Get the stamp header */
-    t_StampHeader = pu8_Buffer[0];
-
-    /* This is an invalid header */
-    if (t_StampHeader & ~ITC_SERDES_STAMP_HEADER_MASK)
+    /* Check the lib version (provided by build system c args) */
+    if (pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
     {
-        t_Status = ITC_STATUS_CORRUPT_STAMP;
+        t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
+    }
+    else
+    {
+        u32_Offset += ITC_VERSION_MAJOR_LEN;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Get the stamp header */
+        t_StampHeader = pu8_Buffer[u32_Offset];
+
+        /* This is an invalid header */
+        if (t_StampHeader & ~ITC_SERDES_STAMP_HEADER_MASK)
+        {
+            t_Status = ITC_STATUS_CORRUPT_STAMP;
+        }
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -889,7 +908,7 @@ ITC_Status_t ITC_SerDes_serialiseStamp(
     t_Status = ITC_SerDes_Util_validateBuffer(
         pu8_Buffer,
         pu32_BufferSize,
-        ITC_SERDES_STAMP_MIN_BUFFER_LEN,
+        ITC_SERDES_STAMP_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN,
         true);
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -927,7 +946,7 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
         t_Status = ITC_SerDes_Util_validateBuffer(
             pu8_Buffer,
             &u32_BufferSize,
-            ITC_SERDES_STAMP_MIN_BUFFER_LEN,
+            ITC_SERDES_STAMP_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN,
             false);
     }
 

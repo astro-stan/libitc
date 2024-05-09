@@ -975,6 +975,7 @@ static void newInvalidSerialisedStampWithNoID(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(0, 1),
         5,
         ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
@@ -1000,6 +1001,7 @@ static void newInvalidSerialisedStampWithNoEvent(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 0),
         5,
         ITC_SERDES_PARENT_ID_HEADER,
@@ -1025,6 +1027,7 @@ static void newInvalidSerialisedStampWithNoHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         3,
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
@@ -1050,6 +1053,7 @@ static void newInvalidSerialisedStampWithSmallerIDComponentLengthlength(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
@@ -1075,6 +1079,7 @@ static void newInvalidSerialisedStampWithBiggerIDComponentLengthlength(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         3,
         1,
@@ -1102,6 +1107,7 @@ static void newInvalidSerialisedStampWithSmallerEventComponentLengthlength(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         1,
         ITC_SERDES_SEED_ID_HEADER,
@@ -1128,6 +1134,7 @@ static void newInvalidSerialisedStampWithBiggerEventComponentLengthlength(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         1,
         ITC_SERDES_SEED_ID_HEADER,
@@ -1155,6 +1162,7 @@ static void newInvalidSerialisedStampWithInvalidHeader(
 {
     static const uint8_t ru8_Buffer[] =
     {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_STAMP_HEADER_MASK << 1,
         1,
         ITC_SERDES_SEED_ID_HEADER,

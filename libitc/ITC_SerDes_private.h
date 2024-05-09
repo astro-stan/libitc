@@ -17,6 +17,10 @@
  * Defines
  ******************************************************************************/
 
+/** The size of `ITC_VERSION_MAJOR` symbol (provided via the build system
+ * c_args) */
+#define ITC_VERSION_MAJOR_LEN                                  (sizeof(uint8_t))
+
 /* Get a field from a serialised ITC node header */
 #define ITC_SERDES_HEADER_GET(t_Header, t_Mask, t_Offset)                      \
     (((t_Header) & (t_Mask)) >> (t_Offset))

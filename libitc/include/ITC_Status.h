@@ -50,6 +50,11 @@
  * than the size of `ITC_Event_Counter_t` */
 #define ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE                          (10U)
 
+/** Operation failed due to the serialised ITC data being from an older or newer
+ * `libitc` version. `libitc` uses SemVer2, thus only serialised data from the
+ * same major `libitc` version is compatible */
+#define ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION                         (11U)
+
 /******************************************************************************
  * Types
  ******************************************************************************/

@@ -850,6 +850,7 @@ void ITC_SerDes_Test_serialiseStampWithLeafComponentsSuccessful(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedStampSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         1,
         ITC_SERDES_SEED_ID_HEADER,
@@ -924,10 +925,11 @@ void ITC_SerDes_Test_serialiseStampFailWithInsufficentResources(void)
 void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
 {
     ITC_Stamp_t *pt_Stamp = NULL;
-    uint8_t ru8_Buffer[11] = { 0 };
+    uint8_t ru8_Buffer[12] = { 0 };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedStampSerialisedData[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         3,
         ITC_SERDES_PARENT_ID_HEADER,
@@ -1028,6 +1030,7 @@ void ITC_SerDes_Test_deserialiseStampFailWithUnsupportedIdLengthLengthSize(void)
 {
     ITC_Stamp_t *pt_Stamp;
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(sizeof(uint32_t) + 1, 1),
         1,
         1,
@@ -1046,7 +1049,7 @@ void ITC_SerDes_Test_deserialiseStampFailWithUnsupportedIdLengthLengthSize(void)
             &ru8_Buffer[0],
             u32_BufferSize,
             &pt_Stamp),
-        /* There is no special exception as a lenght length size of more than
+        /* There is no special exception as a length length size of more than
          * the size of sizeof(uint32_t) is most likely user error */
         ITC_STATUS_INVALID_PARAM);
 }
@@ -1057,6 +1060,7 @@ void ITC_SerDes_Test_deserialiseStampFailWithUnsupportedEventLengthLengthSize(vo
 {
     ITC_Stamp_t *pt_Stamp;
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, sizeof(uint32_t) + 1),
         1,
         ITC_SERDES_SEED_ID_HEADER,
@@ -1075,9 +1079,32 @@ void ITC_SerDes_Test_deserialiseStampFailWithUnsupportedEventLengthLengthSize(vo
             &ru8_Buffer[0],
             u32_BufferSize,
             &pt_Stamp),
-        /* There is no special exception as a lenght length size of more than
+        /* There is no special exception as a length length size of more than
          * the size of sizeof(uint32_t) is most likely user error */
         ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test deserialising a Stamp with incompatible lib version */
+void ITC_SerDes_Test_deserialiseStampFailWithIncompatibleLibVersion(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR + 1, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0)
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseStamp(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            &pt_Stamp),
+        ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
 }
 
 /* Test deserialising a stamp with leaf ID and Event components suceeds */
@@ -1085,6 +1112,7 @@ void ITC_SerDes_Test_deserialiseLeafComponentsStampSuccessful(void)
 {
     ITC_Stamp_t *pt_Stamp;
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         1,
         ITC_SERDES_SEED_ID_HEADER,
@@ -1113,6 +1141,7 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
      * - (0, ((1, 0), 1)) ID
      * - (0, 1, (0, (4242, 0, 123123123), 0)) Event */
     uint8_t ru8_Buffer[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
         7,
         ITC_SERDES_PARENT_ID_HEADER,
