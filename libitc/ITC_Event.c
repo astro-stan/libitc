@@ -1499,6 +1499,91 @@ static ITC_Status_t growEventE(
 }
 
 /**
+ * @brief Serialise an Event counter in network-endian
+ *
+ * @param t_Counter The counter to serialise
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t eventCounterToNetwork(
+    ITC_Event_Counter_t t_Counter,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Event_Counter_t t_CounterCopy = t_Counter;
+    /* The number of bytes needed to serialise the counter */
+    uint32_t u32_BytesNeeded = 0;
+
+    /* Determine the bytes needed to serialise the counter */
+    do
+    {
+        t_CounterCopy >>= 8U;
+        u32_BytesNeeded++;
+    } while (t_CounterCopy != 0);
+
+    if (u32_BytesNeeded > *pu32_BufferSize)
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+    else
+    {
+        /* Serialise in network-endian */
+        for (uint32_t u32_I = u32_BytesNeeded; u32_I > 0; u32_I--)
+        {
+            pu8_Buffer[u32_I - 1] = (uint8_t)(t_Counter & 0xFFU);
+            t_Counter >>= 8U;
+        }
+
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_BytesNeeded;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Deserialise an Event counter from network-endian
+ *
+ * @param pu8_Buffer The buffer holding the serialised data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param pt_Counter The pointer to the counter
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE` if
+ * `u32_BufferSize > sizeof(ITC_Event_Counter_t)`
+ */
+static ITC_Status_t eventCounterFromNetwork(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Event_Counter_t *pt_Counter
+)
+{
+    if (u32_BufferSize > sizeof(ITC_Event_Counter_t))
+    {
+        /* The counter size is not supported on this platform */
+        return ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE;
+    }
+
+    /* Init the counter */
+    *pt_Counter = 0;
+
+    /* Deserialise from network-endian */
+    for (uint32_t u32_I = 0; u32_I < u32_BufferSize; u32_I++)
+    {
+        *pt_Counter <<= 8U;
+        *pt_Counter |= pu8_Buffer[u32_I];
+    }
+
+    return ITC_STATUS_SUCCESS;
+}
+
+/**
  * @brief Serialise an existing ITC Event
  *
  * @param ppt_Event The pointer to the Event
@@ -1554,7 +1639,7 @@ static ITC_Status_t serialiseEvent(
                 *pu32_BufferSize - (u32_Offset + sizeof(ITC_SerDes_Header_t));
 
             /* Serialise the event counter */
-            t_Status = ITC_SerDes_Util_eventCounterToNetwork(
+            t_Status = eventCounterToNetwork(
                 pt_Event->t_Count,
                 &pu8_Buffer[u32_Offset + sizeof(ITC_SerDes_Header_t)],
                 &u32_CurrentEventCounterSize);
@@ -1715,7 +1800,7 @@ static ITC_Status_t deserialiseEvent(
             if (u32_CounterLen > 0)
             {
                 /* Deserialise the event counter */
-                t_Status = ITC_SerDes_Util_eventCounterFromNetwork(
+                t_Status = eventCounterFromNetwork(
                     &pu8_Buffer[u32_Offset],
                     u32_CounterLen,
                     &(*ppt_CurrentEvent)->t_Count);

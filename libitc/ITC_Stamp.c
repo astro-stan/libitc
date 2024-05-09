@@ -246,6 +246,91 @@ static ITC_Status_t compareStamps(
 }
 
 /**
+ * @brief Serialise an `uint32_t` in network-endian
+ *
+ * @param u32_Value The value to serialise
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t u32ToNetwork(
+    uint32_t u32_Value,
+    uint8_t *pu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    uint32_t u32_ValueCopy = u32_Value;
+    /* The number of bytes needed to serialise the value */
+    uint32_t u32_BytesNeeded = 0;
+
+    /* Determine the bytes needed to serialise the value */
+    do
+    {
+        u32_ValueCopy >>= 8U;
+        u32_BytesNeeded++;
+    } while (u32_ValueCopy != 0);
+
+    if (u32_BytesNeeded > *pu32_BufferSize)
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+    else
+    {
+        /* Serialise in network-endian */
+        for (uint32_t u32_I = u32_BytesNeeded; u32_I > 0; u32_I--)
+        {
+            pu8_Buffer[u32_I - 1] = (uint8_t)(u32_Value & 0xFFU);
+            u32_Value >>= 8U;
+        }
+
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_BytesNeeded;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Deserialise an `uint32_t` from network-endian
+ *
+ * @param pu8_Buffer The buffer holding the serialised data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param pu32_Value The pointer to the value
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INVALID_PARAM` if `u32_BufferSize > sizeof(uint32_t)`
+ */
+static ITC_Status_t u32FromNetwork(
+    const uint8_t *pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    uint32_t *pu32_Value
+)
+{
+    if (u32_BufferSize > sizeof(uint32_t))
+    {
+        /* The buffer is to big to fit into an uint32_t.
+         * This is probably an input error */
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
+    /* Init the value */
+    *pu32_Value = 0;
+
+    /* Deserialise from network-endian */
+    for (uint32_t u32_I = 0; u32_I < u32_BufferSize; u32_I++)
+    {
+        *pu32_Value <<= 8U;
+        *pu32_Value |= pu8_Buffer[u32_I];
+    }
+
+    return ITC_STATUS_SUCCESS;
+}
+
+/**
  * @brief Serialise an existing ITC Stamp
  *
  * @param ppt_Stamp The pointer to the Stamp
@@ -297,7 +382,7 @@ static ITC_Status_t serialiseStamp(
 
         /* Serialise the ID component length
          * Reusing this as the event counter is at a minimum a `uint32_t` */
-        t_Status = ITC_SerDes_Util_u32ToNetwork(
+        t_Status = u32ToNetwork(
             (ITC_Event_Counter_t)u32_ComponentLength,
             &ru8_ComponentLength[0],
             &u32_ComponentLengthLength);
@@ -350,7 +435,7 @@ static ITC_Status_t serialiseStamp(
 
         /* Serialise the Event component length
          * Reusing this as the event counter is at a minimum a `uint32_t` */
-        t_Status = ITC_SerDes_Util_u32ToNetwork(
+        t_Status = u32ToNetwork(
             (ITC_Event_Counter_t)u32_ComponentLength,
             &ru8_ComponentLength[0],
             &u32_ComponentLengthLength);
@@ -465,7 +550,7 @@ static ITC_Status_t deserialiseStamp(
     {
         /* Deserialise the ID component length
         * Reusing this as the event counter is at a minimum a `uint32_t` */
-        t_Status = ITC_SerDes_Util_u32FromNetwork(
+        t_Status = u32FromNetwork(
             &pu8_Buffer[u32_Offset],
             u32_ComponentLengthLength,
             (ITC_Event_Counter_t *)&u32_ComponentLength);
@@ -513,7 +598,7 @@ static ITC_Status_t deserialiseStamp(
     {
         /* Deserialise the Event component length
         * Reusing this as the event counter is at a minimum a `uint32_t` */
-        t_Status = ITC_SerDes_Util_u32FromNetwork(
+        t_Status = u32FromNetwork(
             &pu8_Buffer[u32_Offset],
             u32_ComponentLengthLength,
             (ITC_Event_Counter_t *)&u32_ComponentLength);
