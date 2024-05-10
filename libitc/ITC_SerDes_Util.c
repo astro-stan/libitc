@@ -19,8 +19,8 @@
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_Util_validateBuffer(
-    const uint8_t *pu8_Buffer,
-    const uint32_t *pu32_BufferSize,
+    const uint8_t *const pu8_Buffer,
+    const uint32_t *const pu32_BufferSize,
     const uint32_t u32_MinSize,
     const bool b_SerialiseOp
 )

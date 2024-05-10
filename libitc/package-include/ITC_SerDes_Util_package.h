@@ -35,8 +35,8 @@
  *      if *pu32_BufferSize < u32_MinSize && !b_SerialiseOp
  */
 ITC_Status_t ITC_SerDes_Util_validateBuffer(
-    const uint8_t *pu8_Buffer,
-    const uint32_t *pu32_BufferSize,
+    const uint8_t *const pu8_Buffer,
+    const uint32_t *const pu32_BufferSize,
     const uint32_t u32_MinSize,
     const bool b_SerialiseOp
 );
@@ -55,9 +55,9 @@ ITC_Status_t ITC_SerDes_Util_validateBuffer(
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
  */
 ITC_Status_t ITC_SerDes_Util_serialiseId(
-    const ITC_Id_t *pt_Id,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize,
+    const ITC_Id_t *const pt_Id,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
     const bool b_AddVersion
 );
 
@@ -73,7 +73,7 @@ ITC_Status_t ITC_SerDes_Util_serialiseId(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_SerDes_Util_deserialiseId(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
     ITC_Id_t **ppt_Id
@@ -93,9 +93,9 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
  */
 ITC_Status_t ITC_SerDes_Util_serialiseEvent(
-    const ITC_Event_t *pt_Event,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize,
+    const ITC_Event_t *const pt_Event,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
     const bool b_AddVersion
 );
 
@@ -111,7 +111,7 @@ ITC_Status_t ITC_SerDes_Util_serialiseEvent(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
     ITC_Event_t **ppt_Event

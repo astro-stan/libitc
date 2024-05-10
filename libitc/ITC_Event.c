@@ -1616,8 +1616,8 @@ static ITC_Status_t eventCounterFromNetwork(
  */
 static ITC_Status_t serialiseEvent(
     const ITC_Event_t *pt_Event,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
     const bool b_AddVersion
 )
 {
@@ -1740,7 +1740,7 @@ static ITC_Status_t serialiseEvent(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t deserialiseEvent(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
     ITC_Event_t **ppt_Event
@@ -2217,9 +2217,9 @@ ITC_Status_t ITC_Event_grow(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_Util_serialiseEvent(
-    const ITC_Event_t *pt_Event,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize,
+    const ITC_Event_t *const pt_Event,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
     const bool b_AddVersion
 )
 {
@@ -2251,7 +2251,7 @@ ITC_Status_t ITC_SerDes_Util_serialiseEvent(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
     ITC_Event_t **ppt_Event
@@ -2288,9 +2288,9 @@ ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_serialiseEvent(
-    const ITC_Event_t *pt_Event,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    const ITC_Event_t *const pt_Event,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
 )
 {
     return ITC_SerDes_Util_serialiseEvent(
@@ -2305,7 +2305,7 @@ ITC_Status_t ITC_SerDes_serialiseEvent(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_deserialiseEvent(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     ITC_Event_t **ppt_Event
 )

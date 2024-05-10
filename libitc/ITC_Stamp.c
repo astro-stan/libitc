@@ -361,9 +361,9 @@ static ITC_Status_t u32FromNetwork(
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
  */
 static ITC_Status_t serialiseStamp(
-    const ITC_Stamp_t *pt_Stamp,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    const ITC_Stamp_t *const pt_Stamp,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -511,7 +511,7 @@ static ITC_Status_t serialiseStamp(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t deserialiseStamp(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     ITC_Stamp_t **ppt_Stamp
 )
@@ -1008,9 +1008,9 @@ ITC_Status_t ITC_Stamp_compare(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_serialiseStamp(
-    const ITC_Stamp_t *pt_Stamp,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    const ITC_Stamp_t *const pt_Stamp,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -1039,7 +1039,7 @@ ITC_Status_t ITC_SerDes_serialiseStamp(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_deserialiseStamp(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     ITC_Stamp_t **ppt_Stamp
 )

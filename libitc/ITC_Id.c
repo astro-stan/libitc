@@ -895,8 +895,8 @@ static ITC_Status_t sumIdI(
  */
 static ITC_Status_t serialiseId(
     const ITC_Id_t *pt_Id,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
     const bool b_AddVersion
 )
 {
@@ -996,7 +996,7 @@ static ITC_Status_t serialiseId(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t deserialiseId(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
     ITC_Id_t **ppt_Id
@@ -1373,10 +1373,10 @@ ITC_Status_t ITC_Id_sum(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_Util_serialiseId(
-    const ITC_Id_t *pt_Id,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize,
-    bool b_AddVersion
+    const ITC_Id_t *const pt_Id,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
+    const bool b_AddVersion
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -1407,7 +1407,7 @@ ITC_Status_t ITC_SerDes_Util_serialiseId(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_Util_deserialiseId(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
     ITC_Id_t **ppt_Id
@@ -1444,9 +1444,9 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_serialiseId(
-    const ITC_Id_t *pt_Id,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    const ITC_Id_t *const pt_Id,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
 )
 {
     return ITC_SerDes_Util_serialiseId(
@@ -1461,7 +1461,7 @@ ITC_Status_t ITC_SerDes_serialiseId(
  ******************************************************************************/
 
 ITC_Status_t ITC_SerDes_deserialiseId(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     ITC_Id_t **ppt_Id
 )
