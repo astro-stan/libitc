@@ -1586,6 +1586,24 @@ static ITC_Status_t eventCounterFromNetwork(
 /**
  * @brief Serialise an existing ITC Event
  *
+ * Data format:
+ *  - Byte 0: The major component of the version of the `libitc` library used to
+ *      serialise the data. Optional, can be ommitted.
+ *  - Bytes (0 - 1) - N (see above): The Event tree.
+ *    Each node of the Event tree is serialised in pre-order. I.e the root is
+ *    serialised first, followed by the left child, then the right child. Each
+ *    serialised node consists of:
+ *    - Byte 0: The Event node header.
+ *      Contains an `IS_PARENT` flag (bit 0), and the length of the encoded
+ *      event counter (bits 1 - 4). See define ITC_SERDES_CREATE_EVENT_HEADER.
+ *      If the node event counter is `0`, this length is also set to 0 and the
+ *      next field (shown below) is ommitted. Bits 5 - 7 are reserved and always
+ *      0.
+ *    - Bytes 1 - 4: The node event count.
+ *      Can be 0 - 4 bytes long. The length of this field is encoded in the
+ *      Event header (see above). Serialised in network-endian. Optional,
+ *      ommitted if the node event counter is 0.
+ *
  * @param ppt_Event The pointer to the Event
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
@@ -1710,6 +1728,8 @@ static ITC_Status_t serialiseEvent(
 
 /**
  * @brief Deserialise an ITC Event
+ *
+ * For the expected data format see ::serialiseEvent()
  *
  * @param pu8_Buffer The buffer holding the serialised Event data
  * @param u32_BufferSize The size of the buffer in bytes

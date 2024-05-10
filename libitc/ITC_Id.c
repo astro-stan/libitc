@@ -870,6 +870,19 @@ static ITC_Status_t sumIdI(
 /**
  * @brief Serialise an existing ITC Id
  *
+ * Data format:
+ *  - Byte 0: The major component of the version of the `libitc` library used to
+ *      serialise the data. Optional, can be ommitted.
+ *  - Bytes (0 - 1) - N (see above): The ID tree.
+ *    Each node of the ID tree is serialised in pre-order. I.e the root is
+ *    serialised first, followed by the left child, then the right child. Each
+ *    node consists of a 1-byte header.
+ *    See:
+ *    - define ITC_SERDES_PARENT_ID_HEADER
+ *    - define ITC_SERDES_SEED_ID_HEADER
+ *    - define ITC_SERDES_NULL_ID_HEADER
+ *    Any other header value is invalid.
+ *
  * @param ppt_Id The pointer to the Id
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
@@ -971,6 +984,8 @@ static ITC_Status_t serialiseId(
 
 /**
  * @brief Deserialise an ITC Id
+ *
+ * For the expected data format see ::serialiseId()
  *
  * @param pu8_Buffer The buffer holding the serialised Id data
  * @param u32_BufferSize The size of the buffer in bytes

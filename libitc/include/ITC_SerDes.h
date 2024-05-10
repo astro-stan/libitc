@@ -21,6 +21,12 @@
 /**
  * @brief Serialise an existing ITC Stamp
  *
+ * @warning This library performs a few basic checks to ensure data correctness
+ * during deserialisation. However, it is strongly recommended to further
+ * protect the data integrity with a checksum or some other external mechanism
+ * when transmitting over the wire. Otherwise, deserialisation _might_ still
+ * succeed but result in an unexpected behaviour.
+ *
  * @param ppt_Stamp The pointer to the Stamp
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
@@ -37,6 +43,12 @@ ITC_Status_t ITC_SerDes_serialiseStamp(
 
 /**
  * @brief Deserialise an ITC Stamp
+ *
+ * @warning This library performs a few basic checks to ensure data correctness
+ * during deserialisation. However, it is strongly recommended to further
+ * protect the data integrity with a checksum or some other external mechanism
+ * when transmitting over the wire. Otherwise, deserialisation _might_ still
+ * succeed but result in an unexpected behaviour.
  *
  * @param pu8_Buffer The buffer holding the serialised Stamp data
  * @param u32_BufferSize The size of the buffer in bytes

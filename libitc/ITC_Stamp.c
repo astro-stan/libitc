@@ -333,6 +333,25 @@ static ITC_Status_t u32FromNetwork(
 /**
  * @brief Serialise an existing ITC Stamp
  *
+ * Data format:
+ *  - Byte 0: The major component of the version of the `libitc` library used to
+ *      serialise the data
+ *  - Byte 1: The Stamp header.
+ *      Contains 2 fields:
+ *      - Bits 0 - 2: The length of the `ID component length` field (see below)
+ *      - Bits 3 - 5: The length of the `Event component length` field
+ *        (see below)
+ *      - Bits 6 - 7: Reserved, always 0
+ *  - Bytes 2 - 5: ID component length. Can be 1 - 4 bytes long. The length of
+ *    this field is encoded in the Stamp header. Serialised in network-endian.
+ *  - Bytes (3 - 6) - <ID_END> (see above): The ID tree, **without** a version
+ *    field. See ::serialiseId()
+ *  - Bytes <ID_END + 1> - <ID_END + 4>: Event component length. Can be 1 - 4
+ *    bytes long. The length of this field is encoded in the Stamp header.
+ *    Serialised in network-endian.
+ *  - Bytes (<ID_END + 2> - <ID_END + 5>) - <EVENT_END> (see above): The Event
+ *    tree, **without** a version field. See ::serialiseEvent()
+ *
  * @param ppt_Stamp The pointer to the Stamp
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
@@ -482,6 +501,8 @@ static ITC_Status_t serialiseStamp(
 
 /**
  * @brief Deserialise an ITC Stamp
+ *
+ * For the expected data format see ::serialiseStamp()
  *
  * @param pu8_Buffer The buffer holding the serialised Stamp data
  * @param u32_BufferSize The size of the buffer in bytes

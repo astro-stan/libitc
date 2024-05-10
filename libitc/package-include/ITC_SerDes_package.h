@@ -22,6 +22,12 @@
 /**
  * @brief Serialise an existing ITC Id
  *
+ * @warning This library performs a few basic checks to ensure data correctness
+ * during deserialisation. However, it is strongly recommended to further
+ * protect the data integrity with a checksum or some other external mechanism
+ * when transmitting over the wire. Otherwise, deserialisation _might_ still
+ * succeed but result in an unexpected behaviour.
+ *
  * @param ppt_Id The pointer to the Id
  * @param pu8_Buffer The buffer to hold the serialised data
  * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
@@ -39,6 +45,12 @@ ITC_Status_t ITC_SerDes_serialiseId(
 /**
  * @brief Deserialise an ITC Id
  *
+ * @warning This library performs a few basic checks to ensure data correctness
+ * during deserialisation. However, it is strongly recommended to further
+ * protect the data integrity with a checksum or some other external mechanism
+ * when transmitting over the wire. Otherwise, deserialisation _might_ still
+ * succeed but result in an unexpected behaviour.
+ *
  * @param pu8_Buffer The buffer holding the serialised Id data
  * @param u32_BufferSize The size of the buffer in bytes
  * @param ppt_Id The pointer to the deserialised Id
@@ -53,6 +65,12 @@ ITC_Status_t ITC_SerDes_deserialiseId(
 
 /**
  * @brief Serialise an existing ITC Event
+ *
+ * @warning This library performs a few basic checks to ensure data correctness
+ * during deserialisation. However, it is strongly recommended to further
+ * protect the data integrity with a checksum or some other external mechanism
+ * when transmitting over the wire. Otherwise, deserialisation _might_ still
+ * succeed but result in an unexpected behaviour.
  *
  * @param ppt_Event The pointer to the Event
  * @param pu8_Buffer The buffer to hold the serialised data
@@ -70,6 +88,12 @@ ITC_Status_t ITC_SerDes_serialiseEvent(
 
 /**
  * @brief Deserialise an ITC Event
+ *
+ * @warning This library performs a few basic checks to ensure data correctness
+ * during deserialisation. However, it is strongly recommended to further
+ * protect the data integrity with a checksum or some other external mechanism
+ * when transmitting over the wire. Otherwise, deserialisation _might_ still
+ * succeed but result in an unexpected behaviour.
  *
  * @param pu8_Buffer The buffer holding the serialised Event data
  * @param u32_BufferSize The size of the buffer in bytes
