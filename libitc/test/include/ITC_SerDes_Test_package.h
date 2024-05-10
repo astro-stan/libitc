@@ -17,6 +17,10 @@
  * Defines
  ******************************************************************************/
 
+/** The size of `ITC_VERSION_MAJOR` symbol (provided via the build system
+ * c_args) */
+#define ITC_VERSION_MAJOR_LEN                                  (sizeof(uint8_t))
+
 /* Get a field from a serialised ITC node header */
 #define ITC_SERDES_HEADER_GET(t_Header, t_Mask, t_Offset)                      \
     (((t_Header) & (t_Mask)) >> (t_Offset))
@@ -33,6 +37,11 @@
 /* The header of a serialised parent ITC ID */
 #define ITC_SERDES_PARENT_ID_HEADER                                      (0x01U)
 
+/* The minimum possible length of a serialisation/deserialsation ID buffer
+ * (a leaf ID) - version number + 1 `ITC_SerDes_Header_t` */
+#define ITC_SERDES_ID_MIN_BUFFER_LEN                                           \
+    (ITC_VERSION_MAJOR_LEN + sizeof(ITC_SerDes_Header_t))
+
 /* The offset of the `IS_PARENT` flag in a serialised ITC Event header */
 #define ITC_SERDES_EVENT_IS_PARENT_OFFSET                                   (0U)
 /* The mask of the `IS_PARENT` flag in a serialised ITC Event header */
@@ -48,6 +57,11 @@
 /* The mask of the whole Event header */
 #define ITC_SERDES_EVENT_HEADER_MASK                                           \
     (ITC_SERDES_EVENT_IS_PARENT_MASK | ITC_SERDES_EVENT_COUNTER_LEN_MASK)
+
+/* The minimum possible length of a serialisation/deserialsation Event buffer
+ * (a leaf Event) - version number + 1 `ITC_SerDes_Header_t` */
+#define ITC_SERDES_EVENT_MIN_BUFFER_LEN                                        \
+    (ITC_VERSION_MAJOR_LEN + sizeof(ITC_SerDes_Header_t))
 
 /* Get the `IS_PARENT` flag of a serialised Event node */
 #define ITC_SERDES_EVENT_GET_IS_PARENT(t_Header)                               \
@@ -106,6 +120,20 @@
 #define ITC_SERDES_STAMP_HEADER_MASK                                           \
   (ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK |                                    \
    ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_MASK)
+
+/* The minimum possible length of a serialisation/deserialsation Stamp buffer
+ * (a Stamp with a leaf ID and Event nodes). Requires:
+ *   - version number
+ *   - 1 Stamp header (`ITC_SerDes_Header_t`)
+ *   - 1 byte to denote the serialised ID component length
+ *   - 1 `ITC_SERDES_ID_MIN_BUFFER_LEN` (minus verison number)
+ *   - 1 byte to denote the serialised Event component length
+ *   - 1 `ITC_SERDES_EVENT_MIN_BUFFER_LEN` (minus verison number) */
+#define ITC_SERDES_STAMP_MIN_BUFFER_LEN                                        \
+    (ITC_VERSION_MAJOR_LEN + sizeof(ITC_SerDes_Header_t) +                     \
+    (2 * sizeof(uint8_t)) +                                                    \
+    (ITC_SERDES_ID_MIN_BUFFER_LEN - ITC_VERSION_MAJOR_LEN) +                   \
+    (ITC_SERDES_EVENT_MIN_BUFFER_LEN - ITC_VERSION_MAJOR_LEN))
 
 /* Get the `ID component length` length from a serialised Stamp node */
 #define ITC_SERDES_STAMP_GET_ID_COMPONENT_LEN_LEN(t_Header)                    \

@@ -66,6 +66,14 @@ void ITC_SerDes_Test_serialiseIdFailInvalidParam(void)
             NULL,
             &u32_BufferSize),
         ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseId(
+            pt_Dummy,
+            ru8_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test serialising an ID fails with corrupt ID */
@@ -154,8 +162,8 @@ void ITC_SerDes_Test_serialiseIdLeafSuccessful(void)
 void ITC_SerDes_Test_serialiseIdFailWithInsufficentResources(void)
 {
     ITC_Id_t *pt_Id = NULL;
-    uint8_t ru8_Buffer[2] = { 0 };
-    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize;
 
     /* Create a new ID */
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
@@ -163,6 +171,7 @@ void ITC_SerDes_Test_serialiseIdFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Serialise the ID */
+    u32_BufferSize = 2;
     TEST_FAILURE(
         ITC_SerDes_serialiseId(
             pt_Id,
@@ -170,15 +179,15 @@ void ITC_SerDes_Test_serialiseIdFailWithInsufficentResources(void)
             &u32_BufferSize),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
-    u32_BufferSize = 0;
 
     /* Serialise the ID */
+    u32_BufferSize = ITC_SERDES_ID_MIN_BUFFER_LEN - 1;
     TEST_FAILURE(
         ITC_SerDes_serialiseId(
             pt_Id->pt_Left,
             &ru8_Buffer[0],
             &u32_BufferSize),
-        ITC_STATUS_INVALID_PARAM);
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
@@ -292,8 +301,7 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
 void ITC_SerDes_Test_deserialiseIdFailInvalidParam(void)
 {
     ITC_Id_t *pt_Dummy = NULL;
-    uint8_t ru8_Buffer[10] = { 0 };
-    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+    uint8_t ru8_Buffer[ITC_SERDES_ID_MIN_BUFFER_LEN] = { 0 };
 
     TEST_FAILURE(
         ITC_SerDes_deserialiseId(
@@ -304,14 +312,21 @@ void ITC_SerDes_Test_deserialiseIdFailInvalidParam(void)
     TEST_FAILURE(
         ITC_SerDes_deserialiseId(
             NULL,
-            u32_BufferSize,
+            sizeof(ru8_Buffer),
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
         ITC_SerDes_deserialiseId(
             &ru8_Buffer[0],
-            u32_BufferSize,
+            sizeof(ru8_Buffer),
             NULL),
+        ITC_STATUS_INVALID_PARAM);
+
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseId(
+            &ru8_Buffer[0],
+            ITC_SERDES_ID_MIN_BUFFER_LEN - 1,
+            &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
 }
 
@@ -449,6 +464,14 @@ void ITC_SerDes_Test_serialiseEventFailInvalidParam(void)
             NULL,
             &u32_BufferSize),
         ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEvent(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test serialising an Event fails with corrupt Event */
@@ -536,8 +559,8 @@ void ITC_SerDes_Test_serialiseEventLeafSuccessful(void)
 void ITC_SerDes_Test_serialiseEventFailWithInsufficentResources(void)
 {
     ITC_Event_t *pt_Event = NULL;
-    uint8_t ru8_Buffer[3] = { 0 };
-    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+    uint8_t ru8_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize;
 
     /* Create a new Event */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
@@ -545,6 +568,7 @@ void ITC_SerDes_Test_serialiseEventFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
 
     /* Serialise the Event */
+    u32_BufferSize = 3;
     TEST_FAILURE(
         ITC_SerDes_serialiseEvent(
             pt_Event,
@@ -552,15 +576,15 @@ void ITC_SerDes_Test_serialiseEventFailWithInsufficentResources(void)
             &u32_BufferSize),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
-    u32_BufferSize = 0;
 
     /* Serialise the Event */
+    u32_BufferSize = ITC_SERDES_EVENT_MIN_BUFFER_LEN - 1;
     TEST_FAILURE(
         ITC_SerDes_serialiseEvent(
             pt_Event->pt_Left,
             &ru8_Buffer[0],
             &u32_BufferSize),
-        ITC_STATUS_INVALID_PARAM);
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -660,8 +684,7 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
 void ITC_SerDes_Test_deserialiseEventFailInvalidParam(void)
 {
     ITC_Event_t *pt_Dummy = NULL;
-    uint8_t ru8_Buffer[10] = { 0 };
-    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+    uint8_t ru8_Buffer[ITC_SERDES_EVENT_MIN_BUFFER_LEN] = { 0 };
 
     TEST_FAILURE(
         ITC_SerDes_deserialiseEvent(
@@ -672,13 +695,20 @@ void ITC_SerDes_Test_deserialiseEventFailInvalidParam(void)
     TEST_FAILURE(
         ITC_SerDes_deserialiseEvent(
             NULL,
-            u32_BufferSize,
+            sizeof(ru8_Buffer),
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
         ITC_SerDes_deserialiseEvent(
             &ru8_Buffer[0],
-            u32_BufferSize,
+            sizeof(ru8_Buffer),
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseEvent(
+            &ru8_Buffer[0],
+            ITC_SERDES_EVENT_MIN_BUFFER_LEN - 1,
             NULL),
         ITC_STATUS_INVALID_PARAM);
 }
@@ -867,6 +897,14 @@ void ITC_SerDes_Test_serialiseStampFailInvalidParam(void)
             NULL,
             &u32_BufferSize),
         ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStamp(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test serialising a Stamp fails with corrupt stamp */
@@ -962,16 +1000,14 @@ void ITC_SerDes_Test_serialiseStampFailWithInsufficentResources(void)
             &u32_BufferSize),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
-    u32_BufferSize = 0;
-
     /* Serialise the Stamp */
+    u32_BufferSize = ITC_SERDES_STAMP_MIN_BUFFER_LEN - 1;
     TEST_FAILURE(
         ITC_SerDes_serialiseStamp(
             pt_Stamp,
             &ru8_Buffer[0],
             &u32_BufferSize),
-        ITC_STATUS_INVALID_PARAM);
-
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
     /* Destroy the Stamp */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 }
@@ -1031,7 +1067,7 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
 void ITC_SerDes_Test_deserialiseStampFailInvalidParam(void)
 {
     ITC_Stamp_t *pt_Dummy = NULL;
-    uint8_t ru8_Buffer[10] = { 0 };
+    uint8_t ru8_Buffer[ITC_SERDES_STAMP_MIN_BUFFER_LEN] = { 0 };
 
     TEST_FAILURE(
         ITC_SerDes_deserialiseStamp(
@@ -1049,6 +1085,13 @@ void ITC_SerDes_Test_deserialiseStampFailInvalidParam(void)
         ITC_SerDes_deserialiseStamp(
             &ru8_Buffer[0],
             0,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+
+    TEST_FAILURE(
+        ITC_SerDes_deserialiseStamp(
+            &ru8_Buffer[0],
+            ITC_SERDES_STAMP_MIN_BUFFER_LEN - 1,
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
 }
