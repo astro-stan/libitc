@@ -20,8 +20,6 @@ jobs:
       matrix:
         os: ['ubuntu-latest']
         compiler: ['gcc']
-        CONFIG_USE_64BIT_EVENT_COUNTERS: ['0', '1']
-
     steps:
       - name: Install compiler
         uses: rlalik/setup-cpp-compiler@master
@@ -31,25 +29,12 @@ jobs:
         run: pip install ninja meson
       - uses: actions/checkout@v4
       - name: Build Tests
-        run: >
-          CC=${{ matrix.compiler }}
-          CFLAGS="-DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.CONFIG_USE_64BIT_EVENT_COUNTERS }}";
-          meson setup
-          --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
-          -Doptimization=${{ env.OPTIMIZATION }}
-          -Ddebug=${{ env.DEBUG }}
-          -Dtests=true
+        run: CC=${{ matrix.compiler }} meson setup --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }} -Doptimization=${{ env.OPTIMIZATION }} -Ddebug=${{ env.DEBUG }} -Dtests=true
       - name: Run Tests
-        run: >
-          CC=${{ matrix.compiler }};
-          meson test
-          -C ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
-          --logbase test-log
+        run: CC=${{ matrix.compiler }} meson test -C ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }} --logbase test-log
       - name: Generate Test Report
         if: ${{ !cancelled() && github.ref_name != 'main' }} # Run on failure but not if on main branch
-        run: >
-          ruby "$(find . -name parse_output.rb -type f)" -xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-log.txt &&
-          mv report.xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml
+        run: ruby "$(find . -name parse_output.rb -type f)" -xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-log.txt && mv report.xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml
       - name: Upload Test Report
         uses: actions/upload-artifact@v4
         if: ${{ !cancelled() && github.ref_name != 'main' }} # Run on failure but not if on main branch
