@@ -1041,7 +1041,8 @@ static ITC_Status_t deserialiseId(
                  pu8_Buffer[u32_Offset] == ITC_SERDES_SEED_ID_HEADER)
         {
             t_Status = newId(
-                ppt_CurrentId, pt_CurrentIdParent,
+                ppt_CurrentId,
+                pt_CurrentIdParent,
                 (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER) ? false
                                                                       : true);
         }
