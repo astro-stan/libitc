@@ -18,65 +18,6 @@
 #include "ITC_TestUtil.h"
 
 /******************************************************************************
- *  Private functions
- ******************************************************************************/
-
-/**
- * @brief Create a new invalid Stamp with no ID component
- *
- * @param pt_Stamp (out) The pointer to the Stamp
- */
-static void newInvalidStampWithNoID(ITC_Stamp_t **ppt_Stamp)
-{
-    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
-    TEST_SUCCESS(ITC_Id_destroy(&(*ppt_Stamp)->pt_Id));
-}
-
-/**
- * @brief Create a new invalid Stamp with no Event component
- *
- * @param pt_Stamp (out) The pointer to the Stamp
- */
-static void newInvalidStampWithNoEvent(ITC_Stamp_t **ppt_Stamp)
-{
-    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
-    TEST_SUCCESS(ITC_Event_destroy(&(*ppt_Stamp)->pt_Event));
-}
-
-/******************************************************************************
- *  Global variables
- ******************************************************************************/
-
-/**
- * @brief Table of constructors for varous types of invalid Stamps
- *  Each constructor must return an invalid ITC_Stamp_t**.
- *
- *  It is expected that a a destructor for the invalid Stamp exists at the
- *  corresponding index in `gpv_InvalidStampDestructorTable`
- */
-void (*gpv_InvalidStampConstructorTable[])(ITC_Stamp_t **) =
-{
-    newInvalidStampWithNoID,
-    newInvalidStampWithNoEvent,
-};
-
-/**
- * @brief Table of destructors for varous types of invalid Stamps
- *  Each destructor must fully deallocate the invalid Stamp.
- *
- *  It is expected that a a constructor for the invalid Stamp exists at the
- *  corresponding index in `gpv_InvalidStampConstructorTable`
- */
-void (*gpv_InvalidStampDestructorTable[])(ITC_Stamp_t **) =
-{
-    /* Cast the funcion pointer to the type of the table
-     * This is ugly but beats needlessly having to write a destructor
-     * for each invalid Stamp */
-    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
-    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
-};
-
-/******************************************************************************
  *  Public functions
  ******************************************************************************/
 
@@ -136,7 +77,7 @@ void ITC_Stamp_Test_createPeekStampFailWithCorruptStamp(void)
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I < gu32_InvalidStampTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */
@@ -192,7 +133,7 @@ void ITC_Stamp_Test_cloneStampFailWithCorruptStamp(void)
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I < gu32_InvalidStampTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */
@@ -250,7 +191,7 @@ void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I < gu32_InvalidStampTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */
@@ -317,7 +258,7 @@ void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I < gu32_InvalidStampTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */
@@ -387,7 +328,7 @@ void ITC_Stamp_Test_eventStampFailWithCorruptStamp(void)
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I < gu32_InvalidStampTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */
@@ -493,7 +434,7 @@ void ITC_Stamp_Test_compareStampFailWithCorruptStamp(void)
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+         u32_I < gu32_InvalidStampTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */

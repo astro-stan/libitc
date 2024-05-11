@@ -10,6 +10,7 @@
 #include "unity.h"
 
 #include "ITC_Test_package.h"
+#include "ITC_SerDes_Test_package.h"
 
 #include "ITC_Id_package.h"
 #include "ITC_Event_package.h"
@@ -218,6 +219,238 @@ static void destroyInvalidIdWithInvalidParentPointer(
 }
 
 /**
+ * @brief Create a new invalid serialised ID with a parent node without children
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentIdWithNoChildren(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with a nested parent node without
+ * children
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedNestedParentIdWithNoChildren(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with a asymmetric parent node
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedAsymmetricParentId(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with a asymmetric nested parent
+ * node
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedAsymmetricNestedParentId(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with too many child nodes
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedIdWithTooManyChildNodes(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised parent ID with too many nested child
+ * nodes
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentIdWithTooManyNestedChildNodes(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with multiparent root
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentIdWithMultiParentRoot(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with invalid header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentIdWithInvalidHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        123,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised ID with invalid nested header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentIdWithInvalidNestedHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        123,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised not normalised ID
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedNotNormalisedId(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
  * @brief Create a new invalid Event with asymmetric root parent
  * with only left child
  *
@@ -392,6 +625,579 @@ static void destroyInvalidEventWithInvalidParentPointer(
     TEST_SUCCESS(ITC_Event_destroy(ppt_Event));
 }
 
+/**
+ * @brief Create a new invalid serialised Event with a parent node without
+ * children
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentEventWithNoChildren(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with a nested parent node
+ * without children
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedNestedParentEventWithNoChildren(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with a asymmetric parent node
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedAsymmetricParentEvent(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with a asymmetric nested parent
+ * node
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedAsymmetricNestedParentEvent(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with too many child nodes
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedEventWithTooManyChildNodes(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised parent Event with too many nested
+ * child nodes
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentEventWithTooManyNestedChildNodes(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with multiparent root
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentEventWithMultiParentRoot(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 1),
+        123,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with invalid header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentEventWithInvalidHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_EVENT_HEADER_MASK << 1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with invalid nested header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedParentEventWithInvalidNestedHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_EVENT_HEADER_MASK << 2,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with no header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedEventWithNoHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        1, // Just an event count, no header
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised nested Event with no header
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedNestedEventWithNoHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        2, // Just an event count, no header
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised not normalised Event
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedNotNormalisedEvent(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        2,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with smaller Event counter
+ * length
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedEventWithSmallerEventCounterLength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Event with higher Event counter
+ * length
+ *
+ * @param ppu8_Buffer (out) The pointer to the buffer
+ * @param pu32_BufferSize (out) The size of the buffer
+ */
+static void newInvalidSerialisedEventWithHigherEventCounterLength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 2),
+        1
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid Stamp with no ID component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidStampWithNoID(ITC_Stamp_t **ppt_Stamp)
+{
+    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
+    TEST_SUCCESS(ITC_Id_destroy(&(*ppt_Stamp)->pt_Id));
+}
+
+/**
+ * @brief Create a new invalid Stamp with no Event component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidStampWithNoEvent(ITC_Stamp_t **ppt_Stamp)
+{
+    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
+    TEST_SUCCESS(ITC_Event_destroy(&(*ppt_Stamp)->pt_Event));
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with no ID component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithNoID(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(0, 1),
+        5,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
+        1,
+        2,
+        3,
+        4,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with no Event component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithNoEvent(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 0),
+        5,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with no header
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithNoHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        3,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with smaller ID component length
+ * length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithSmallerIDComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with bigger ID component length
+ * length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithBiggerIDComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        3,
+        1,
+        0,
+        2,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with smaller Event component
+ * length length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithSmallerEventComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with bigger Event component
+ * length length
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithBiggerEventComponentLengthlength(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        0,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        1,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with invalid header
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithInvalidHeader(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_STAMP_HEADER_MASK << 1,
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
 /******************************************************************************
  *  Global variables
  ******************************************************************************/
@@ -449,6 +1255,32 @@ const uint32_t gu32_InvalidIdTablesSize =
     ARRAY_COUNT(gpv_InvalidIdConstructorTable);
 
 /******************************************************************************
+ * Table of constructors for various types of invalid serialised IDs
+ ******************************************************************************/
+
+void (*const gpv_InvalidSerialisedIdConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize) =
+{
+    newInvalidSerialisedParentIdWithNoChildren,
+    newInvalidSerialisedNestedParentIdWithNoChildren,
+    newInvalidSerialisedAsymmetricParentId,
+    newInvalidSerialisedAsymmetricNestedParentId,
+    newInvalidSerialisedIdWithTooManyChildNodes,
+    newInvalidSerialisedParentIdWithTooManyNestedChildNodes,
+    newInvalidSerialisedParentIdWithMultiParentRoot,
+    newInvalidSerialisedParentIdWithInvalidHeader,
+    newInvalidSerialisedParentIdWithInvalidNestedHeader,
+    newInvalidSerialisedNotNormalisedId,
+};
+
+/******************************************************************************
+ * The size of the `gpv_InvalidSerialisedIdConstructorTable` array
+ ******************************************************************************/
+
+const uint32_t gu32_InvalidSerialisedIdTableSize =
+    ARRAY_COUNT(gpv_InvalidSerialisedIdConstructorTable);
+
+/******************************************************************************
  * Table of constructors for varous types of invalid Events
  ******************************************************************************/
 
@@ -496,6 +1328,93 @@ void (*const gpv_InvalidEventDestructorTable[])(ITC_Event_t **) =
 
 const uint32_t gu32_InvalidEventTablesSize =
     ARRAY_COUNT(gpv_InvalidEventConstructorTable);
+
+/******************************************************************************
+ * Table of constructors for various types of invalid serialised Events
+ ******************************************************************************/
+
+void (*const gpv_InvalidSerialisedEventConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize) =
+{
+    newInvalidSerialisedParentEventWithNoChildren,
+    newInvalidSerialisedNestedParentEventWithNoChildren,
+    newInvalidSerialisedAsymmetricParentEvent,
+    newInvalidSerialisedAsymmetricNestedParentEvent,
+    newInvalidSerialisedEventWithTooManyChildNodes,
+    newInvalidSerialisedParentEventWithTooManyNestedChildNodes,
+    newInvalidSerialisedParentEventWithMultiParentRoot,
+    newInvalidSerialisedParentEventWithInvalidHeader,
+    newInvalidSerialisedParentEventWithInvalidNestedHeader,
+    newInvalidSerialisedEventWithNoHeader,
+    newInvalidSerialisedNestedEventWithNoHeader,
+    newInvalidSerialisedNotNormalisedEvent,
+    newInvalidSerialisedEventWithSmallerEventCounterLength,
+    newInvalidSerialisedEventWithHigherEventCounterLength,
+};
+
+/******************************************************************************
+ * The size of the `gpv_InvalidSerialisedEventConstructorTable` array
+ ******************************************************************************/
+
+const uint32_t gu32_InvalidSerialisedEventTableSize =
+    ARRAY_COUNT(gpv_InvalidSerialisedEventConstructorTable);
+
+/******************************************************************************
+ * Table of constructors for various types of invalid Stamps
+ ******************************************************************************/
+
+void (*const gpv_InvalidStampConstructorTable[])(ITC_Stamp_t **) =
+{
+    newInvalidStampWithNoID,
+    newInvalidStampWithNoEvent,
+};
+
+/******************************************************************************
+ * Table of destructors for various types of invalid Stamps
+ ******************************************************************************/
+
+void (*const gpv_InvalidStampDestructorTable[])(ITC_Stamp_t **) =
+{
+    /* Cast the funcion pointer to the type of the table
+     * This is ugly but beats needlessly having to write a destructor
+     * for each invalid Stamp */
+    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
+    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
+};
+
+/******************************************************************************
+ * The size of the `gpv_InvalidStampConstructorTable` and `gpv_InvalidStampDestructorTable` arrays.
+ ******************************************************************************/
+
+const uint32_t gu32_InvalidStampTablesSize =
+    ARRAY_COUNT(gpv_InvalidStampConstructorTable);
+
+/******************************************************************************
+ * Table of constructors for various types of invalid serialised Stamps
+ ******************************************************************************/
+
+void (*const gpv_InvalidSerialisedStampConstructorTable[])(
+    const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize) =
+{
+    /* Stamps here are specially crafted to trigger the `CORRUPT_STAMP` exception
+     * `CORRUPT_EVENT` and `CORRUPT_ID` exceptions are checked for in their
+     * respective unit tests. */
+    newInvalidSerialisedStampWithNoID,
+    newInvalidSerialisedStampWithNoEvent,
+    newInvalidSerialisedStampWithNoHeader,
+    newInvalidSerialisedStampWithSmallerIDComponentLengthlength,
+    newInvalidSerialisedStampWithBiggerIDComponentLengthlength,
+    newInvalidSerialisedStampWithSmallerEventComponentLengthlength,
+    newInvalidSerialisedStampWithBiggerEventComponentLengthlength,
+    newInvalidSerialisedStampWithInvalidHeader,
+};
+
+/******************************************************************************
+ * The size of the `gpv_InvalidSerialisedStampConstructorTable` array
+ ******************************************************************************/
+
+const uint32_t gu32_InvalidSerialisedStampTableSize =
+    ARRAY_COUNT(gpv_InvalidSerialisedStampConstructorTable);
 
 /******************************************************************************
  *  Public functions

@@ -10,6 +10,9 @@
 #include "ITC_Id.h"
 #include "ITC_Id_package.h"
 #include "ITC_Id_private.h"
+#include "ITC_SerDes_package.h"
+#include "ITC_SerDes_private.h"
+#include "ITC_SerDes_Util_package.h"
 
 #include "ITC_Port.h"
 
@@ -864,6 +867,265 @@ static ITC_Status_t sumIdI(
     return t_Status;
 }
 
+/**
+ * @brief Serialise an existing ITC Id
+ *
+ * Data format:
+ *  - Byte 0: The major component of the version of the `libitc` library used to
+ *      serialise the data. Optional, can be ommitted.
+ *  - Bytes (0 - 1) - N (see above): The ID tree.
+ *    Each node of the ID tree is serialised in pre-order. I.e the root is
+ *    serialised first, followed by the left child, then the right child. Each
+ *    node consists of a 1-byte header.
+ *    See:
+ *    - define ITC_SERDES_PARENT_ID_HEADER
+ *    - define ITC_SERDES_SEED_ID_HEADER
+ *    - define ITC_SERDES_NULL_ID_HEADER
+ *    Any other header value is invalid.
+ *
+ * @param ppt_Id The pointer to the Id
+ * @param pu8_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @param b_AddVersion Whether to prepend the value of `ITC_VERSION_MAJOR` to
+ * the output.
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t serialiseId(
+    const ITC_Id_t *pt_Id,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
+    const bool b_AddVersion
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    const ITC_Id_t *pt_CurrentIdParent = NULL; /* The parent of the current ID*/
+    const ITC_Id_t *pt_RootIdParent = NULL; /* The parent of the root node */
+    uint32_t u32_Offset = 0; /* The current offset */
+
+    /* Remember the root parent as this might be a subtree */
+    pt_RootIdParent = pt_Id->pt_Parent;
+
+    if (b_AddVersion)
+    {
+        /* Prepend the lib version (provided by build system c args) */
+        pu8_Buffer[u32_Offset] = ITC_VERSION_MAJOR;
+
+        /* Increment offset */
+        u32_Offset += ITC_VERSION_MAJOR_LEN;
+    }
+
+    /* Perform a pre-order traversal */
+    while (pt_Id && t_Status == ITC_STATUS_SUCCESS)
+    {
+        if ((u32_Offset + sizeof(ITC_SerDes_Header_t)) > *pu32_BufferSize)
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+        else
+        {
+            /* Create the header */
+            pu8_Buffer[u32_Offset] =
+                (ITC_ID_IS_LEAF_ID(pt_Id))
+                    ? ((pt_Id->b_IsOwner) ? ITC_SERDES_SEED_ID_HEADER
+                                          : ITC_SERDES_NULL_ID_HEADER)
+                    : ITC_SERDES_PARENT_ID_HEADER;
+
+            /* Increment the offset */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
+
+            /* Descend into left tree */
+            if (pt_Id->pt_Left)
+            {
+                pt_Id = pt_Id->pt_Left;
+            }
+            /* Valid parent ITC ID trees always have both left and right
+            * nodes. Thus, there is no need to check if the current node
+            * doesn't have a left child but has a right one.
+            *
+            * Instead directly start backtracking up the tree */
+            else
+            {
+                /* Remember the parent */
+                pt_CurrentIdParent = pt_Id->pt_Parent;
+
+                /* Loop until the current element is no longer reachable
+                * through the parent's right child */
+                while (pt_CurrentIdParent != pt_RootIdParent &&
+                    pt_CurrentIdParent->pt_Right == pt_Id)
+                {
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_CurrentIdParent = pt_CurrentIdParent->pt_Parent;
+                }
+
+                /* There is a right subtree that has not been explored yet */
+                if (pt_CurrentIdParent != pt_RootIdParent)
+                {
+                    pt_Id = pt_CurrentIdParent->pt_Right;
+                }
+                else
+                {
+                    pt_Id = NULL;
+                }
+            }
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Deserialise an ITC Id
+ *
+ * For the expected data format see ::serialiseId()
+ *
+ * @param pu8_Buffer The buffer holding the serialised Id data
+ * @param u32_BufferSize The size of the buffer in bytes
+ * @param b_HasVersion Whether the `ITC_VERSION_MAJOR` field is present in the
+ * serialised input
+ * @param ppt_Id The pointer to the deserialised Id
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t deserialiseId(
+    const uint8_t *const pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    const bool b_HasVersion,
+    ITC_Id_t **ppt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t **ppt_CurrentId = NULL; /* The current ID */
+    ITC_Id_t *pt_CurrentIdParent = NULL;
+    uint32_t u32_Offset = 0; /* The current offset */
+
+    *ppt_Id = NULL;
+    ppt_CurrentId = ppt_Id;
+
+    /* If input contains a version check it matches the current lib version
+     * (provided by build system c args) */
+    if (b_HasVersion)
+    {
+        if (pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
+        {
+            t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
+        }
+
+        u32_Offset += ITC_VERSION_MAJOR_LEN;
+    }
+
+    /* The last serialised node cannot be a parent */
+    if (t_Status == ITC_STATUS_SUCCESS &&
+        pu8_Buffer[u32_BufferSize - 1] == ITC_SERDES_PARENT_ID_HEADER)
+    {
+        t_Status = ITC_STATUS_CORRUPT_ID;
+    }
+
+    while (u32_Offset < u32_BufferSize && t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Deserialise a parent ID node */
+        if (pu8_Buffer[u32_Offset] == ITC_SERDES_PARENT_ID_HEADER)
+        {
+            t_Status = newId(ppt_CurrentId, pt_CurrentIdParent, false);
+        }
+        /* Deserialise a leaf ID node */
+        else if (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER ||
+                 pu8_Buffer[u32_Offset] == ITC_SERDES_SEED_ID_HEADER)
+        {
+            t_Status = newId(
+                ppt_CurrentId,
+                pt_CurrentIdParent,
+                (pu8_Buffer[u32_Offset] == ITC_SERDES_NULL_ID_HEADER) ? false
+                                                                      : true);
+        }
+        /* Unknown node header value */
+        else
+        {
+            t_Status = ITC_STATUS_CORRUPT_ID;
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Get ready for the next header:
+             *
+             * - If the current header was a parent - descend into left child
+             * - If the current header was a leaf - find the first unallocated
+             *   right child node
+             */
+            if (pu8_Buffer[u32_Offset] == ITC_SERDES_PARENT_ID_HEADER)
+            {
+                pt_CurrentIdParent = *ppt_CurrentId;
+                ppt_CurrentId = &(*ppt_CurrentId)->pt_Left;
+            }
+            else
+            {
+                /* Backtrack the tree until an unallocated right child is found
+                 * or there are no more parent nodes */
+                while (pt_CurrentIdParent && pt_CurrentIdParent->pt_Right)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent;
+                    pt_CurrentIdParent = (*ppt_CurrentId)->pt_Parent;
+                }
+
+                /* Descend into the unallocated right child of the parent */
+                if (pt_CurrentIdParent)
+                {
+                    ppt_CurrentId = &pt_CurrentIdParent->pt_Right;
+                }
+                /* There aren't any unallocated right child nodes in the tree.
+                 *
+                 * Usually this would signal the end of the loop as the only
+                 * time this should happen is when the full input buffer has
+                 * been deserialised (i.e.`u32_NextOffset == u32_BufferSize`),
+                 * since the tree is serialised in a pre-order traversal fasion.
+                 *
+                 * However, if the input buffer is malformed in some way it is
+                 * possible that there are elements in it that havent't been
+                 * deserialised yet (i.e. `u32_NextOffset < u32_BufferSize`).
+                 *
+                 * This should be treated as error as otherwise the user might
+                 * not get the expected (or full) ID tree. */
+                else if ((u32_Offset + sizeof(ITC_SerDes_Header_t)) <
+                         u32_BufferSize)
+                {
+                    t_Status = ITC_STATUS_CORRUPT_ID;
+                }
+                else
+                {
+                    /* Nothing to do */
+                }
+            }
+
+            /* Get the next header */
+            u32_Offset += sizeof(ITC_SerDes_Header_t);
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Check the deserialised ID is valid */
+        t_Status = validateId(*ppt_Id, true);
+    }
+
+    if (t_Status != ITC_STATUS_SUCCESS)
+    {
+        /* There is nothing else to do if the destroy fails. Also it is more
+         * important to convey the deserialisation failed, rather than the
+         * destroy */
+        (void)ITC_Id_destroy(ppt_Id);
+    }
+
+    return t_Status;
+}
+
 /******************************************************************************
  * Public functions
  ******************************************************************************/
@@ -1106,4 +1368,109 @@ ITC_Status_t ITC_Id_sum(
     }
 
     return t_Status;
+}
+
+/******************************************************************************
+ * Serialise an existing ITC Id
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_Util_serialiseId(
+    const ITC_Id_t *const pt_Id,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize,
+    const bool b_AddVersion
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        pu8_Buffer,
+        pu32_BufferSize,
+        (b_AddVersion) ? ITC_SERDES_ID_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN
+                       : ITC_SERDES_ID_MIN_BUFFER_LEN,
+        true);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = serialiseId(
+            pt_Id, pu8_Buffer, pu32_BufferSize, b_AddVersion);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Deserialise an ITC Id
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_Util_deserialiseId(
+    const uint8_t *const pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    const bool b_HasVersion,
+    ITC_Id_t **ppt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
+    if (!ppt_Id)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_SerDes_Util_validateBuffer(
+            pu8_Buffer,
+            &u32_BufferSize,
+            (b_HasVersion) ? ITC_SERDES_ID_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN
+                           : ITC_SERDES_ID_MIN_BUFFER_LEN,
+            false);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = deserialiseId(
+            pu8_Buffer, u32_BufferSize, b_HasVersion, ppt_Id);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Serialise an existing ITC Id
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_serialiseId(
+    const ITC_Id_t *const pt_Id,
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    return ITC_SerDes_Util_serialiseId(
+        pt_Id,
+        pu8_Buffer,
+        pu32_BufferSize,
+        true);
+}
+
+/******************************************************************************
+ * Deserialise an ITC Id
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_deserialiseId(
+    const uint8_t *const pu8_Buffer,
+    const uint32_t u32_BufferSize,
+    ITC_Id_t **ppt_Id
+)
+{
+    return ITC_SerDes_Util_deserialiseId(
+        pu8_Buffer,
+        u32_BufferSize,
+        true,
+        ppt_Id);
 }

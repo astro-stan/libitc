@@ -14,5 +14,6 @@
 #include "ITC_Id.h"
 #include "ITC_Stamp.h"
 #include "ITC_Status.h"
+#include "ITC_SerDes.h"
 
 #endif /* ITC_H_ */
