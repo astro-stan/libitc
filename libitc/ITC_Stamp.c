@@ -399,8 +399,7 @@ static ITC_Status_t serialiseStamp(
         /* Set the size of the buffer */
         u32_ComponentLengthLength = sizeof(ru8_ComponentLength);
 
-        /* Serialise the ID component length
-         * Reusing this as the event counter is at a minimum a `uint32_t` */
+        /* Serialise the ID component length */
         t_Status = u32ToNetwork(
             u32_ComponentLength,
             &ru8_ComponentLength[0],
@@ -452,8 +451,7 @@ static ITC_Status_t serialiseStamp(
         /* Set the size of the buffer */
         u32_ComponentLengthLength = sizeof(ru8_ComponentLength);
 
-        /* Serialise the Event component length
-         * Reusing this as the event counter is at a minimum a `uint32_t` */
+        /* Serialise the Event component length */
         t_Status = u32ToNetwork(
             u32_ComponentLength,
             &ru8_ComponentLength[0],
@@ -568,8 +566,7 @@ static ITC_Status_t deserialiseStamp(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Deserialise the ID component length
-        * Reusing this as the event counter is at a minimum a `uint32_t` */
+        /* Deserialise the ID component length */
         t_Status = u32FromNetwork(
             &pu8_Buffer[u32_Offset],
             u32_ComponentLengthLength,
@@ -616,8 +613,7 @@ static ITC_Status_t deserialiseStamp(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Deserialise the Event component length
-        * Reusing this as the event counter is at a minimum a `uint32_t` */
+        /* Deserialise the Event component length */
         t_Status = u32FromNetwork(
             &pu8_Buffer[u32_Offset],
             u32_ComponentLengthLength,
