@@ -20,6 +20,7 @@
 #include "ITC_Event_package.h"
 
 #include "ITC_Stamp.h"
+#include "ITC_config.h"
 
 #include <stdint.h>
 
@@ -629,10 +630,14 @@ void ITC_SerDes_Test_serialiseEventLeafSubtreeSuccessful(void)
 void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
 {
     ITC_Event_t *pt_Event = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    uint8_t ru8_Buffer[19] = { 0 };
+#else
     uint8_t ru8_Buffer[15] = { 0 };
+#endif
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
-    /* Serialised (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    /* Serialised (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     uint8_t ru8_ExpectedEventSerialisedData[] = {
         ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
@@ -643,22 +648,38 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
         (4242U >> 8U) & 0xFFU,
         4242U & 0xFFU,
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 8),
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#else
         ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
-        (123123123U >> 24U) & 0xFFU,
-        (123123123U >> 16U) & 0xFFU,
-        (123123123U >> 8U) & 0xFFU,
-        123123123U & 0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#endif
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
 
     /* clang-format off */
-    /* Create a new (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4242));
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, 123123123));
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT32_MAX));
+#endif
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
     /* clang-format on */
 
@@ -833,7 +854,7 @@ void ITC_SerDes_Test_deserialiseLeafEventSuccessful(void)
 void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
 {
     ITC_Event_t *pt_Event;
-    /* Serialised (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    /* Serialised (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     uint8_t ru8_Buffer[] = {
         ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
@@ -844,11 +865,23 @@ void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
         (4242U >> 8U) & 0xFFU,
         4242U & 0xFFU,
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 8),
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#else
         ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
-        (123123123U >> 24U) & 0xFFU,
-        (123123123U >> 16U) & 0xFFU,
-        (123123123U >> 8U) & 0xFFU,
-        123123123U & 0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#endif
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
@@ -858,13 +891,17 @@ void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
         ITC_SerDes_deserialiseEvent(&ru8_Buffer[0], u32_BufferSize, &pt_Event));
 
     /* clang-format off */
-    /* Test this is a (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    /* Test this is a (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right, 0);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Left, 4242);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Left, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, 123123123);
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, UINT64_MAX);
+#else
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, UINT32_MAX);
+#endif
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
     /* clang-format on */
 
@@ -1016,7 +1053,11 @@ void ITC_SerDes_Test_serialiseStampFailWithInsufficentResources(void)
 void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
 {
     ITC_Stamp_t *pt_Stamp = NULL;
-    uint8_t ru8_Buffer[12] = { 0 };
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    uint8_t ru8_Buffer[18] = { 0 };
+#else
+    uint8_t ru8_Buffer[14] = { 0 };
+#endif
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedStampSerialisedData[] = {
@@ -1026,11 +1067,29 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
         ITC_SERDES_PARENT_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
-        5,
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+        11,
+#else
+        7,
+#endif
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
-        ITC_SERDES_CREATE_EVENT_HEADER(false, 2),
-        1,
-        0,
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 8),
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#else
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#endif
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
 
@@ -1044,7 +1103,11 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Stamp->pt_Id->pt_Right, pt_Stamp->pt_Id));
 
     /* Add nodes to the Event component */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, 256));
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT32_MAX));
+#endif
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 0));
     /* clang-format on */
 
@@ -1237,7 +1300,7 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
     ITC_Stamp_t *pt_Stamp;
     /* Serialised stamp with:
      * - (0, ((1, 0), 1)) ID
-     * - (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+     * - (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     uint8_t ru8_Buffer[] = {
         ITC_VERSION_MAJOR, /* Provided by build system c args */
         ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
@@ -1249,7 +1312,11 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
         ITC_SERDES_SEED_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+        18,
+#else
         14,
+#endif
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -1258,11 +1325,23 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
         (4242U >> 8U) & 0xFFU,
         4242U & 0xFFU,
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 8),
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#else
         ITC_SERDES_CREATE_EVENT_HEADER(false, 4),
-        (123123123U >> 24U) & 0xFFU,
-        (123123123U >> 16U) & 0xFFU,
-        (123123123U >> 8U) & 0xFFU,
-        123123123U & 0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+        0xFFU,
+#endif
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
@@ -1276,13 +1355,17 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
     TEST_ITC_ID_IS_NULL_ID(pt_Stamp->pt_Id->pt_Left);
     TEST_ITC_ID_IS_SEED_NULL_ID(pt_Stamp->pt_Id->pt_Right->pt_Left);
     TEST_ITC_ID_IS_SEED_ID(pt_Stamp->pt_Id->pt_Right->pt_Right);
-    /* Test this is a (0, 1, (0, (4242, 0, 123123123), 0)) Event */
+    /* Test this is a (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp->pt_Event, 0);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Left, 1);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp->pt_Event->pt_Right, 0);
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left, 4242);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left->pt_Left, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left->pt_Right, 123123123);
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left->pt_Right, UINT64_MAX);
+#else
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left->pt_Right, UINT32_MAX);
+#endif
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Right, 0);
     /* clang-format on */
 
