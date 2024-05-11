@@ -35,16 +35,16 @@ jobs:
           CC=${{ matrix.compiler }}
           CFLAGS="-DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.CONFIG_USE_64BIT_EVENT_COUNTERS }}";
           meson setup
-            --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
-            -Doptimization=${{ env.OPTIMIZATION }}
-            -Ddebug=${{ env.DEBUG }}
-            -Dtests=true
+          --wipe ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
+          -Doptimization=${{ env.OPTIMIZATION }}
+          -Ddebug=${{ env.DEBUG }}
+          -Dtests=true
       - name: Run Tests
         run: >
           CC=${{ matrix.compiler }};
           meson test
-            -C ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
-            --logbase test-log
+          -C ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}
+          --logbase test-log
       - name: Generate Test Report
         if: ${{ !cancelled() && github.ref_name != 'main' }} # Run on failure but not if on main branch
         run: >
