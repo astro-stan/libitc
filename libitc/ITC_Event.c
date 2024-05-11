@@ -1622,7 +1622,7 @@ static ITC_Status_t serialiseEvent(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    /* The parent of the current ID */
+    /* The parent of the current Event */
     const ITC_Event_t *pt_CurrentEventParent = NULL;
     /* The parent of the root node */
     const ITC_Event_t *pt_RootEventParent = NULL;
