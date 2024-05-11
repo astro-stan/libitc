@@ -1434,8 +1434,8 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status =
-            deserialiseId(pu8_Buffer, u32_BufferSize, b_HasVersion, ppt_Id);
+        t_Status = deserialiseId(
+            pu8_Buffer, u32_BufferSize, b_HasVersion, ppt_Id);
     }
 
     return t_Status;
