@@ -1857,7 +1857,7 @@ static ITC_Status_t deserialiseEvent(
                  *
                  * Usually this would signal the end of the loop as the only
                  * time this should happen is when the full input buffer has
-                 * been deserialised (i.e.`u32_Offset >= u32_BufferSize`),
+                 * been deserialised (i.e.`u32_Offset == u32_BufferSize`),
                  * since the tree is serialised in a pre-order traversal fasion.
                  *
                  * However, if the input buffer is malformed in some way it is
