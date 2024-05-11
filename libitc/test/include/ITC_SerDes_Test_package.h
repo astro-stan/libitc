@@ -21,10 +21,6 @@
  * c_args) */
 #define ITC_VERSION_MAJOR_LEN                                  (sizeof(uint8_t))
 
-/* Get a field from a serialised ITC node header */
-#define ITC_SERDES_HEADER_GET(t_Header, t_Mask, t_Offset)                      \
-    (((t_Header) & (t_Mask)) >> (t_Offset))
-
 /* Set a field in a serialised ITC node header */
 #define ITC_SERDES_HEADER_SET(t_Header, t_Field, t_Mask, t_Offset)             \
   (((t_Header) & ~(t_Mask)) |                                                  \
@@ -63,13 +59,6 @@
 #define ITC_SERDES_EVENT_MIN_BUFFER_LEN                                        \
     (ITC_VERSION_MAJOR_LEN + sizeof(ITC_SerDes_Header_t))
 
-/* Get the `IS_PARENT` flag of a serialised Event node */
-#define ITC_SERDES_EVENT_GET_IS_PARENT(t_Header)                               \
-    ITC_SERDES_HEADER_GET(                                                     \
-        t_Header,                                                              \
-        ITC_SERDES_EVENT_IS_PARENT_MASK,                                       \
-        ITC_SERDES_EVENT_IS_PARENT_OFFSET)                                     \
-
 /* Set the `IS_PARENT` flag of a serialised Event node */
 #define ITC_SERDES_EVENT_SET_IS_PARENT(t_Header, b_IsParent)                   \
     ITC_SERDES_HEADER_SET(                                                     \
@@ -77,13 +66,6 @@
         b_IsParent,                                                            \
         ITC_SERDES_EVENT_IS_PARENT_MASK,                                       \
         ITC_SERDES_EVENT_IS_PARENT_OFFSET)
-
-/* Get the length of the event counter field of serialised a Event node */
-#define ITC_SERDES_EVENT_GET_COUNTER_LEN(t_Header)                             \
-    ITC_SERDES_HEADER_GET(                                                     \
-        t_Header,                                                              \
-        ITC_SERDES_EVENT_COUNTER_LEN_MASK,                                     \
-        ITC_SERDES_EVENT_COUNTER_LEN_OFFSET)
 
 /** Set the length of the event counter field of serialised a Event node.
  * @warning The `u8_CounterLen` must be `<= 15` */
@@ -135,13 +117,6 @@
     (ITC_SERDES_ID_MIN_BUFFER_LEN - ITC_VERSION_MAJOR_LEN) +                   \
     (ITC_SERDES_EVENT_MIN_BUFFER_LEN - ITC_VERSION_MAJOR_LEN))
 
-/* Get the `ID component length` length from a serialised Stamp node */
-#define ITC_SERDES_STAMP_GET_ID_COMPONENT_LEN_LEN(t_Header)                    \
-    ITC_SERDES_HEADER_GET(                                                     \
-        t_Header,                                                              \
-        ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK,                                \
-        ITC_SERDES_STAMP_ID_COMPONENT_LEN_OFFSET)                              \
-
 /** Set the `ID component length` length of a serialised Stamp node
  * @warning The `u8_Len` must be `<= 7` */
 #define ITC_SERDES_STAMP_SET_ID_COMPONENT_LEN_LEN(t_Header, u8_Len)            \
@@ -150,13 +125,6 @@
         u8_Len,                                                                \
         ITC_SERDES_STAMP_ID_COMPONENT_LEN_MASK,                                \
         ITC_SERDES_STAMP_ID_COMPONENT_LEN_OFFSET)
-
-/* Get the `Event component length` length from a serialised Stamp node */
-#define ITC_SERDES_STAMP_GET_EVENT_COMPONENT_LEN_LEN(t_Header)                 \
-    ITC_SERDES_HEADER_GET(                                                     \
-        t_Header,                                                              \
-        ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_MASK,                             \
-        ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_OFFSET)                           \
 
 /** Set the `Event component length` length of a serialised Stamp node
  * @warning The `u8_Len` must be `<= 7` */
