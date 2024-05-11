@@ -47,7 +47,7 @@ jobs:
             --logbase test-log
       - name: Generate Test Report
         if: ${{ !cancelled() && github.ref_name != 'main' }} # Run on failure but not if on main branch
-        run:
+        run: >
           ruby "$(find . -name parse_output.rb -type f)" -xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-log.txt &&
           mv report.xml ${{ env.BUILD_DIR_PREFIX }}-${{ matrix.compiler }}/meson-logs/test-report.xml
       - name: Upload Test Report
