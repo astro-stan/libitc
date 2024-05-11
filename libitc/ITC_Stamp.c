@@ -534,13 +534,12 @@ static ITC_Status_t deserialiseStamp(
     {
         t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
     }
-    else
-    {
-        u32_Offset += ITC_VERSION_MAJOR_LEN;
-    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Increment the offset */
+        u32_Offset += ITC_VERSION_MAJOR_LEN;
+
         /* Get the stamp header */
         t_StampHeader = pu8_Buffer[u32_Offset];
 

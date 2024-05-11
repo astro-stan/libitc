@@ -1012,17 +1012,14 @@ static ITC_Status_t deserialiseId(
 
     /* If input contains a version check it matches the current lib version
      * (provided by build system c args) */
-    if (b_HasVersion && pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
+    if (b_HasVersion)
     {
-        t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
-    }
-    else if (b_HasVersion)
-    {
+        if (pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
+        {
+            t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
+        }
+
         u32_Offset += ITC_VERSION_MAJOR_LEN;
-    }
-    else
-    {
-        /* Nothing to do */
     }
 
     /* The last serialised node cannot be a parent */
