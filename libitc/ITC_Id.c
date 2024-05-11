@@ -1098,6 +1098,10 @@ static ITC_Status_t deserialiseId(
                 {
                     t_Status = ITC_STATUS_CORRUPT_ID;
                 }
+                else
+                {
+                    /* Nothing to do */
+                }
             }
 
             /* Get the next header */

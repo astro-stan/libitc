@@ -1870,6 +1870,10 @@ static ITC_Status_t deserialiseEvent(
                 {
                     t_Status = ITC_STATUS_CORRUPT_EVENT;
                 }
+                else
+                {
+                    /* Nothing to do */
+                }
             }
         }
     }
