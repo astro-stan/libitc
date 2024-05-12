@@ -1062,3 +1062,57 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
 
     return t_Status;
 }
+
+/******************************************************************************
+ * Explode an existing Stamp into its core components - an ID and Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_explode(
+    const ITC_Stamp_t *const pt_Stamp,
+    ITC_Id_t **ppt_Id,
+    ITC_Event_t **ppt_Event
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateStamp(pt_Stamp);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_clone(pt_Stamp->pt_Id, ppt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Event_clone(pt_Stamp->pt_Event, ppt_Event);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Rebuild a Stamp from its core components - an ID and Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_rebuild(
+    ITC_Id_t *const pt_Id,
+    ITC_Event_t *const pt_Event,
+    ITC_Stamp_t **ppt_Stamp
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_Id_validate(pt_Id);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Event_validate(pt_Event);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = newStamp(ppt_Stamp, pt_Id, pt_Event, false, true, true);
+    }
+
+    return t_Status;
+}

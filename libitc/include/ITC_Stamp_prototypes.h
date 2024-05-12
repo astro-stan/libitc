@@ -140,4 +140,34 @@ ITC_Status_t ITC_Stamp_compare(
     ITC_Stamp_Comparison_t *pt_Result
 );
 
+/**
+ * @brief Explode an existing Stamp into its core components - an ID and Event
+ *
+ * @param pt_Stamp The existing Stamp
+ * @param ppt_Id (out) The pointer to the ID
+ * @param ppt_Event (out) The pointer to the Event
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_explode(
+    const ITC_Stamp_t *const pt_Stamp,
+    ITC_Id_t **ppt_Id,
+    ITC_Event_t **ppt_Event
+);
+
+/**
+ * @brief Rebuild a Stamp from its core components - an ID and Event
+ *
+ * @param ppt_Id The ID
+ * @param ppt_Event The Event
+ * @param ppt_Stamp (out) The pointer to the rebuilt Stamp
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_rebuild(
+    ITC_Id_t *const pt_Id,
+    ITC_Event_t *const pt_Event,
+    ITC_Stamp_t **ppt_Stamp
+);
+
 #endif /* ITC_STAMP_PROTOTYPES_H_ */
