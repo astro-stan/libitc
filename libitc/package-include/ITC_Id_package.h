@@ -18,7 +18,7 @@
  * Functions
  ******************************************************************************/
 
-#if !ITC_CONFIG_SUPPORT_EXTENDED_API
+#if !ITC_CONFIG_ENABLE_EXTENDED_API
 
 /**
  * @brief Allocate a new ITC ID and initialise it as a seed ID (1)
@@ -113,7 +113,7 @@ ITC_Status_t ITC_Id_sum(
     ITC_Id_t **ppt_Id
 );
 
-#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
+#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /**
  * @brief Normalise an ID

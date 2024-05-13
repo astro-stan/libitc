@@ -141,7 +141,7 @@ ITC_Status_t ITC_Stamp_compare(
     ITC_Stamp_Comparison_t *pt_Result
 );
 
-#if ITC_CONFIG_SUPPORT_EXTENDED_API
+#if ITC_CONFIG_ENABLE_EXTENDED_API
 
 /**
  * @brief Explode an existing Stamp into its core components - an ID and Event
@@ -173,6 +173,6 @@ ITC_Status_t ITC_Stamp_rebuild(
     ITC_Stamp_t **ppt_Stamp
 );
 
-#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #endif /* ITC_STAMP_PROTOTYPES_H_ */

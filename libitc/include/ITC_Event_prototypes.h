@@ -12,7 +12,7 @@
 
 #include "ITC_config.h"
 
-#if ITC_CONFIG_SUPPORT_EXTENDED_API
+#if ITC_CONFIG_ENABLE_EXTENDED_API
 
 #include "ITC_Event.h"
 #include "ITC_Status.h"
@@ -71,6 +71,6 @@ ITC_Status_t ITC_Event_validate(
     const ITC_Event_t *const pt_Event
 );
 
-#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #endif /* ITC_EVENT_PROTOTYPES_H_ */
