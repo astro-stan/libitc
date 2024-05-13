@@ -41,7 +41,7 @@
  *   * `ITC_Stamp_explode`
  *   * `ITC_Stamp_rebuild`
 */
-#define ITC_CONFIG_SUPPORT_EXTENDED_API                                      (0)
+#define ITC_CONFIG_SUPPORT_EXTENDED_API                                      (1)
 #endif
 
 #endif /* ITC_CONFIG_H_ */
