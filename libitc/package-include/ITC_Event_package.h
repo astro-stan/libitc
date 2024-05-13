@@ -22,56 +22,6 @@
  ******************************************************************************/
 
 /**
- * @brief Allocate a new ITC Event and initialise it
- *
- * @param ppt_Event (out) The pointer to the Event
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-ITC_Status_t ITC_Event_new(
-    ITC_Event_t **ppt_Event
-);
-
-/**
- * @brief Free an allocated ITC Event
- *
- * @warning Even if the function call fails, the Event might be partically freed
- * and not safe to use. For this reason, the returned `*ppt_Event` will always
- * be set to `NULL`.
- *
- * @param ppt_Event (in) The pointer to the Event to deallocate. (out) NULL
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-ITC_Status_t ITC_Event_destroy(
-    ITC_Event_t **ppt_Event
-);
-
-/**
- * @brief Clone an existing ITC Event
- *
- * @param pt_Event The existing Event
- * @param ppt_ClonedEvent (out) The pointer to the cloned Event
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-ITC_Status_t ITC_Event_clone(
-    const ITC_Event_t *const pt_Event,
-    ITC_Event_t **ppt_ClonedEvent
-);
-
-/**
- * @brief Validate an Event
- *
- * @param pt_Event The Event to validate
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-ITC_Status_t ITC_Event_validate(
-    const ITC_Event_t *const pt_Event
-);
-
-/**
  * @brief Normalise an Event
  *
  * @param pt_Event The Event to normalise
