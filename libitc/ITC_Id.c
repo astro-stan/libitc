@@ -1316,26 +1316,6 @@ ITC_Status_t ITC_Id_split(
 }
 
 /******************************************************************************
- * Normalise an ID
- ******************************************************************************/
-
-ITC_Status_t ITC_Id_normalise(
-    ITC_Id_t *pt_Id
-)
-{
-    ITC_Status_t t_Status; /* The current status */
-
-    t_Status = validateId(pt_Id, false);
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = normIdI(pt_Id);
-    }
-
-    return t_Status;
-}
-
-/******************************************************************************
  * Sum two existing IDs into a single ID
  ******************************************************************************/
 
@@ -1365,6 +1345,26 @@ ITC_Status_t ITC_Id_sum(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = sumIdI(pt_Id1, pt_Id2, ppt_Id);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Normalise an ID
+ ******************************************************************************/
+
+ITC_Status_t ITC_Id_normalise(
+    ITC_Id_t *pt_Id
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateId(pt_Id, false);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = normIdI(pt_Id);
     }
 
     return t_Status;
