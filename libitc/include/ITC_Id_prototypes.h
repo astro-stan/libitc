@@ -10,6 +10,10 @@
 #ifndef ITC_ID_PROTOTYPES_H_
 #define ITC_ID_PROTOTYPES_H_
 
+#include "ITC_config.h"
+
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
+
 #include "ITC_Id.h"
 #include "ITC_Status.h"
 
@@ -109,5 +113,7 @@ ITC_Status_t ITC_Id_sum(
     const ITC_Id_t *const pt_Id2,
     ITC_Id_t **ppt_Id
 );
+
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 
 #endif /* ITC_ID_PROTOTYPES_H_ */

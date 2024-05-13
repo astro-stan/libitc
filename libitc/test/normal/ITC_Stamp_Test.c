@@ -16,6 +16,7 @@
 
 #include "ITC_Test_package.h"
 #include "ITC_TestUtil.h"
+#include "ITC_config.h"
 
 /******************************************************************************
  *  Public functions
@@ -800,9 +801,11 @@ void ITC_Stamp_Test_fullStampLifecycle(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
 }
 
+
 /* Test exploding a Stamp into its core components fails with invalid param */
 void ITC_Stamp_Test_explodeStampFailInvalidParam(void)
 {
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
     ITC_Stamp_t *pt_DummyStamp = NULL;
     ITC_Event_t *pt_DummyEvent = NULL;
     ITC_Id_t *pt_DummyId = NULL;
@@ -825,11 +828,15 @@ void ITC_Stamp_Test_explodeStampFailInvalidParam(void)
             &pt_DummyId,
             &pt_DummyEvent),
         ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 }
 
 /* Test exploding a Stamp into its core components fails with corrupt stamp */
 void ITC_Stamp_Test_explodeStampFailWithCorruptStamp(void)
 {
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
     ITC_Stamp_t *pt_Stamp;
     ITC_Id_t *pt_Id;
     ITC_Event_t *pt_Event;
@@ -850,11 +857,15 @@ void ITC_Stamp_Test_explodeStampFailWithCorruptStamp(void)
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
     }
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 }
 
 /* Test exploding a Stamp succeeds */
 void ITC_Stamp_Test_explodeStampSuccessful(void)
 {
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
     ITC_Stamp_t *pt_Stamp = NULL;
     ITC_Event_t *pt_Event = NULL;
     ITC_Id_t *pt_Id = NULL;
@@ -875,11 +886,15 @@ void ITC_Stamp_Test_explodeStampSuccessful(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 }
 
 /* Test rebuilding a Stamp from its core components fails with invalid param */
 void ITC_Stamp_Test_rebuildStampFailInvalidParam(void)
 {
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
     ITC_Stamp_t *pt_DummyStamp = NULL;
     ITC_Event_t *pt_DummyEvent = NULL;
     ITC_Id_t *pt_DummyId = NULL;
@@ -902,11 +917,15 @@ void ITC_Stamp_Test_rebuildStampFailInvalidParam(void)
             pt_DummyEvent,
             &pt_DummyStamp),
         ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 }
 
 /* Test exploding a Stamp into its core components fails with corrupt stamp */
 void ITC_Stamp_Test_rebuildStampFailWithCorruptEventAndId(void)
 {
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
     ITC_Event_t *pt_Event;
     ITC_Id_t *pt_Id;
     ITC_Stamp_t *pt_Stamp;
@@ -956,11 +975,15 @@ void ITC_Stamp_Test_rebuildStampFailWithCorruptEventAndId(void)
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 }
 
 /* Test rebuilding a Stamp succeeds */
 void ITC_Stamp_Test_rebuildStampSuccessful(void)
 {
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
     ITC_Event_t *pt_Event = NULL;
     ITC_Id_t *pt_Id = NULL;
     ITC_Stamp_t *pt_Stamp = NULL;
@@ -984,4 +1007,7 @@ void ITC_Stamp_Test_rebuildStampSuccessful(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 }

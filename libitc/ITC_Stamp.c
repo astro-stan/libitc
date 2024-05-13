@@ -1063,6 +1063,8 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
     return t_Status;
 }
 
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
+
 /******************************************************************************
  * Explode an existing Stamp into its core components - an ID and Event
  ******************************************************************************/
@@ -1116,3 +1118,5 @@ ITC_Status_t ITC_Stamp_rebuild(
 
     return t_Status;
 }
+
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */

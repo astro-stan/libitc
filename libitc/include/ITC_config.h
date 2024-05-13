@@ -21,4 +21,27 @@
 #define ITC_CONFIG_USE_64BIT_EVENT_COUNTERS                                  (0)
 #endif
 
+#ifndef ITC_CONFIG_SUPPORT_EXTENDED_API
+/** Enabling this setting gives access to a few additional operations,
+ * which are not part of the original ITC specification. These are:
+ * - For IDs - makes the following functions part of the public API:
+ *   * `ITC_Id_newSeed`
+ *   * `ITC_Id_newNull`
+ *   * `ITC_Id_destroy`
+ *   * `ITC_Id_clone`,
+ *   * `ITC_Id_validate`
+ *   * `ITC_Id_split`
+ *   * `ITC_Id_sum`
+ * - For Events - makes the following functions part of the public API:
+ *   * `ITC_Event_new`
+ *   * `ITC_Event_destroy`
+ *   * `ITC_Event_clone`
+ *   * `ITC_Event_validate`
+ * - For Stamps: Adds 2 additional operations:
+ *   * `ITC_Stamp_explode`
+ *   * `ITC_Stamp_rebuild`
+*/
+#define ITC_CONFIG_SUPPORT_EXTENDED_API                                      (0)
+#endif
+
 #endif /* ITC_CONFIG_H_ */

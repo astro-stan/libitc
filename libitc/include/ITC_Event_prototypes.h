@@ -10,6 +10,10 @@
 #ifndef ITC_EVENT_PROTOTYPES_H_
 #define ITC_EVENT_PROTOTYPES_H_
 
+#include "ITC_config.h"
+
+#if ITC_CONFIG_SUPPORT_EXTENDED_API
+
 #include "ITC_Event.h"
 #include "ITC_Status.h"
 
@@ -66,5 +70,7 @@ ITC_Status_t ITC_Event_clone(
 ITC_Status_t ITC_Event_validate(
     const ITC_Event_t *const pt_Event
 );
+
+#endif /* ITC_CONFIG_SUPPORT_EXTENDED_API */
 
 #endif /* ITC_EVENT_PROTOTYPES_H_ */
