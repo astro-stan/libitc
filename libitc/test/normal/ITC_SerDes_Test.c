@@ -9,7 +9,7 @@
  *
  */
 #include "ITC_SerDes.h"
-#include "ITC_SerDes_package.h"
+#include "ITC_SerDes_Util_package.h"
 #include "ITC_SerDes_Test.h"
 
 #include "ITC_SerDes_Test_package.h"
@@ -50,30 +50,34 @@ void ITC_SerDes_Test_serialiseIdFailInvalidParam(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     TEST_FAILURE(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Dummy,
             &ru8_Buffer[0],
-            NULL),
+            NULL,
+            true),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             NULL,
             &ru8_Buffer[0],
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Dummy,
             NULL,
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INVALID_PARAM);
 
     u32_BufferSize = 0;
     TEST_FAILURE(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Dummy,
             ru8_Buffer,
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INVALID_PARAM);
 }
 
@@ -94,10 +98,11 @@ void ITC_SerDes_Test_serialiseIdFailWithCorruptId(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_SerDes_serialiseId(
+            ITC_SerDes_Util_serialiseId(
                 pt_Id,
                 &ru8_Buffer[0],
-                &u32_BufferSize),
+                &u32_BufferSize,
+                true),
             ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the ID */
@@ -126,7 +131,11 @@ void ITC_SerDes_Test_serialiseIdLeafSuccessful(void)
 
     /* Serialise the ID */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseId(pt_Id, &ru8_Buffer[0], &u32_BufferSize));
+        ITC_SerDes_Util_serialiseId(
+            pt_Id,
+            &ru8_Buffer[0],
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedSeedIdSerialisedData), u32_BufferSize);
@@ -146,7 +155,11 @@ void ITC_SerDes_Test_serialiseIdLeafSuccessful(void)
 
     /* Serialise the ID */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseId(pt_Id, &ru8_Buffer[0], &u32_BufferSize));
+        ITC_SerDes_Util_serialiseId(
+            pt_Id,
+            &ru8_Buffer[0],
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedNullIdSerialisedData), u32_BufferSize);
@@ -174,20 +187,22 @@ void ITC_SerDes_Test_serialiseIdFailWithInsufficentResources(void)
     /* Serialise the ID */
     u32_BufferSize = 2;
     TEST_FAILURE(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Id,
             &ru8_Buffer[0],
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
 
     /* Serialise the ID */
     u32_BufferSize = ITC_SERDES_ID_MIN_BUFFER_LEN - 1;
     TEST_FAILURE(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Id->pt_Left,
             &ru8_Buffer[0],
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
     /* Destroy the ID */
@@ -217,10 +232,11 @@ void ITC_SerDes_Test_serialiseIdLeafSubtreeSuccessful(void)
 
     /* Serialise the ID */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Id->pt_Left,
             &ru8_Buffer[0],
-            &u32_BufferSize));
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedSeedIdSerialisedData), u32_BufferSize);
@@ -234,10 +250,11 @@ void ITC_SerDes_Test_serialiseIdLeafSubtreeSuccessful(void)
 
     /* Serialise the ID */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Id->pt_Right,
             &ru8_Buffer[0],
-            &u32_BufferSize));
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedNullIdSerialisedData), u32_BufferSize);
@@ -282,10 +299,11 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
 
     /* Serialise the ID */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseId(
+        ITC_SerDes_Util_serialiseId(
             pt_Id,
             &ru8_Buffer[0],
-            &u32_BufferSize));
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedIdSerialisedData), u32_BufferSize);
@@ -305,28 +323,32 @@ void ITC_SerDes_Test_deserialiseIdFailInvalidParam(void)
     uint8_t ru8_Buffer[ITC_SERDES_ID_MIN_BUFFER_LEN] = { 0 };
 
     TEST_FAILURE(
-        ITC_SerDes_deserialiseId(
+        ITC_SerDes_Util_deserialiseId(
             &ru8_Buffer[0],
             0,
+            true,
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_deserialiseId(
+        ITC_SerDes_Util_deserialiseId(
             NULL,
             sizeof(ru8_Buffer),
+            true,
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_deserialiseId(
+        ITC_SerDes_Util_deserialiseId(
             &ru8_Buffer[0],
             sizeof(ru8_Buffer),
+            true,
             NULL),
         ITC_STATUS_INVALID_PARAM);
 
     TEST_FAILURE(
-        ITC_SerDes_deserialiseId(
+        ITC_SerDes_Util_deserialiseId(
             &ru8_Buffer[0],
             ITC_SERDES_ID_MIN_BUFFER_LEN - 1,
+            true,
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
 }
@@ -349,9 +371,10 @@ void ITC_SerDes_Test_deserialiseIdFailWithCorruptId(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_SerDes_deserialiseId(
+            ITC_SerDes_Util_deserialiseId(
                 pu8_Buffer,
                 u32_BufferSize,
+                true,
                 &pt_Id),
             ITC_STATUS_CORRUPT_ID);
     }
@@ -369,9 +392,10 @@ void ITC_SerDes_Test_deserialiseIdFailWithIncompatibleLibVersion(void)
 
     /* Test for the failure */
     TEST_FAILURE(
-        ITC_SerDes_deserialiseId(
+        ITC_SerDes_Util_deserialiseId(
             &ru8_Buffer[0],
             u32_BufferSize,
+            true,
             &pt_Id),
         ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
 }
@@ -388,7 +412,11 @@ void ITC_SerDes_Test_deserialiseLeafIdSuccessful(void)
 
     /* Test deserialising a seed ID */
     TEST_SUCCESS(
-        ITC_SerDes_deserialiseId(&ru8_Buffer[0], u32_BufferSize, &pt_Id));
+        ITC_SerDes_Util_deserialiseId(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Id));
 
     /* Test this is a seed ID */
     TEST_ITC_ID_IS_SEED_ID(pt_Id);
@@ -401,7 +429,11 @@ void ITC_SerDes_Test_deserialiseLeafIdSuccessful(void)
 
     /* Test deserialising a seed ID */
     TEST_SUCCESS(
-        ITC_SerDes_deserialiseId(&ru8_Buffer[0], u32_BufferSize, &pt_Id));
+        ITC_SerDes_Util_deserialiseId(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Id));
 
     /* Test this is a seed ID */
     TEST_ITC_ID_IS_NULL_ID(pt_Id);
@@ -429,7 +461,11 @@ void ITC_SerDes_Test_deserialiseParentIdSuccessful(void)
 
     /* Test deserialising the ID */
     TEST_SUCCESS(
-        ITC_SerDes_deserialiseId(&ru8_Buffer[0], u32_BufferSize, &pt_Id));
+        ITC_SerDes_Util_deserialiseId(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Id));
 
     /* Test this is a (0, ((1, 0), 1)) ID */
     TEST_ITC_ID_IS_NULL_ID(pt_Id->pt_Left);
@@ -448,30 +484,34 @@ void ITC_SerDes_Test_serialiseEventFailInvalidParam(void)
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     TEST_FAILURE(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Dummy,
             &ru8_Buffer[0],
-            NULL),
+            NULL,
+            true),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             NULL,
             &ru8_Buffer[0],
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Dummy,
             NULL,
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INVALID_PARAM);
 
     u32_BufferSize = 0;
     TEST_FAILURE(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Dummy,
             NULL,
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INVALID_PARAM);
 }
 
@@ -492,10 +532,11 @@ void ITC_SerDes_Test_serialiseEventFailWithCorruptEvent(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_SerDes_serialiseEvent(
+            ITC_SerDes_Util_serialiseEvent(
                 pt_Event,
                 &ru8_Buffer[0],
-                &u32_BufferSize),
+                &u32_BufferSize,
+                true),
             ITC_STATUS_CORRUPT_EVENT);
 
         /* Destroy the Event */
@@ -526,7 +567,11 @@ void ITC_SerDes_Test_serialiseEventLeafSuccessful(void)
 
     /* Serialise the Event */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseEvent(pt_Event, &ru8_Buffer[0], &u32_BufferSize));
+        ITC_SerDes_Util_serialiseEvent(
+            pt_Event,
+            &ru8_Buffer[0],
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedEventSerialisedData), u32_BufferSize);
@@ -543,7 +588,11 @@ void ITC_SerDes_Test_serialiseEventLeafSuccessful(void)
 
     /* Serialise the Event */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseEvent(pt_Event, &ru8_Buffer[0], &u32_BufferSize));
+        ITC_SerDes_Util_serialiseEvent(
+            pt_Event,
+            &ru8_Buffer[0],
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_Expected0EventSerialisedData), u32_BufferSize);
@@ -571,20 +620,22 @@ void ITC_SerDes_Test_serialiseEventFailWithInsufficentResources(void)
     /* Serialise the Event */
     u32_BufferSize = 3;
     TEST_FAILURE(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Event,
             &ru8_Buffer[0],
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
 
     /* Serialise the Event */
     u32_BufferSize = ITC_SERDES_EVENT_MIN_BUFFER_LEN - 1;
     TEST_FAILURE(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Event->pt_Left,
             &ru8_Buffer[0],
-            &u32_BufferSize),
+            &u32_BufferSize,
+            true),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
 
     /* Destroy the Event */
@@ -610,10 +661,11 @@ void ITC_SerDes_Test_serialiseEventLeafSubtreeSuccessful(void)
 
     /* Serialise the Event */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Event->pt_Left,
             &ru8_Buffer[0],
-            &u32_BufferSize));
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedEventSerialisedData), u32_BufferSize);
@@ -685,10 +737,11 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
 
     /* Serialise the Event */
     TEST_SUCCESS(
-        ITC_SerDes_serialiseEvent(
+        ITC_SerDes_Util_serialiseEvent(
             pt_Event,
             &ru8_Buffer[0],
-            &u32_BufferSize));
+            &u32_BufferSize,
+            true));
 
     /* Test the serialised data is what is expected */
     TEST_ASSERT_EQUAL(sizeof(ru8_ExpectedEventSerialisedData), u32_BufferSize);
@@ -708,28 +761,32 @@ void ITC_SerDes_Test_deserialiseEventFailInvalidParam(void)
     uint8_t ru8_Buffer[ITC_SERDES_EVENT_MIN_BUFFER_LEN] = { 0 };
 
     TEST_FAILURE(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             &ru8_Buffer[0],
             0,
+            true,
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             NULL,
             sizeof(ru8_Buffer),
+            true,
             &pt_Dummy),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             &ru8_Buffer[0],
             sizeof(ru8_Buffer),
+            true,
             NULL),
         ITC_STATUS_INVALID_PARAM);
 
     TEST_FAILURE(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             &ru8_Buffer[0],
             ITC_SERDES_EVENT_MIN_BUFFER_LEN - 1,
+            true,
             NULL),
         ITC_STATUS_INVALID_PARAM);
 }
@@ -752,9 +809,10 @@ void ITC_SerDes_Test_deserialiseEventFailWithCorruptEvent(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_SerDes_deserialiseEvent(
+            ITC_SerDes_Util_deserialiseEvent(
                 pu8_Buffer,
                 u32_BufferSize,
+                true,
                 &pt_Event),
             ITC_STATUS_CORRUPT_EVENT);
     }
@@ -784,9 +842,10 @@ void ITC_SerDes_Test_deserialiseEventFailWithUnsupportedCounterSize(void)
 
     /* Test for the failure */
     TEST_FAILURE(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             &ru8_Buffer[0],
             u32_BufferSize,
+            true,
             &pt_Event),
         ITC_STATUS_EVENT_UNSUPPORTED_COUNTER_SIZE);
 }
@@ -803,9 +862,10 @@ void ITC_SerDes_Test_deserialiseEventFailWithIncompatibleLibVersion(void)
 
     /* Test for the failure */
     TEST_FAILURE(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             &ru8_Buffer[0],
             u32_BufferSize,
+            true,
             &pt_Event),
         ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
 }
@@ -828,7 +888,11 @@ void ITC_SerDes_Test_deserialiseLeafEventSuccessful(void)
 
     /* Test deserialising a leaf Event */
     TEST_SUCCESS(
-        ITC_SerDes_deserialiseEvent(&ru8_Buffer[0], u32_BufferSize, &pt_Event));
+        ITC_SerDes_Util_deserialiseEvent(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Event));
 
     /* Test this is a leaf Event with the correct event count */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 123);
@@ -838,9 +902,10 @@ void ITC_SerDes_Test_deserialiseLeafEventSuccessful(void)
 
     /* Test deserialising a leaf Event */
     TEST_SUCCESS(
-        ITC_SerDes_deserialiseEvent(
+        ITC_SerDes_Util_deserialiseEvent(
             &ru8_0EventBuffer[0],
             u32_0EventBufferSize,
+            true,
             &pt_Event));
 
     /* Test this is a leaf Event with the correct event count */
@@ -888,7 +953,11 @@ void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
 
     /* Test deserialising the Event */
     TEST_SUCCESS(
-        ITC_SerDes_deserialiseEvent(&ru8_Buffer[0], u32_BufferSize, &pt_Event));
+        ITC_SerDes_Util_deserialiseEvent(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Event));
 
     /* clang-format off */
     /* Test this is a (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */

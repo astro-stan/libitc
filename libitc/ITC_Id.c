@@ -10,9 +10,14 @@
 #include "ITC_Id.h"
 #include "ITC_Id_package.h"
 #include "ITC_Id_private.h"
-#include "ITC_SerDes_package.h"
+#include "ITC_config.h"
+
 #include "ITC_SerDes_private.h"
 #include "ITC_SerDes_Util_package.h"
+
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+#include "ITC_SerDes.h"
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #include "ITC_Port.h"
 
@@ -1441,6 +1446,8 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     return t_Status;
 }
 
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
 /******************************************************************************
  * Serialise an existing ITC Id
  ******************************************************************************/
@@ -1474,3 +1481,5 @@ ITC_Status_t ITC_SerDes_deserialiseId(
         true,
         ppt_Id);
 }
+
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
