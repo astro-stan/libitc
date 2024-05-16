@@ -28,7 +28,7 @@
  *   * `ITC_Id_newSeed`
  *   * `ITC_Id_newNull`
  *   * `ITC_Id_destroy`
- *   * `ITC_Id_clone`,
+ *   * `ITC_Id_clone`
  *   * `ITC_Id_validate`
  *   * `ITC_Id_split`
  *   * `ITC_Id_sum`
