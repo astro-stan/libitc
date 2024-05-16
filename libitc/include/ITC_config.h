@@ -22,7 +22,7 @@
 #endif
 
 #ifndef ITC_CONFIG_ENABLE_EXTENDED_API
-/** Enabling this setting gives access to a few additional operations,
+/** Enabling this setting gives access to a few additional API calls,
  * which are not part of the original ITC specification. These are:
  * - For IDs - makes the following functions part of the public API:
  *   * `ITC_Id_newSeed`
@@ -41,10 +41,15 @@
  *   * `ITC_Event_validate`
  *   * `ITC_SerDes_serialiseEvent`
  *   * `ITC_SerDes_deserialiseEvent`
- * - For Stamps: Adds 2 additional operations:
- *   * `ITC_Stamp_explode`
- *   * `ITC_Stamp_rebuild`
-*/
+ * - For Stamps - adds the following functions to the public API:
+ *   * `ITC_Stamp_newFromId`
+ *   * `ITC_Stamp_newFromIdAndEvent`
+ *   * `ITC_Stamp_newPeekFromEvent`
+ *   * `ITC_Stamp_getId`
+ *   * `ITC_Stamp_getEvent`
+ *   * `ITC_Stamp_setId`
+ *   * `ITC_Stamp_setEvent`
+ */
 #define ITC_CONFIG_ENABLE_EXTENDED_API                                       (1)
 #endif
 

@@ -801,120 +801,106 @@ void ITC_Stamp_Test_fullStampLifecycle(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
 }
 
-
-/* Test exploding a Stamp into its core components fails with invalid param */
-void ITC_Stamp_Test_explodeStampFailInvalidParam(void)
+/* Test creating a Stamp from an ID fails with invalid param */
+void ITC_Stamp_Test_createStampFromIdFailInvalidParam(void)
 {
 #if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Stamp_t *pt_DummyStamp = NULL;
-    ITC_Event_t *pt_DummyEvent = NULL;
     ITC_Id_t *pt_DummyId = NULL;
 
     TEST_FAILURE(
-        ITC_Stamp_explode(
-            pt_DummyStamp,
-            &pt_DummyId,
+        ITC_Stamp_newFromId(
+            pt_DummyId,
             NULL),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Stamp_explode(
-            pt_DummyStamp,
+        ITC_Stamp_newFromId(
             NULL,
-            &pt_DummyEvent),
-        ITC_STATUS_INVALID_PARAM);
-    TEST_FAILURE(
-        ITC_Stamp_explode(
-            NULL,
-            &pt_DummyId,
-            &pt_DummyEvent),
+            &pt_DummyStamp),
         ITC_STATUS_INVALID_PARAM);
 #else
     TEST_IGNORE_MESSAGE("Extended API support is disabled");
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
-/* Test exploding a Stamp into its core components fails with corrupt stamp */
-void ITC_Stamp_Test_explodeStampFailWithCorruptStamp(void)
+/* Test creating a Stamp from an invalid ID fails with corrupt ID */
+void ITC_Stamp_Test_createStampFromIdFailWithCorruptId(void)
 {
 #if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Stamp_t *pt_Stamp;
     ITC_Id_t *pt_Id;
-    ITC_Event_t *pt_Event;
 
-    /* Test different invalid Stamps are handled properly */
+    /* Test different invalid IDs are handled properly */
     for (uint32_t u32_I = 0;
-         u32_I < gu32_InvalidStampTablesSize;
+         u32_I < gu32_InvalidIdTablesSize;
          u32_I++)
     {
         /* Construct an invalid Stamp */
-        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_explode(pt_Stamp, &pt_Id, &pt_Event),
-            ITC_STATUS_CORRUPT_STAMP);
+            ITC_Stamp_newFromId(pt_Id, &pt_Stamp),
+            ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the Stamp */
-        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
     }
 #else
     TEST_IGNORE_MESSAGE("Extended API support is disabled");
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
-/* Test exploding a Stamp succeeds */
-void ITC_Stamp_Test_explodeStampSuccessful(void)
+/* Test creating a Stamp from an ID succeeds */
+void ITC_Stamp_Test_createStampFromIdSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Stamp_t *pt_Stamp = NULL;
-    ITC_Event_t *pt_Event = NULL;
     ITC_Id_t *pt_Id = NULL;
 
-    /* Create a new Stamp */
-    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+    /* Create a new ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
-    /* Explode the Stamp */
-    TEST_SUCCESS(ITC_Stamp_explode(pt_Stamp, &pt_Id, &pt_Event));
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newFromId(pt_Id, &pt_Stamp));
 
-    /* Test the components have been copied */
-    TEST_ASSERT_TRUE(pt_Event != pt_Stamp->pt_Event);
+    /* Test the ID has been copied and an Event tree has been allocated */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 0);
     TEST_ASSERT_TRUE(pt_Id != pt_Stamp->pt_Id);
-    TEST_ITC_ID_IS_SEED_ID(pt_Id);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
+    TEST_ITC_ID_IS_SEED_ID(pt_Stamp->pt_Id);
 
     /* Deallocate everything */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 #else
     TEST_IGNORE_MESSAGE("Extended API support is disabled");
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
-/* Test rebuilding a Stamp from its core components fails with invalid param */
-void ITC_Stamp_Test_rebuildStampFailInvalidParam(void)
+/* Test creating a Stamp from an ID and Event fails with invalid param */
+void ITC_Stamp_Test_createStampFromIdAndEventFailInvalidParam(void)
 {
 #if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Stamp_t *pt_DummyStamp = NULL;
-    ITC_Event_t *pt_DummyEvent = NULL;
     ITC_Id_t *pt_DummyId = NULL;
+    ITC_Event_t *pt_DummyEvent = NULL;
 
     TEST_FAILURE(
-        ITC_Stamp_rebuild(
+        ITC_Stamp_newFromIdAndEvent(
             pt_DummyId,
             pt_DummyEvent,
             NULL),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Stamp_rebuild(
-            pt_DummyId,
+        ITC_Stamp_newFromIdAndEvent(
             NULL,
+            pt_DummyEvent,
             &pt_DummyStamp),
         ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Stamp_rebuild(
+        ITC_Stamp_newFromIdAndEvent(
+            pt_DummyId,
             NULL,
-            pt_DummyEvent,
             &pt_DummyStamp),
         ITC_STATUS_INVALID_PARAM);
 #else
@@ -922,13 +908,13 @@ void ITC_Stamp_Test_rebuildStampFailInvalidParam(void)
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
-/* Test exploding a Stamp into its core components fails with corrupt stamp */
-void ITC_Stamp_Test_rebuildStampFailWithCorruptEventAndId(void)
+/* Test creating a Stamp from an invalid ID or Event fails with corrupt ID/Event */
+void ITC_Stamp_Test_createStampFromIdFailWithCorruptEventAndId(void)
 {
 #if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
     ITC_Event_t *pt_Event;
     ITC_Id_t *pt_Id;
-    ITC_Stamp_t *pt_Stamp;
 
     /* Create a valid ID */
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
@@ -942,8 +928,10 @@ void ITC_Stamp_Test_rebuildStampFailWithCorruptEventAndId(void)
         gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
 
         /* Test for the failure */
-        TEST_FAILURE(
-            ITC_Stamp_rebuild(pt_Id, pt_Event, &pt_Stamp),
+        TEST_FAILURE(ITC_Stamp_newFromIdAndEvent(
+            pt_Id,
+            pt_Event,
+            &pt_Stamp),
             ITC_STATUS_CORRUPT_EVENT);
 
         /* Destroy the Event */
@@ -966,7 +954,10 @@ void ITC_Stamp_Test_rebuildStampFailWithCorruptEventAndId(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_rebuild(pt_Id, pt_Event, &pt_Stamp),
+            ITC_Stamp_newFromIdAndEvent(
+                pt_Id,
+                pt_Event,
+                &pt_Stamp),
             ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the Id */
@@ -980,32 +971,437 @@ void ITC_Stamp_Test_rebuildStampFailWithCorruptEventAndId(void)
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
-/* Test rebuilding a Stamp succeeds */
-void ITC_Stamp_Test_rebuildStampSuccessful(void)
+/* Test creating a Stamp from an ID and Event succeeds */
+void ITC_Stamp_Test_createStampFromIdAndEventSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_EXTENDED_API
-    ITC_Event_t *pt_Event = NULL;
-    ITC_Id_t *pt_Id = NULL;
     ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Id_t *pt_Id = NULL;
+    ITC_Event_t *pt_Event = NULL;
 
-    /* Create a valid ID */
+    /* Create a new ID */
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
-    /* Create a valid Event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 42));
 
-    /* Rebuild the Stamp */
-    TEST_SUCCESS(ITC_Stamp_rebuild(pt_Id, pt_Event, &pt_Stamp));
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newFromIdAndEvent(pt_Id, pt_Event, &pt_Stamp));
 
-    /* Test the components have been copied */
-    TEST_ASSERT_TRUE(pt_Stamp->pt_Event != pt_Event);
-    TEST_ASSERT_TRUE(pt_Stamp->pt_Id != pt_Id);
+    /* Test the ID and Event trees have been copied */
+    TEST_ASSERT_TRUE(pt_Id != pt_Stamp->pt_Id);
+    TEST_ASSERT_TRUE(pt_Event != pt_Stamp->pt_Event);
     TEST_ITC_ID_IS_SEED_ID(pt_Stamp->pt_Id);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 42);
 
     /* Deallocate everything */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test creating a peek Stamp from an Event fails with invalid param */
+void ITC_Stamp_Test_createPeekStampFromEventFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+    ITC_Event_t *pt_DummyEvent = NULL;
+
+    TEST_FAILURE(
+        ITC_Stamp_newPeekFromEvent(
+            pt_DummyEvent,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_newPeekFromEvent(
+            NULL,
+            &pt_DummyStamp),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test creating a Stamp from an invalid Event fails with corrupt Event */
+void ITC_Stamp_Test_createPeekStampFromEventFailWithCorruptEvent(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Event_t *pt_Event;
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_newPeekFromEvent(pt_Event, &pt_Stamp),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Stamp */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test creating a peek Stamp from an Event succeeds */
+void ITC_Stamp_Test_createPeekStampFromEventSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Create a new ID */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 100));
+
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newPeekFromEvent(pt_Event, &pt_Stamp));
+
+    /* Test the Event has been copied and an ID tree has been allocated */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 100);
+    TEST_ASSERT_TRUE(pt_Event != pt_Stamp->pt_Event);
+    TEST_ITC_ID_IS_NULL_ID(pt_Stamp->pt_Id);
+
+    /* Deallocate everything */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test getting the ID component of a Stamp fails with invalid param */
+void ITC_Stamp_Test_getIdFromStampFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+    ITC_Id_t *pt_DummyId;
+
+    TEST_FAILURE(
+        ITC_Stamp_getId(
+            pt_DummyStamp,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_getId(
+            NULL,
+            &pt_DummyId),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test getting the ID component of a Stamp fails with corrupt stamp */
+void ITC_Stamp_Test_getIdFromStampFailWithCorruptStamp(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Id_t *pt_DummyId;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_getId(pt_Stamp, &pt_DummyId),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test getting the ID component of a Stamp succeeds */
+void ITC_Stamp_Test_getIdFromStampSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Id_t *pt_Id = NULL;
+
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Get the ID */
+    TEST_SUCCESS(ITC_Stamp_getId(pt_Stamp, &pt_Id));
+
+    /* Test the ID has been copied */
+    TEST_ASSERT_TRUE(pt_Id != pt_Stamp->pt_Id);
+    TEST_ITC_ID_IS_SEED_ID(pt_Id);
+
+    /* Deallocate everything */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the ID component of a Stamp fails with invalid param */
+void ITC_Stamp_Test_setIdOfStampFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+    ITC_Id_t *pt_DummyId = NULL;
+
+    TEST_FAILURE(
+        ITC_Stamp_setId(
+            pt_DummyStamp,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_setId(
+            NULL,
+            pt_DummyId),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the ID component of a Stamp fails with corrupt ID */
+void ITC_Stamp_Test_setIdOfStampFailWithCorruptId(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Id_t *pt_Id;
+
+    /* Create a Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setId(pt_Stamp, pt_Id),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the Stamp */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
+    }
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+  TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the ID component of a Stamp succeeds */
+void ITC_Stamp_Test_setIdOfStampSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Id_t *pt_Id = NULL;
+    ITC_Id_t *pt_OriginalId;
+
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Remember the original ID address */
+    pt_OriginalId = pt_Stamp->pt_Id;
+
+    /* Create the ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+
+    /* Set the ID */
+    TEST_SUCCESS(ITC_Stamp_setId(pt_Stamp, pt_Id));
+
+    /* Test the ID has been copied */
+    TEST_ASSERT_TRUE(pt_Id != pt_Stamp->pt_Id);
+    TEST_ASSERT_TRUE(pt_Stamp->pt_Id != pt_OriginalId);
+    TEST_ITC_ID_IS_NULL_ID(pt_Stamp->pt_Id);
+
+    /* Deallocate everything */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test getting the Event component of a Stamp fails with invalid param */
+void ITC_Stamp_Test_getEventFromStampFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+    ITC_Event_t *pt_DummyEvent;
+
+    TEST_FAILURE(
+        ITC_Stamp_getEvent(
+            pt_DummyStamp,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_getEvent(
+            NULL,
+            &pt_DummyEvent),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test getting the Event component of a Stamp fails with corrupt stamp */
+void ITC_Stamp_Test_getEventFromStampFailWithCorruptStamp(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Event_t *pt_DummyEvent;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_getEvent(pt_Stamp, &pt_DummyEvent),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test getting the Event component of a Stamp succeeds */
+void ITC_Stamp_Test_getEventFromStampSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Event_t *pt_Event = NULL;
+
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+    pt_Stamp->pt_Event->t_Count = 42;
+
+    /* Get the Event */
+    TEST_SUCCESS(ITC_Stamp_getEvent(pt_Stamp, &pt_Event));
+
+    /* Test the Event has been copied */
+    TEST_ASSERT_TRUE(pt_Event != pt_Stamp->pt_Event);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 42);
+
+    /* Deallocate everything */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the Event component of a Stamp fails with invalid param */
+void ITC_Stamp_Test_setEventOfStampFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_DummyStamp = NULL;
+    ITC_Event_t *pt_DummyEvent = NULL;
+
+    TEST_FAILURE(
+        ITC_Stamp_setEvent(
+            pt_DummyStamp,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_setEvent(
+            NULL,
+            pt_DummyEvent),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the Event component of a Stamp fails with corrupt Event */
+void ITC_Stamp_Test_setEventOfStampFailWithCorruptEvent(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Event_t *pt_Event;
+
+    /* Create a Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setEvent(pt_Stamp, pt_Event),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Stamp */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+  TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the Event component of a Stamp succeeds */
+void ITC_Stamp_Test_setEventOfStampSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Event_t *pt_Event = NULL;
+    ITC_Event_t *pt_OriginalEvent;
+
+    /* Create the Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Remember the original Event address */
+    pt_OriginalEvent = pt_Stamp->pt_Event;
+
+    /* Create the Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 100));
+
+    /* Set the Event */
+    TEST_SUCCESS(ITC_Stamp_setEvent(pt_Stamp, pt_Event));
+
+    /* Test the Event has been copied */
+    TEST_ASSERT_TRUE(pt_Event != pt_Stamp->pt_Event);
+    TEST_ASSERT_TRUE(pt_Stamp->pt_Event != pt_OriginalEvent);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 100);
+
+    /* Deallocate everything */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 #else
     TEST_IGNORE_MESSAGE("Extended API support is disabled");

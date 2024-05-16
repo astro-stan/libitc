@@ -97,6 +97,10 @@ static ITC_Status_t newStamp(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Initialise members */
+        pt_Alloc->pt_Event = NULL;
+        pt_Alloc->pt_Id = NULL;
+
         if (pt_Id)
         {
             if (b_CloneId)
@@ -105,7 +109,12 @@ static ITC_Status_t newStamp(
             }
             else
             {
-                pt_Alloc->pt_Id = pt_Id;
+                t_Status = ITC_Id_validate(pt_Id);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_Alloc->pt_Id = pt_Id;
+                }
             }
         }
         else if (b_CreateNullId)
@@ -128,7 +137,12 @@ static ITC_Status_t newStamp(
             }
             else
             {
-                pt_Alloc->pt_Event = pt_Event;
+                t_Status = ITC_Event_validate(pt_Event);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
+                {
+                    pt_Alloc->pt_Event = pt_Event;
+                }
             }
         }
         else
@@ -1066,22 +1080,95 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
 #if ITC_CONFIG_ENABLE_EXTENDED_API
 
 /******************************************************************************
- * Explode an existing Stamp into its core components - an ID and Event
+ * Allocate a new ITC Stamp, initialising it with a copy of the passed ID
  ******************************************************************************/
 
-ITC_Status_t ITC_Stamp_explode(
-    const ITC_Stamp_t *const pt_Stamp,
-    ITC_Id_t **ppt_Id,
-    ITC_Event_t **ppt_Event
+ITC_Status_t ITC_Stamp_newFromId(
+    ITC_Id_t *pt_Id,
+    ITC_Stamp_t **ppt_Stamp
 )
 {
-    ITC_Status_t t_Status; /* The current status */
+    if (!pt_Id)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
 
-    t_Status = validateStamp(pt_Stamp);
+    return newStamp(ppt_Stamp, pt_Id, NULL, false, true, false);
+}
+
+/******************************************************************************
+ * Allocate a new ITC Stamp, initialising it with a copy of the passed ID and Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_newFromIdAndEvent(
+    ITC_Id_t *pt_Id,
+    ITC_Event_t *pt_Event,
+    ITC_Stamp_t **ppt_Stamp
+)
+{
+    if (!pt_Id || !pt_Event)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
+    return newStamp(ppt_Stamp, pt_Id, pt_Event, false, true, true);
+}
+
+/******************************************************************************
+ * Allocate a new ITC peek Stamp, initialising it with a copy of the passed Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_newPeekFromEvent(
+    ITC_Event_t *pt_Event,
+    ITC_Stamp_t **ppt_Stamp
+)
+{
+    if (!pt_Event)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
+    return newStamp(ppt_Stamp, NULL, pt_Event, true, false, true);
+}
+
+/******************************************************************************
+ * Get a copy of the ID component of a Stamp
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_getId(
+    const ITC_Stamp_t *const pt_Stamp,
+    ITC_Id_t **ppt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = ITC_Id_clone(pt_Stamp->pt_Id, ppt_Id);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Get a copy of the Event component of a Stamp
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_getEvent(
+    const ITC_Stamp_t *const pt_Stamp,
+    ITC_Event_t **ppt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1093,18 +1180,54 @@ ITC_Status_t ITC_Stamp_explode(
 }
 
 /******************************************************************************
- * Rebuild a Stamp from its core components - an ID and Event
+ * Set the ID component of an existing Stamp.
  ******************************************************************************/
 
-ITC_Status_t ITC_Stamp_rebuild(
-    ITC_Id_t *const pt_Id,
-    ITC_Event_t *const pt_Event,
-    ITC_Stamp_t **ppt_Stamp
+ITC_Status_t ITC_Stamp_setId(
+    ITC_Stamp_t *const pt_Stamp,
+    const ITC_Id_t *const pt_Id
 )
 {
-    ITC_Status_t t_Status; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = ITC_Id_validate(pt_Id);
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_validate(pt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_destroy(&pt_Stamp->pt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_clone(pt_Id, &pt_Stamp->pt_Id);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Set the Event component of an existing Stamp
+ ******************************************************************************/
+
+ITC_Status_t ITC_Stamp_setEvent(
+    ITC_Stamp_t *const pt_Stamp,
+    const ITC_Event_t *const pt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1113,7 +1236,12 @@ ITC_Status_t ITC_Stamp_rebuild(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newStamp(ppt_Stamp, pt_Id, pt_Event, false, true, true);
+        t_Status = ITC_Event_destroy(&pt_Stamp->pt_Event);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Event_clone(pt_Event, &pt_Stamp->pt_Event);
     }
 
     return t_Status;
