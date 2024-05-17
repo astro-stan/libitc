@@ -31,7 +31,7 @@ jobs:
         run: pip install ninja meson
       - uses: actions/checkout@v4
       - name: Build Tests
-        run: >
+        run: >-
           CC=${{ matrix.compiler }}
           CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=${{ matrix.ENABLE_EXTENDED_API }} -DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.USE_64BIT_EVENT_COUNTERS }}";
           meson setup --wipe --reconfigure
