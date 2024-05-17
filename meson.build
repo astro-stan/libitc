@@ -68,7 +68,7 @@ else
     common_c_args += [ '-DIS_UNIT_TEST_BUILD=0' ]
 endif
 
-# Build LibITC
+# Build libitc
 subdir('libitc')
 subdir('libitc' / 'build')
 
