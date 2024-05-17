@@ -2044,46 +2044,6 @@ ITC_Status_t ITC_Event_validate(
 }
 
 /******************************************************************************
- * Normalise an Event
- ******************************************************************************/
-
-ITC_Status_t ITC_Event_normalise(
-    ITC_Event_t *pt_Event
-)
-{
-    ITC_Status_t t_Status; /* The current status */
-
-    t_Status = validateEvent(pt_Event, false);
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = normEventE(pt_Event);
-    }
-
-    return t_Status;
-}
-
-/******************************************************************************
- * Maximise an Event
- ******************************************************************************/
-
-ITC_Status_t ITC_Event_maximise(
-    ITC_Event_t *pt_Event
-)
-{
-    ITC_Status_t t_Status; /* The current status */
-
-    t_Status = validateEvent(pt_Event, true);
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = maxEventE(pt_Event);
-    }
-
-    return t_Status;
-}
-
-/******************************************************************************
  * Join two existing Events into a single Event
  ******************************************************************************/
 
@@ -2326,3 +2286,47 @@ ITC_Status_t ITC_SerDes_deserialiseEvent(
 }
 
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+
+#if IS_UNIT_TEST_BUILD
+
+/******************************************************************************
+ * Normalise an Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_normalise(
+    ITC_Event_t *pt_Event
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateEvent(pt_Event, false);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = normEventE(pt_Event);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Maximise an Event
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_maximise(
+    ITC_Event_t *pt_Event
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateEvent(pt_Event, true);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = maxEventE(pt_Event);
+    }
+
+    return t_Status;
+}
+
+#endif /* IS_UNIT_TEST_BUILD */

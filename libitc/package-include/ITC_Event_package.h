@@ -77,31 +77,6 @@ ITC_Status_t ITC_Event_validate(
 #endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /**
- * @brief Normalise an Event
- *
- * @param pt_Event The Event to normalise
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-ITC_Status_t ITC_Event_normalise(
-    ITC_Event_t *pt_Event
-);
-
-/**
- * @brief Maximise an Event
- *
- * Transforms any Event tree into a leaf Event with an event counter equal to
- * the largest total sum of events in the tree.
- *
- * @param pt_Event The Event to maximise
- * @return `ITC_Status_t` The status of the operation
- * @retval `ITC_STATUS_SUCCESS` on success
- */
-ITC_Status_t ITC_Event_maximise(
-    ITC_Event_t *pt_Event
-);
-
-/**
  * @brief Join two existing Events into a single Event
  *
  * @param pt_Event1 The first Event
@@ -172,5 +147,34 @@ ITC_Status_t ITC_Event_grow(
     ITC_Event_t *pt_Event,
     const ITC_Id_t *const pt_Id
 );
+
+#if IS_UNIT_TEST_BUILD
+
+/**
+ * @brief Normalise an Event
+ *
+ * @param pt_Event The Event to normalise
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Event_normalise(
+    ITC_Event_t *pt_Event
+);
+
+/**
+ * @brief Maximise an Event
+ *
+ * Transforms any Event tree into a leaf Event with an event counter equal to
+ * the largest total sum of events in the tree.
+ *
+ * @param pt_Event The Event to maximise
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Event_maximise(
+    ITC_Event_t *pt_Event
+);
+
+#endif /* IS_UNIT_TEST_BUILD */
 
 #endif /* ITC_EVENT_PACKAGE_H_ */
