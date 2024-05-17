@@ -33,7 +33,10 @@ jobs:
       - name: Build Tests
         run: >-
           CC=${{ matrix.compiler }}
-          CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=${{ matrix.ENABLE_EXTENDED_API }} -DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.USE_64BIT_EVENT_COUNTERS }}";
+          CFLAGS="
+            -DITC_CONFIG_ENABLE_EXTENDED_API=${{ matrix.ENABLE_EXTENDED_API }}
+            -DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.USE_64BIT_EVENT_COUNTERS }}
+          "
           meson setup --wipe --reconfigure
           ${{ env.BUILD_DIR_PREFIX }}
           -Doptimization=${{ env.OPTIMIZATION }}
