@@ -30,7 +30,7 @@ jobs:
       - name: Install ninja and meson
         run: pip install ninja meson
       - uses: actions/checkout@v4
-      - name: Build Tests
+      - name: Configure Tests
         run: >-
           CC=${{ matrix.compiler }}
           CFLAGS="
@@ -42,5 +42,5 @@ jobs:
           -Doptimization=${{ env.OPTIMIZATION }}
           -Ddebug=${{ env.DEBUG }}
           -Dtests=true
-      - name: Run Tests
+      - name: Build And Run Tests
         run: CC=${{ matrix.compiler }} meson test -C ${{ env.BUILD_DIR_PREFIX }}
