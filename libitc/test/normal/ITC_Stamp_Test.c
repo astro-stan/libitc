@@ -1216,13 +1216,9 @@ void ITC_Stamp_Test_setIdOfStampSuccessful(void)
 #if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Stamp_t *pt_Stamp = NULL;
     ITC_Id_t *pt_Id = NULL;
-    ITC_Id_t *pt_OriginalId;
 
     /* Create the Stamp */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
-
-    /* Remember the original ID address */
-    pt_OriginalId = pt_Stamp->pt_Id;
 
     /* Create the ID */
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
@@ -1232,7 +1228,10 @@ void ITC_Stamp_Test_setIdOfStampSuccessful(void)
 
     /* Test the ID has been copied */
     TEST_ASSERT_TRUE(pt_Id != pt_Stamp->pt_Id);
-    TEST_ASSERT_TRUE(pt_Stamp->pt_Id != pt_OriginalId);
+    /* XXX: Deliberately not testing if addresses of the old and new
+     * `pt_Stamp->pt_Id`s differ, as depending on the `malloc` implementation
+     * they might end up being the same address (since the old ID is deallocated
+     * first, followed immediately by the new ID allocation) */
     TEST_ITC_ID_IS_NULL_ID(pt_Stamp->pt_Id);
 
     /* Deallocate everything */
@@ -1381,13 +1380,9 @@ void ITC_Stamp_Test_setEventOfStampSuccessful(void)
 #if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Stamp_t *pt_Stamp = NULL;
     ITC_Event_t *pt_Event = NULL;
-    ITC_Event_t *pt_OriginalEvent;
 
     /* Create the Stamp */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
-
-    /* Remember the original Event address */
-    pt_OriginalEvent = pt_Stamp->pt_Event;
 
     /* Create the Event */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 100));
@@ -1397,7 +1392,10 @@ void ITC_Stamp_Test_setEventOfStampSuccessful(void)
 
     /* Test the Event has been copied */
     TEST_ASSERT_TRUE(pt_Event != pt_Stamp->pt_Event);
-    TEST_ASSERT_TRUE(pt_Stamp->pt_Event != pt_OriginalEvent);
+    /* XXX: Deliberately not testing if addresses of the old and new
+     * `pt_Stamp->pt_Event`s differ, as depending on the `malloc` implementation
+     * they might end up being the same address (since the old Event is
+     * deallocated first, followed immediately by the new ID allocation) */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 100);
 
     /* Deallocate everything */
