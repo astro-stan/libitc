@@ -9,8 +9,8 @@ on:
 
 env:
   BUILD_DIR_PREFIX: test-build
-  OPTIMIZATION: 0
-  DEBUG: 'true'
+  OPTIMIZATION: 2
+  DEBUG: 'false'
 
 jobs:
   unit-tests:
@@ -20,8 +20,8 @@ jobs:
       matrix:
         os: ['ubuntu-latest']
         compiler: ['gcc']
-        USE_64BIT_EVENT_COUNTERS: [1, 0]
-        ENABLE_EXTENDED_API: [1, 0]
+        USE_64BIT_EVENT_COUNTERS: [0, 1]
+        ENABLE_EXTENDED_API: [0, 1]
     steps:
       - name: Install compiler
         uses: rlalik/setup-cpp-compiler@master
