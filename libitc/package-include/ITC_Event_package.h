@@ -14,12 +14,15 @@
 
 #include "ITC_Id.h"
 #include "ITC_Status.h"
+#include "ITC_config.h"
 
 #include <stdbool.h>
 
 /******************************************************************************
  * Functions
  ******************************************************************************/
+
+#if !ITC_CONFIG_ENABLE_EXTENDED_API
 
 /**
  * @brief Allocate a new ITC Event and initialise it
@@ -70,6 +73,8 @@ ITC_Status_t ITC_Event_clone(
 ITC_Status_t ITC_Event_validate(
     const ITC_Event_t *const pt_Event
 );
+
+#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /**
  * @brief Normalise an Event

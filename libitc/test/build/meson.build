@@ -21,7 +21,7 @@ libitc_test_config_yaml_path = meson.current_source_dir() / 'config.yaml'
 if valgrind.found()
     add_test_setup(
         'valgrind',
-        exe_wrapper: [valgrind, '--leak-check=full', '--error-exitcode=1'],
+        exe_wrapper: [valgrind, '--leak-check=full', '--error-exitcode=1', '--track-origins=yes', '-s'],
         is_default: true,
     )
 endif

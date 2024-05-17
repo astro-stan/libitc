@@ -12,6 +12,7 @@
 
 #include "ITC_Stamp.h"
 #include "ITC_Status.h"
+#include "ITC_config.h"
 
 /******************************************************************************
  * Functions
@@ -139,5 +140,108 @@ ITC_Status_t ITC_Stamp_compare(
     const ITC_Stamp_t *const pt_Stamp2,
     ITC_Stamp_Comparison_t *pt_Result
 );
+
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
+/**
+ * @brief Allocate a new ITC Stamp, initialising it with a copy of the passed ID
+ *
+ * @param pt_Id The ID to copy
+ * @param ppt_Stamp (out) The pointer to the Stamp
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_newFromId(
+    ITC_Id_t *pt_Id,
+    ITC_Stamp_t **ppt_Stamp
+);
+
+/**
+ * @brief Allocate a new ITC Stamp, initialising it with a copy of the passed ID
+ * and Event
+ *
+ * @param pt_Id The ID to copy
+ * @param pt_Event The Event to copy
+ * @param ppt_Stamp (out) The pointer to the Stamp
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_newFromIdAndEvent(
+    ITC_Id_t *pt_Id,
+    ITC_Event_t *pt_Event,
+    ITC_Stamp_t **ppt_Stamp
+);
+
+/**
+ * @brief Allocate a new ITC peek Stamp, initialising it with a copy of the passed
+ * Event
+ *
+ * @param pt_Event The Event to copy
+ * @param ppt_Stamp (out) The pointer to the Stamp
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_newPeekFromEvent(
+    ITC_Event_t *pt_Event,
+    ITC_Stamp_t **ppt_Stamp
+);
+
+/**
+ * @brief Get a copy of the ID component of a Stamp
+ *
+ * @param pt_Stamp The existing Stamp
+ * @param ppt_Id (out) The pointer to the ID copy
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_getId(
+    const ITC_Stamp_t *const pt_Stamp,
+    ITC_Id_t **ppt_Id
+);
+
+/**
+ * @brief Get a copy of the Event component of a Stamp
+ *
+ * @param pt_Stamp The existing Stamp
+ * @param ppt_Event (out) The pointer to the Event copy
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_getEvent(
+    const ITC_Stamp_t *const pt_Stamp,
+    ITC_Event_t **ppt_Event
+);
+
+/**
+ * @brief Set the ID component of an existing Stamp.
+ *
+ * The passed ID will be copied.
+ *
+ * @param pt_Stamp The existing Stamp
+ * @param pt_Id The ID to copy
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_setId(
+    ITC_Stamp_t *const pt_Stamp,
+    const ITC_Id_t *const pt_Id
+);
+
+/**
+ * @brief Set the Event component of an existing Stamp
+ *
+ * The passed Event will be copied.
+ *
+ * @param pt_Stamp The existing Stamp
+ * @param pt_Event The Event to copy
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_setEvent(
+    ITC_Stamp_t *const pt_Stamp,
+    const ITC_Event_t *const pt_Event
+);
+
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #endif /* ITC_STAMP_PROTOTYPES_H_ */

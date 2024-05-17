@@ -1550,8 +1550,8 @@ void ITC_Event_Test_fillEventFailInvalidParam(void)
         ITC_STATUS_INVALID_PARAM);
 }
 
-/* Test filling an Event fails with corrupt Event */
-void ITC_Event_Test_fillEventFailWithCorruptEvent(void)
+/* Test filling an Event fails with corrupt Event and ID */
+void ITC_Event_Test_fillEventFailWithCorruptEventAndId(void)
 {
     ITC_Event_t *pt_Event;
     ITC_Id_t *pt_Id;
@@ -1572,7 +1572,6 @@ void ITC_Event_Test_fillEventFailWithCorruptEvent(void)
         TEST_FAILURE(
             ITC_Event_fill(pt_Event, pt_Id, &b_WasFilled),
             ITC_STATUS_CORRUPT_EVENT);
-
 
         /* Destroy the Event */
         gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
@@ -2663,8 +2662,8 @@ void ITC_Event_Test_growEventFailInvalidParam(void)
     TEST_FAILURE(ITC_Event_grow(NULL, pt_DummyId), ITC_STATUS_INVALID_PARAM);
 }
 
-/* Test growing an Event fails with corrupt Event */
-void ITC_Event_Test_growEventFailWithCorruptEvent(void)
+/* Test growing an Event fails with corrupt Event and ID */
+void ITC_Event_Test_growEventFailWithCorruptEventAndId(void)
 {
     ITC_Event_t *pt_Event;
     ITC_Id_t *pt_Id;

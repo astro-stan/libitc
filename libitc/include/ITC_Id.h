@@ -27,4 +27,7 @@ typedef struct ITC_Id_t
     bool b_IsOwner;
 } ITC_Id_t;
 
+/* Late include. We need to define the types first */
+#include "ITC_Id_prototypes.h"
+
 #endif /* ITC_ID_H_ */

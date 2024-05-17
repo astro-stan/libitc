@@ -21,4 +21,36 @@
 #define ITC_CONFIG_USE_64BIT_EVENT_COUNTERS                                  (0)
 #endif
 
+#ifndef ITC_CONFIG_ENABLE_EXTENDED_API
+/** Enabling this setting gives access to a few additional API calls,
+ * which are not part of the original ITC specification. These are:
+ * - For IDs - makes the following functions part of the public API:
+ *   * `ITC_Id_newSeed`
+ *   * `ITC_Id_newNull`
+ *   * `ITC_Id_destroy`
+ *   * `ITC_Id_clone`
+ *   * `ITC_Id_validate`
+ *   * `ITC_Id_split`
+ *   * `ITC_Id_sum`
+ *   * `ITC_SerDes_serialiseId`
+ *   * `ITC_SerDes_deserialiseId`
+ * - For Events - makes the following functions part of the public API:
+ *   * `ITC_Event_new`
+ *   * `ITC_Event_destroy`
+ *   * `ITC_Event_clone`
+ *   * `ITC_Event_validate`
+ *   * `ITC_SerDes_serialiseEvent`
+ *   * `ITC_SerDes_deserialiseEvent`
+ * - For Stamps - adds the following functions to the public API:
+ *   * `ITC_Stamp_newFromId`
+ *   * `ITC_Stamp_newFromIdAndEvent`
+ *   * `ITC_Stamp_newPeekFromEvent`
+ *   * `ITC_Stamp_getId`
+ *   * `ITC_Stamp_getEvent`
+ *   * `ITC_Stamp_setId`
+ *   * `ITC_Stamp_setEvent`
+ */
+#define ITC_CONFIG_ENABLE_EXTENDED_API                                       (1)
+#endif
+
 #endif /* ITC_CONFIG_H_ */
