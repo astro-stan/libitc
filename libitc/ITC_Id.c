@@ -1356,26 +1356,6 @@ ITC_Status_t ITC_Id_sum(
 }
 
 /******************************************************************************
- * Normalise an ID
- ******************************************************************************/
-
-ITC_Status_t ITC_Id_normalise(
-    ITC_Id_t *pt_Id
-)
-{
-    ITC_Status_t t_Status; /* The current status */
-
-    t_Status = validateId(pt_Id, false);
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = normIdI(pt_Id);
-    }
-
-    return t_Status;
-}
-
-/******************************************************************************
  * Serialise an existing ITC Id
  ******************************************************************************/
 
@@ -1483,3 +1463,27 @@ ITC_Status_t ITC_SerDes_deserialiseId(
 }
 
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+
+#if IS_UNIT_TEST_BUILD
+
+/******************************************************************************
+ * Normalise an ID
+ ******************************************************************************/
+
+ITC_Status_t ITC_Id_normalise(
+    ITC_Id_t *pt_Id
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = validateId(pt_Id, false);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = normIdI(pt_Id);
+    }
+
+    return t_Status;
+}
+
+#endif /* IS_UNIT_TEST_BUILD */

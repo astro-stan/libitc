@@ -60,6 +60,14 @@ common_c_args = meson.get_compiler('c').get_supported_arguments([
 common_link_args = meson.get_compiler('c').get_supported_link_arguments([
 ])
 
+if get_option('tests')
+    # Let the compiler know this is a unit test build
+    common_c_args += [ '-DIS_UNIT_TEST_BUILD=1' ]
+else
+    # Let the compiler know this is not a unit test build
+    common_c_args += [ '-DIS_UNIT_TEST_BUILD=0' ]
+endif
+
 # Build LibITC
 subdir('libitc')
 subdir('libitc' / 'build')

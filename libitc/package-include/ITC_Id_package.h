@@ -115,6 +115,8 @@ ITC_Status_t ITC_Id_sum(
 
 #endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
 
+#if IS_UNIT_TEST_BUILD
+
 /**
  * @brief Normalise an ID
  *
@@ -125,5 +127,7 @@ ITC_Status_t ITC_Id_sum(
 ITC_Status_t ITC_Id_normalise(
     ITC_Id_t *pt_Id
 );
+
+#endif /* IS_UNIT_TEST_BUILD */
 
 #endif /* ITC_ID_PACKAGE_H_ */
