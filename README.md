@@ -77,7 +77,7 @@ Or, if your project uses Meson as its build system, you can incorporate the libi
 
 libitc provides several configuration options, which enhance or alter its feature set. See [`ITC_config.h`](./libitc/include/ITC_config.h) for all available options.
 
-You can modify the header file to change the default options, or you can provide alternative values via `CFLAGS` during the [build configuration](#configure) stage.
+You can modify the header file to change the default configuration, or you can provide alternative values via `CFLAGS` during the [build configuration](#configure) stage.
 
 For example, to enable the extended API, you can configure the build like so:
 
