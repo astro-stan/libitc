@@ -94,6 +94,62 @@ void ITC_Stamp_Test_createPeekStampFailWithCorruptStamp(void)
     }
 }
 
+/* Test creating a peek Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_createPeekStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_PeekStamp;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_newPeek(pt_Stamp, &pt_PeekStamp),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_newPeek(pt_Stamp, &pt_PeekStamp),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
 /* Test creating a peek Stamp succeeds */
 void ITC_Stamp_Test_createPeekStampSuccessful(void)
 {
@@ -150,7 +206,63 @@ void ITC_Stamp_Test_cloneStampFailWithCorruptStamp(void)
     }
 }
 
-/* Test cloning an Stamp succeeds */
+/* Test cloning a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_cloneStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_ClonedStamp;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_clone(pt_Stamp, &pt_ClonedStamp),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_clone(pt_Stamp, &pt_ClonedStamp),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test cloning a Stamp succeeds */
 void ITC_Stamp_Test_cloneStampSuccessful(void)
 {
     ITC_Stamp_t *pt_OriginalStamp = NULL;
@@ -208,6 +320,63 @@ void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
     }
 }
 
+/* Test forking a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_forkStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_ForkedStamp1;
+    ITC_Stamp_t *pt_ForkedStamp2;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
 /* Test forking a Stamp succeeds */
 void ITC_Stamp_Test_forkStampSuccessful(void)
 {
@@ -257,6 +426,9 @@ void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
     ITC_Stamp_t *pt_Stamp2;
     ITC_Stamp_t *pt_JoinedStamp;
 
+    /* Construct the other Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
+
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
          u32_I < gu32_InvalidStampTablesSize;
@@ -264,9 +436,6 @@ void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
     {
         /* Construct an invalid Stamp */
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp1);
-
-        /* Construct the other Stamp */
-        TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
 
         /* Test for the failure */
         TEST_FAILURE(
@@ -277,10 +446,79 @@ void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
             ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
             ITC_STATUS_CORRUPT_STAMP);
 
-        /* Destroy the Stamps */
+        /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp1);
-        TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
     }
+
+    /* Destroy the other Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
+}
+
+/* Test joining a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_joinStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp1;
+    ITC_Stamp_t *pt_Stamp2;
+    ITC_Stamp_t *pt_JoinedStamp;
+
+    /* Create new Stamps */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp1));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp1->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp1->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_join(pt_Stamp1, pt_Stamp2, &pt_JoinedStamp),
+            ITC_STATUS_CORRUPT_ID);
+        /* Test the other way around */
+        TEST_FAILURE(
+            ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp1->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp1->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp1->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp1->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_join(pt_Stamp1, pt_Stamp2, &pt_JoinedStamp),
+            ITC_STATUS_CORRUPT_EVENT);
+        /* Test the other way around */
+        TEST_FAILURE(
+            ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp1->pt_Event);
+    }
+
+    /* Deallocate the Stamps */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp1));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
 }
 
 /* Test joining two Stamps succeeds */
@@ -341,6 +579,61 @@ void ITC_Stamp_Test_eventStampFailWithCorruptStamp(void)
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
     }
+}
+
+/* Test inflating the Event of a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_eventStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_event(pt_Stamp),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_event(pt_Stamp),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 }
 
 /* Test inflating the Event of a Stamp succeeds */
@@ -457,6 +750,65 @@ void ITC_Stamp_Test_compareStampFailWithCorruptStamp(void)
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp1);
         TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
     }
+}
+
+/* Test comparing a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_compareStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp1;
+    ITC_Stamp_t *pt_Stamp2;
+    ITC_Stamp_Comparison_t t_Result;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp1));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp1->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp1->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp1->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp1->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp1->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp1->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp1->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp1));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
 }
 
 /* Test comparing two Stamps succeeds */
@@ -1129,6 +1481,66 @@ void ITC_Stamp_Test_getIdFromStampFailWithCorruptStamp(void)
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
+/* Test getting the ID component of a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_getIdFromStampFailWithCorruptIdOrEvent(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Id_t *pt_DummyId;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_getId(pt_Stamp, &pt_DummyId),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_getId(pt_Stamp, &pt_DummyId),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
 /* Test getting the ID component of a Stamp succeeds */
 void ITC_Stamp_Test_getIdFromStampSuccessful(void)
 {
@@ -1171,6 +1583,95 @@ void ITC_Stamp_Test_setIdOfStampFailInvalidParam(void)
             NULL,
             pt_DummyId),
         ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the Id component of a Stamp fails with corrupt stamp */
+void ITC_Stamp_Test_setIdFromStampFailWithCorruptStamp(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Id_t *pt_DummyId = NULL;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setId(pt_Stamp, pt_DummyId),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the ID component of a Stamp with invalid components fails with
+ * corrupt Id or Event */
+void ITC_Stamp_Test_setIdOfStampWithInvalidComponentFailWithCorruptIdOrEvent(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Id_t *pt_DummyId = NULL;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setId(pt_Stamp, pt_DummyId),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setId(pt_Stamp, pt_DummyId),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 #else
     TEST_IGNORE_MESSAGE("Extended API support is disabled");
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
@@ -1292,6 +1793,66 @@ void ITC_Stamp_Test_getEventFromStampFailWithCorruptStamp(void)
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
+/* Test getting the Event component of a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_getEventFromStampFailWithCorruptIdOrEvent(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Event_t *pt_DummyEvent;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_getEvent(pt_Stamp, &pt_DummyEvent),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_getEvent(pt_Stamp, &pt_DummyEvent),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
 /* Test getting the Event component of a Stamp succeeds */
 void ITC_Stamp_Test_getEventFromStampSuccessful(void)
 {
@@ -1335,6 +1896,95 @@ void ITC_Stamp_Test_setEventOfStampFailInvalidParam(void)
             NULL,
             pt_DummyEvent),
         ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the Event component of a Stamp fails with corrupt stamp */
+void ITC_Stamp_Test_setEventFromStampFailWithCorruptStamp(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Event_t *pt_DummyEvent = NULL;
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setEvent(pt_Stamp, pt_DummyEvent),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test setting the Event component of a Stamp with invalid components fails with
+ * corrupt Event or Event */
+void ITC_Stamp_Test_setEventOfStampWithInvalidComponentFailWithCorruptIdOrEvent(void)
+{
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Event_t *pt_DummyEvent = NULL;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setEvent(pt_Stamp, pt_DummyEvent),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_Stamp_setEvent(pt_Stamp, pt_DummyEvent),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 #else
     TEST_IGNORE_MESSAGE("Extended API support is disabled");
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */

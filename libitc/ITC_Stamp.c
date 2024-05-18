@@ -48,8 +48,15 @@ static ITC_Status_t validateStamp(
         t_Status = ITC_STATUS_CORRUPT_STAMP;
     }
 
-    /* Validation of the ID and Event trees is done by their respective
-     * validation functions */
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_validate(pt_Stamp->pt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Event_validate(pt_Stamp->pt_Event);
+    }
 
     return t_Status;
 }
@@ -62,8 +69,9 @@ static ITC_Status_t validateStamp(
  * `pt_Event != NULL &&  b_CloneEvent == false` the `pt_Event` will not be
  * deallocated in case of failure.
  * @param ppt_Stamp (out) The pointer to the new Stamp
- * @param pt_Id The pointer to an existing ID tree to be cloned. Otherwise NULL.
- * @param pt_Event The pointer to an existing Event tree to be cloned.
+ * @param pt_Id The pointer to an existing valid ID tree to be cloned.
+ * Otherwise NULL.
+ * @param pt_Event The pointer to an existing valid Event tree to be cloned.
  * Otherwise NULL.
  * @param b_CreateNullId Allocate a NULL ID instead of a Seed ID.
  * Ignored if pt_Id != NULL
@@ -109,12 +117,7 @@ static ITC_Status_t newStamp(
             }
             else
             {
-                t_Status = ITC_Id_validate(pt_Id);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_Alloc->pt_Id = pt_Id;
-                }
+                pt_Alloc->pt_Id = pt_Id;
             }
         }
         else if (b_CreateNullId)
@@ -137,12 +140,7 @@ static ITC_Status_t newStamp(
             }
             else
             {
-                t_Status = ITC_Event_validate(pt_Event);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_Alloc->pt_Event = pt_Event;
-                }
+                pt_Alloc->pt_Event = pt_Event;
             }
         }
         else
