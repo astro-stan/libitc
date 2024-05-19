@@ -227,7 +227,7 @@ void ITC_Id_Test_splitIdOriginalIdIsDestroyedOnSuccess(void)
 
     ITC_Port_free_ExpectAndReturn(gpt_LeafId, ITC_STATUS_SUCCESS);
 
-    /* Test failing to split a null ID */
+    /* Test splitting the ID */
     gpt_LeafId->b_IsOwner = false;
     TEST_SUCCESS(ITC_Id_split(&gpt_LeafId, &pt_OtherId));
 }
@@ -266,7 +266,6 @@ void ITC_Id_Test_normaliseIdIsRecoveredOnFailure(void)
 /* Test failed summing of two IDs is properly cleaned up */
 void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
 {
-    ITC_Id_t *pt_SummedId;
     ITC_Id_t t_NewId1 = { 0 };
     ITC_Id_t *pt_NewId1 = &t_NewId1;
     ITC_Id_t t_NewId2 = { 0 };
@@ -276,6 +275,8 @@ void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
     /* Mirror the global test ID */
     ITC_Id_t t_OtherIdLeftChild = gt_RightLeafOfParentId;
     ITC_Id_t t_OtherIdRightChild = gt_LeftLeafOfParentId;
+
+    ITC_Id_t *pt_OtherId = &t_OtherId;
 
     /* Fix pointers */
     t_OtherId.pt_Left = &t_OtherIdLeftChild;
@@ -299,12 +300,7 @@ void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
     ITC_Port_free_ExpectAndReturn(pt_NewId1, ITC_STATUS_SUCCESS);
 
     /* Test summing the IDs */
-    TEST_FAILURE(
-        ITC_Id_sum(
-            gpt_ParentId,
-            &t_OtherId,
-            &pt_SummedId),
-        ITC_STATUS_FAILURE);
+    TEST_FAILURE(ITC_Id_sum(&gpt_ParentId, &pt_OtherId), ITC_STATUS_FAILURE);
 
     /* Setup expectations */
     ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Id_t), ITC_STATUS_SUCCESS);
@@ -324,8 +320,30 @@ void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
     /* Test summing the IDs the other way around */
     TEST_FAILURE(
         ITC_Id_sum(
-            &t_OtherId,
-            gpt_ParentId,
-            &pt_SummedId),
+            &pt_OtherId,
+            &gpt_ParentId),
         ITC_STATUS_FAILURE);
+}
+
+/* Test original IDs are destroyed when summed */
+void ITC_Id_Test_sumIdOriginalIdsAreDestroyedOnSuccess(void)
+{
+    ITC_Id_t t_OtherId = gt_LeafNode;
+    ITC_Id_t *pt_OtherId = &t_OtherId;
+
+    ITC_Id_t t_NewId1 = {0};
+    ITC_Id_t *pt_NewId1 = &t_NewId1;
+
+    /* Setup expectations */
+    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Id_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
+    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewId1);
+
+    ITC_Port_free_ExpectAndReturn(pt_OtherId, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(gpt_LeafId, ITC_STATUS_SUCCESS);
+
+    /* Test summing the IDs */
+    pt_OtherId->b_IsOwner = false;
+    gpt_LeafId->b_IsOwner = true;
+    TEST_SUCCESS(ITC_Id_sum(&gpt_LeafId, &pt_OtherId));
 }

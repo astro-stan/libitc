@@ -100,16 +100,14 @@ ITC_Status_t ITC_Id_split(
 /**
  * @brief Sum two existing IDs into a single ID
  *
- * @param pt_Id1 The first ID
- * @param pt_Id2 The second ID
- * @param ppt_Id (out) The pointer to the summed ID
+ * @param ppt_Id (in) The first existing ID. (out) The summed ID
+ * @param ppt_OtherId (in) The second existing ID. (out) NULL
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_sum(
-    const ITC_Id_t *const pt_Id1,
-    const ITC_Id_t *const pt_Id2,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
 );
 
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
