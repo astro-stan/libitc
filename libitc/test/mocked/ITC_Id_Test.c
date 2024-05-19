@@ -138,8 +138,7 @@ void ITC_Id_Test_clonedIdIsDestroyedOnFailure(void)
 /* Test failed splitting of an ID is properly cleaned up */
 void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
 {
-    ITC_Id_t *pt_SplitId1;
-    ITC_Id_t *pt_SplitId2;
+    ITC_Id_t *pt_OtherId;
 
     ITC_Id_t t_NewId1 = {0};
     ITC_Id_t *pt_NewId1 = &t_NewId1;
@@ -161,9 +160,8 @@ void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
     gpt_LeafId->b_IsOwner = false;
     TEST_FAILURE(
         ITC_Id_split(
-            gpt_LeafId,
-            &pt_SplitId1,
-            &pt_SplitId2),
+            &gpt_LeafId,
+            &pt_OtherId),
         ITC_STATUS_FAILURE);
 
     /* Setup expectations */
@@ -180,9 +178,8 @@ void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
     gpt_LeafId->b_IsOwner = true;
     TEST_FAILURE(
         ITC_Id_split(
-            gpt_LeafId,
-            &pt_SplitId1,
-            &pt_SplitId2),
+            &gpt_LeafId,
+            &pt_OtherId),
         ITC_STATUS_FAILURE);
 
     /* Setup expectations */
@@ -203,10 +200,36 @@ void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
     /* Test failing to split a (0, 1) ID */
     TEST_FAILURE(
         ITC_Id_split(
-            gpt_ParentId,
-            &pt_SplitId1,
-            &pt_SplitId2),
+            &gpt_ParentId,
+            &pt_OtherId),
         ITC_STATUS_FAILURE);
+}
+
+/* Test original ID is destroyed when split */
+void ITC_Id_Test_splitIdOriginalIdIsDestroyedOnSuccess(void)
+{
+    ITC_Id_t *pt_OtherId;
+
+    ITC_Id_t t_NewId1 = {0};
+    ITC_Id_t *pt_NewId1 = &t_NewId1;
+
+    ITC_Id_t t_NewId2 = {0};
+    ITC_Id_t *pt_NewId2 = &t_NewId2;
+
+    /* Setup expectations */
+    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Id_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
+    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewId1);
+
+    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Id_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
+    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewId2);
+
+    ITC_Port_free_ExpectAndReturn(gpt_LeafId, ITC_STATUS_SUCCESS);
+
+    /* Test failing to split a null ID */
+    gpt_LeafId->b_IsOwner = false;
+    TEST_SUCCESS(ITC_Id_split(&gpt_LeafId, &pt_OtherId));
 }
 
 /* Test failed normalisation of an ID is properly recovered from */
