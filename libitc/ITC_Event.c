@@ -2048,31 +2048,51 @@ ITC_Status_t ITC_Event_validate(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_join(
-    const ITC_Event_t *const pt_Event1,
-    const ITC_Event_t *const pt_Event2,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **ppt_Event,
+    ITC_Event_t **ppt_OtherEvent
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Event_t *pt_JoinedEvent;
 
-    if (!ppt_Event)
+    if (!ppt_Event || !ppt_OtherEvent)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event1, true);
+        t_Status = validateEvent(*ppt_Event, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event2, true);
+        t_Status = validateEvent(*ppt_OtherEvent, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = joinEventE(pt_Event1, pt_Event2, ppt_Event);
+        t_Status = joinEventE(*ppt_Event, *ppt_OtherEvent, &pt_JoinedEvent);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the second Event */
+        t_Status = ITC_Event_destroy(ppt_OtherEvent);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Save the parent pointer in case the original Event was a subtree */
+        pt_JoinedEvent->pt_Parent = (*ppt_Event)->pt_Parent;
+
+        /* Destroy the first Event */
+        t_Status = ITC_Event_destroy(ppt_Event);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        *ppt_Event = pt_JoinedEvent;
     }
 
     return t_Status;
