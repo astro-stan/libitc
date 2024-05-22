@@ -75,16 +75,14 @@ ITC_Status_t ITC_Stamp_clone(
  * Creates 2 stamps with distinct (non-overlaping) IDs and the same
  * event history.
  *
- * @param pt_Stamp The existing Stamp
- * @param ppt_Stamp1 (out) The first Stamp
- * @param ppt_Stamp2 (out) The second Stamp
+ * @param ppt_Stamp (in) The existing Stamp. (out) The first forked Stamp
+ * @param ppt_OtherStamp (out) The second forked Stamp
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_fork(
-    const ITC_Stamp_t *const pt_Stamp,
-    ITC_Stamp_t **ppt_Stamp1,
-    ITC_Stamp_t **ppt_Stamp2
+    ITC_Stamp_t **ppt_Stamp,
+    ITC_Stamp_t **ppt_OtherStamp
 );
 
 /**
@@ -105,16 +103,14 @@ ITC_Status_t ITC_Stamp_event(
  * @brief Join two existing Stamps
  * Joins 2 stamps into a single Stamp, combining their IDs and event histories.
  *
- * @param pt_Stamp1 The first Stamp
- * @param pt_Stamp2 The second Stamp
- * @param ppt_Stamp (out) The pointer to the joined Stamp
+ * @param ppt_Stamp (in) The first existing Stamp. (out) The joined Stamp
+ * @param ppt_OtherStamp (in) The second existing Stamp. (out) NULL
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_join(
-    const ITC_Stamp_t *const pt_Stamp1,
-    const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **ppt_Stamp,
+    ITC_Stamp_t **ppt_OtherStamp
 );
 
 /**
