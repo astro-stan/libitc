@@ -87,7 +87,7 @@ ITC_Status_t ITC_Id_validate(
  * @brief Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  *
  * @param ppt_Id (in) The existing ID. (out) The first split ID
- * @param ppt_Id2 (out) The second split ID
+ * @param ppt_OtherId (out) The second split ID
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
