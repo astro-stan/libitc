@@ -92,7 +92,10 @@ Let's go over some basic usage examples.
 
 Let's start simple.
 
+<details>
+<summary>
 Create a `Stamp`, add an `Event` to it, then proceed to destroy it.
+</summary>
 
 ```c
 #include "ITC.h"
@@ -123,9 +126,14 @@ int main(void)
 }
 ```
 
+</details>
+
 #### Create-Fork-Event-Compare
 
+<details>
+<summary>
 Create a `Stamp`, fork it, add `Event`s to both stamps (making them **concurrent**), and then compare them. Finally, destroy both stamps and exit.
+</summary>
 
 ```c
 #include "ITC.h"
@@ -199,6 +207,8 @@ int main(void)
   return t_Status;
 }
 ```
+
+</details>
 
 ## Running The Unit Tests
 
