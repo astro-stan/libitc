@@ -29,6 +29,9 @@ jobs:
           compiler: ${{ matrix.compiler }}
       - name: Install ninja and meson
         run: pip install ninja meson
+      - name: Install Valgrind
+        if: runner.os == 'Linux'
+        run: sudo apt install -y valgrind
       - name: Checkout
         uses: actions/checkout@v4
       - name: Configure Tests
