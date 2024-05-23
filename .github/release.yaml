@@ -3,13 +3,13 @@ changelog:
     labels:
       - chore
   categories:
-    - title: 🛠 Breaking Changes
+    - title: Breaking Changes 🛠
       labels:
         - breaking
-    - title: 🎉 New Features
+    - title: New Features 🎉
       labels:
         - enhancement
-    - title: 🐛 Bugfixes
+    - title: Bugfixes 🐛
       labels:
         - bug
     - title: Other Changes
