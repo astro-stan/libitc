@@ -2,7 +2,7 @@
 
 A tiny, pure C99, library implementing the [Interval Tree Clocks](https://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf) mechanism introduced by Almeida et al. in 2008.
 
-## What are Interval Tree Clocks?
+## What Are Interval Tree Clocks?
 
 Interval Tree Clocks (ITC) are a generalisation of the [Vector Clock](https://en.wikipedia.org/wiki/Vector_clock) and [Version Vector](https://en.wikipedia.org/wiki/Version_vector) mechanisms, allowing for scalable and efficient management of a
 highly dynamic number of replicas/processes in a distributed system.
@@ -23,18 +23,18 @@ highly dynamic number of replicas/processes in a distributed system.
 
 ## Getting Started
 
-How do I build and use this library?
+How do I build this library?
 
 ### Prerequisites
 
 * C99-compatible compiler
-* The [meson build system](https://mesonbuild.com/)
+* The [Meson build system](https://mesonbuild.com/)
 
-### Building the library
+### Building The Library
 
-Building the library is a 2-step process:
+The build process is split into two stages - [configuration](#build-configuration) and [compilation](#compilation).
 
-#### Configure
+#### Build Configuration
 
 To configure the build use the `meson setup` command:
 
@@ -42,19 +42,43 @@ To configure the build use the `meson setup` command:
 meson setup -Doptimization=2 -Ddebug=false build
 ```
 
-See [Meson builtin options](https://mesonbuild.com/Builtin-options.html) for more information on the used build options.
+See [Meson built-in options](https://mesonbuild.com/Builtin-options.html) for more information on the used build options.
 
-#### Compile
+#### Feature Configuration
+
+libitc strives to be flexible and allows turning on/off optional features. This allows you to alter/extend its feature set depending on your needs.
+
+See [`ITC_config.h`](./libitc/include/ITC_config.h) for all available options.
+
+You can modify the header file directly to change the default configuration, or you can provide alternative values via `CFLAGS` during the [build configuration](#build-configuration) stage.
+
+For example, to enable the extended API, you can configure the build like so:
+
+```sh
+CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=1" meson setup -Doptimization=2 -Ddebug=false build-with-extended-api
+```
+
+#### Compilation
 
 To compile the code simply run:
 
 ```sh
-meson install -C build
+meson install -C name-of-the-setup-directory
 ```
 
-By default, this will produce both statically and dynamically linked library variants, which can be found under `./build/bin`.
+This will produce both statically and dynamically linked library variants, which can be found under `./name-of-the-setup-directory/bin`.
 
-### Running unit tests
+### Linking
+
+To use the library simply link your executable against it. For example, assuming you have a `main.c` and want to link it against the produced static `libitc.a` using `gcc`:
+
+```sh
+gcc main.c ./name-of-the-setup-directory/bin/libitc.a -I./libitc/include -o main
+```
+
+Or, if your project uses Meson as its build system, you can incorporate the libitc project as a subproject of your project instead.
+
+## Running The Unit Tests
 
 If you wish to run the unit tests for yourself, you can do so via the following commands:
 
@@ -63,38 +87,13 @@ meson setup -Dtests=true test-build
 meson test -C test-build
 ```
 
-## Usage
-
-To use the library simply link your executable against it. For example, assumming you have a `main.c` and want to link it against the produced static `libitc.a`, using `gcc`:
-
-```sh
-gcc main.c ./build/bin/libitc.a -I./libitc/include -o main
-```
-
-Or, if your project uses Meson as its build system, you can incorporate the libitc project as a subproject of your project instead.
-
-## Custom configuration (advanced)
-
-libitc provides several configuration options, which enhance or alter its feature set. See [`ITC_config.h`](./libitc/include/ITC_config.h) for all available options.
-
-You can modify the header file to change the default configuration, or you can provide alternative values via `CFLAGS` during the [build configuration](#configure) stage.
-
-For example, to enable the extended API, you can configure the build like so:
-
-```sh
-CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=1" meson setup -Doptimization=2 -Ddebug=false build-with-extended-api
-```
-
-Then, compile as usual:
-```sh
-meson install -C build-with-extended-api
-```
+> :bulb: If you have [Valgind](https://valgrind.org/) installed and available on your `$PATH`, Meson will automatically use it to check for possible memory leaks or other undesired behaviour while executing the unit tests.
 
 ## License
 
 Released under AGPL-3.0 license, see [LICENSE](./LICENSE) for details.
 
-## Special thanks to
+## Special Thanks To
 
 * Paulo Sérgio Almeida, Carlos Baquero and Victor Fonte for writing the [ITC research paper](http://hydra.azilian.net/Papers/Interval%20Tree%20Clocks.pdf)
 * Fred Hebert, for laying down his thoughts on some of the shortcomings of ITC in his [article](https://ferd.ca/interval-tree-clocks.html)
