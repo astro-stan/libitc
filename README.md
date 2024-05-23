@@ -84,6 +84,122 @@ gcc main.c ./name-of-the-setup-directory/bin/libitc.a -I./libitc/include -o main
 
 Or, if your project uses Meson as its build system, you can incorporate the libitc project as a subproject of your project instead.
 
+### Usage
+
+Let's go over some basic usage examples.
+
+#### Hello World
+
+Let's start simple.
+
+Create a `Stamp`, add an `Event` to it, then proceed to destroy it.
+
+```c
+#include "ITC.h"
+#include <stddef.h> /* For access to the `NULL` macro */
+
+int main(void)
+{
+  ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+  ITC_Stamp_t *pt_Stamp = NULL;
+
+  /* Allocate the Stamp */
+  t_Status = ITC_Stamp_newSeed(&pt_Stamp);
+
+  if (t_Status == ITC_STATUS_SUCCESS)
+  {
+      /* Add an Event */
+      t_Status = ITC_Stamp_event(pt_Stamp);
+  }
+
+  /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
+  if (pt_Stamp)
+  {
+      /* Deallocate the Stamp */
+      t_Status = ITC_Stamp_destroy(&pt_Stamp);
+  }
+
+  return t_Status;
+}
+```
+
+#### Create-Fork-Event-Compare
+
+Create a `Stamp`, fork it, add `Event`s to both stamps (making them **concurrent**), and then compare them. Finally, destroy both stamps and exit.
+
+```c
+#include "ITC.h"
+#include <stddef.h> /* For access to the `NULL` macro */
+
+int main(void)
+{
+  ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+  ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+  ITC_Stamp_t *pt_Stamp1 = NULL;
+  ITC_Stamp_t *pt_Stamp2 = NULL;
+  ITC_Stamp_Comparison_t t_Result;
+
+  /* Allocate the Stamp */
+  t_Status = ITC_Stamp_newSeed(&pt_Stamp);
+
+  if (t_Status == ITC_STATUS_SUCESS)
+  {
+      /* Fork the Stamp */
+      t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
+  }
+
+  if (t_Status == ITC_STATUS_SUCCESS)
+  {
+      /* Add an Event to Stamp1 */
+      t_Status = ITC_Stamp_event(pt_Stamp1);
+  }
+
+  if (t_Status == ITC_STATUS_SUCCESS)
+  {
+      /* Add an Event to Stamp2 */
+      t_Status = ITC_Stamp_event(pt_Stamp2);
+  }
+
+  /* Compare the Stamps */
+  if (t_Status == ITC_STATUS_SUCCESS)
+  {
+      t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
+
+      if (t_Result != ITC_STAMP_COMPARISON_CONCURRENT)
+      {
+          /* Something is not right, these Stamps should be concurrent */
+          t_Status = ITC_STATUS_FAILURE;
+      }
+  }
+
+  /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
+  if (pt_Stamp1)
+  {
+      /* Deallocate Stamp1 */
+      t_OpStatus = ITC_Stamp_destroy(&pt_Stamp1);
+
+      if (t_OpStatus != ITC_STATUS_SUCCESS)
+      {
+          /* Return the last error */
+          t_Status = t_OpStatus;
+      }
+  }
+  if (pt_Stamp2)
+  {
+      /* Deallocate Stamp2 */
+      t_OpStatus = ITC_Stamp_destroy(&pt_Stamp2);
+
+      if (t_OpStatus != ITC_STATUS_SUCCESS)
+      {
+          /* Return the last error */
+          t_Status = t_OpStatus;
+      }
+  }
+
+  return t_Status;
+}
+```
+
 ## Running The Unit Tests
 
 If you wish to run the unit tests for yourself, you can do so via the following commands:
