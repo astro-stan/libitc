@@ -29,8 +29,6 @@ highly dynamic number of replicas/processes in a distributed system.
 
 ## Getting Started
 
-How do I build this library?
-
 ### Prerequisites
 
 * C99-compatible compiler
@@ -88,7 +86,7 @@ Or, if your project uses Meson as its build system, you can incorporate the libi
 
 Let's go over some basic usage examples.
 
-#### Hello World
+##### Hello World
 
 Let's start simple.
 
@@ -128,7 +126,7 @@ int main(void)
 
 </details>
 
-#### Create-Fork-Event-Compare
+##### Create-Fork-Event-Compare
 
 <details>
 <summary>
