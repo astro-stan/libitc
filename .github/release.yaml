@@ -1,0 +1,17 @@
+changelog:
+  exclude:
+    labels:
+      - chore
+  categories:
+    - title: 🛠 Breaking Changes
+      labels:
+        - breaking
+    - title: 🎉 New Features
+      labels:
+        - enhancement
+    - title: 🐛 Bugfixes
+      labels:
+        - bug
+    - title: Other Changes
+      labels:
+        - "*"
