@@ -29,7 +29,8 @@ jobs:
           compiler: ${{ matrix.compiler }}
       - name: Install ninja and meson
         run: pip install ninja meson
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Configure Tests
         run: >-
           CC=${{ matrix.compiler }}
