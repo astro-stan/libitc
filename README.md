@@ -34,7 +34,7 @@ highly dynamic number of replicas/processes in a distributed system.
 * C99-compatible compiler
 * The [Meson build system](https://mesonbuild.com/)
 
-### Building The Library
+### Building
 
 The build process is split into two stages - [configuration](#build-configuration) and [compilation](#compilation).
 
