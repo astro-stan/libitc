@@ -42,8 +42,8 @@ The build process is split into two stages - [configuration](#build-configuratio
 
 To configure the build use the `meson setup` command:
 
-```console
-$ meson setup -Doptimization=2 -Ddebug=false build
+```bash
+meson setup -Doptimization=2 -Ddebug=false build
 ```
 
 See [Meson built-in options](https://mesonbuild.com/Builtin-options.html) for more information on the used build options.
@@ -58,16 +58,16 @@ You can modify the header file directly to change the default configuration, or 
 
 For example, to enable the extended API, you can configure the build like so:
 
-```console
-$ CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=1" meson setup -Doptimization=2 -Ddebug=false build-with-extended-api
+```bash
+CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=1" meson setup -Doptimization=2 -Ddebug=false build-with-extended-api
 ```
 
 #### Compilation
 
 To compile the code simply run:
 
-```console
-$ meson install -C name-of-the-setup-directory
+```bash
+meson install -C name-of-the-setup-directory
 ```
 
 This will produce both statically and dynamically linked library variants, which can be found under `./name-of-the-setup-directory/bin`.
@@ -76,8 +76,8 @@ This will produce both statically and dynamically linked library variants, which
 
 To use the library simply link your executable against it. For example, assuming you have a `main.c` and want to link it against the produced static `libitc.a` using `gcc`:
 
-```console
-$ gcc main.c ./name-of-the-setup-directory/bin/libitc.a -I./libitc/include -o main
+```bash
+gcc main.c ./name-of-the-setup-directory/bin/libitc.a -I./libitc/include -o main
 ```
 
 Or, if your project uses Meson as its build system, you can incorporate the libitc project as a subproject of your project instead.
@@ -212,8 +212,8 @@ int main(void)
 
 If you wish to run the unit tests for yourself, you can do so via the following commands:
 
-```console
-$ meson setup -Dtests=true test-build
+```bash
+meson setup -Dtests=true test-build
 meson test -C test-build
 ```
 
