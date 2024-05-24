@@ -100,6 +100,9 @@ ITC_Status_t ITC_Id_split(
 /**
  * @brief Sum two existing IDs into a single ID
  *
+ * @note On success, `ppt_OtherId` will be automatically deallocated to prevent
+ * it from being used again accidentally (as well as to reduce developer
+ * cleanup burden)
  * @param ppt_Id (in) The first existing ID. (out) The summed ID
  * @param ppt_OtherId (in) The second existing ID. (out) NULL
  * @return `ITC_Status_t` The status of the operation

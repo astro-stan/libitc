@@ -79,6 +79,9 @@ ITC_Status_t ITC_Event_validate(
 /**
  * @brief Join two existing Events into a single Event
  *
+ * @note On success, `ppt_OtherEvent` will be automatically deallocated to
+ * prevent it from being used again accidentally (as well as to reduce developer
+ * cleanup burden)
  * @param ppt_Event (in) The first existing Event. (out) The joined Event
  * @param ppt_OtherEvent (in) The second existing Event. (out) NULL
  * @return `ITC_Status_t` The status of the operation

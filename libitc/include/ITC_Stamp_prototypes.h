@@ -103,6 +103,9 @@ ITC_Status_t ITC_Stamp_event(
  * @brief Join two existing Stamps
  * Joins 2 stamps into a single Stamp, combining their IDs and event histories.
  *
+ * @note On success, `ppt_OtherStamp` will be automatically deallocated to
+ * prevent it from being used again accidentally (as well as to reduce developer
+ * cleanup burden)
  * @param ppt_Stamp (in) The first existing Stamp. (out) The joined Stamp
  * @param ppt_OtherStamp (in) The second existing Stamp. (out) NULL
  * @return `ITC_Status_t` The status of the operation
