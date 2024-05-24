@@ -146,9 +146,9 @@ int main(void)
   ITC_Stamp_Comparison_t t_Result;
 
   /* Allocate the Stamp */
-  t_Status = ITC_Stamp_newSeed(&pt_Stamp);
+  t_Status = ITC_Stamp_newSeed(&pt_Stamp1);
 
-  if (t_Status == ITC_STATUS_SUCESS)
+  if (t_Status == ITC_STATUS_SUCCESS)
   {
       /* Fork the Stamp */
       t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
@@ -229,9 +229,9 @@ int main(void)
   ITC_Stamp_Comparison_t t_Result;
 
   /* Allocate the Stamp */
-  t_Status = ITC_Stamp_newSeed(&pt_Stamp);
+  t_Status = ITC_Stamp_newSeed(&pt_Stamp1);
 
-  if (t_Status == ITC_STATUS_SUCESS)
+  if (t_Status == ITC_STATUS_SUCCESS)
   {
       /* Fork the Stamp */
       t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
