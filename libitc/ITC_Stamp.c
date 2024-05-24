@@ -823,57 +823,55 @@ ITC_Status_t ITC_Stamp_clone(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_fork(
-    const ITC_Stamp_t *const pt_Stamp,
-    ITC_Stamp_t **ppt_Stamp1,
-    ITC_Stamp_t **ppt_Stamp2
+    ITC_Stamp_t **ppt_Stamp,
+    ITC_Stamp_t **ppt_OtherStamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_SplitId1;
-    ITC_Id_t *pt_SplitId2;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_OtherId;
+
+    if (!ppt_Stamp || !ppt_OtherStamp)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateStamp(pt_Stamp);
+        t_Status = validateStamp(*ppt_Stamp);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Split the ID */
-        t_Status = ITC_Id_split(pt_Stamp->pt_Id, &pt_SplitId1, &pt_SplitId2);
+        t_Status = ITC_Id_split(&(*ppt_Stamp)->pt_Id, &pt_OtherId);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Create the first stamp */
+        /* Create the other stamp */
         t_Status = newStamp(
-            ppt_Stamp1, pt_SplitId1, pt_Stamp->pt_Event, false, false, true);
+            ppt_OtherStamp,
+            pt_OtherId,
+            (*ppt_Stamp)->pt_Event,
+            false,
+            false,
+            true);
 
         if (t_Status != ITC_STATUS_SUCCESS)
         {
-            /* Destroy the IDs.
-             * Ignore the return status. There is nothing else to do if
-             * destroy fails and its more important to return the reason
-             * for the failure */
-            (void)ITC_Id_destroy(&pt_SplitId1);
-            (void)ITC_Id_destroy(&pt_SplitId2);
-        }
-    }
+            /* Try to sum the ID back to what it was */
+            t_OpStatus = ITC_Id_sum(&(*ppt_Stamp)->pt_Id, &pt_OtherId);
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Create the second stamp */
-        t_Status = newStamp(
-            ppt_Stamp2, pt_SplitId2, pt_Stamp->pt_Event, false, false, true);
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Destroy the other Stamp and the ID.
-             * Ignore the return status. There is nothing else to do if
-             * destroy fails and its more important to return the reason
-             * for the failure */
-            (void)ITC_Stamp_destroy(ppt_Stamp1);
-            (void)ITC_Id_destroy(&pt_SplitId2);
+            /* Give up and dispose of the interval. It is now lost */
+            if (t_OpStatus != ITC_STATUS_SUCCESS)
+            {
+                /* Destroy the ID
+                * Ignore the return status. There is nothing else to do if
+                * destroy fails and its more important to return the original
+                * reason for the failure */
+                (void)ITC_Id_destroy(&pt_OtherId);
+            }
         }
     }
 
@@ -915,59 +913,46 @@ ITC_Status_t ITC_Stamp_event(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_join(
-    const ITC_Stamp_t *const pt_Stamp1,
-    const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **ppt_Stamp,
+    ITC_Stamp_t **ppt_OtherStamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_SummedId;
-    ITC_Event_t *pt_JoinedEvent;
 
-    if (t_Status == ITC_STATUS_SUCCESS)
+    if (!ppt_Stamp || !ppt_OtherStamp)
     {
-        t_Status = validateStamp(pt_Stamp1);
+        t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateStamp(pt_Stamp2);
+        t_Status = validateStamp(*ppt_Stamp);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Id_sum(pt_Stamp1->pt_Id, pt_Stamp2->pt_Id, &pt_SummedId);
+        t_Status = validateStamp(*ppt_OtherStamp);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = ITC_Event_join(
-            pt_Stamp1->pt_Event, pt_Stamp2->pt_Event, &pt_JoinedEvent);
+            &(*ppt_Stamp)->pt_Event, &(*ppt_OtherStamp)->pt_Event);
+    }
 
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Destroy the summed ID.
-             * Ignore the return status. There is nothing else to do if
-             * destroy fails and its more important to return the reason
-             * for the failure */
-            (void)ITC_Id_destroy(&pt_SummedId);
-        }
+    /* XXX: There is no way to "split" the Event tree back to what it was
+     * originally if the ID sum call fails. This is not ideal but the resulting
+     * Stamp will just be greater-than or equal to both of the original Stamps
+     * (effectively the same as when doing a join with a peek Stamp), which at
+     * least _should_ not lead to causality violations */
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = ITC_Id_sum(&(*ppt_Stamp)->pt_Id, &(*ppt_OtherStamp)->pt_Id);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newStamp(
-            ppt_Stamp, pt_SummedId, pt_JoinedEvent, false, false, false);
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Destroy the summed ID and the joined Event.
-             * Ignore the return status. There is nothing else to do if
-             * destroy fails and its more important to return the reason
-             * for the failure */
-            (void)ITC_Id_destroy(&pt_SummedId);
-            (void)ITC_Event_destroy(&pt_JoinedEvent);
-        }
+        t_Status = ITC_Stamp_destroy(ppt_OtherStamp);
     }
 
     return t_Status;

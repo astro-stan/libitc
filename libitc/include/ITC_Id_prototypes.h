@@ -87,31 +87,30 @@ ITC_Status_t ITC_Id_validate(
 /**
  * @brief Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  *
- * @param pt_Id The existing ID
- * @param ppt_Id1 (out) The pointer to the first split ID
- * @param ppt_Id2 (out) The pointer to the second split  ID
+ * @param ppt_Id (in) The existing ID. (out) The first split ID
+ * @param ppt_OtherId (out) The second split ID
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_split(
-    const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_Id1,
-    ITC_Id_t **ppt_Id2
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
 );
 
 /**
  * @brief Sum two existing IDs into a single ID
  *
- * @param pt_Id1 The first ID
- * @param pt_Id2 The second ID
- * @param ppt_Id (out) The pointer to the summed ID
+ * @note On success, `ppt_OtherId` will be automatically deallocated to prevent
+ * it from being used again accidentally (as well as to reduce developer
+ * cleanup burden)
+ * @param ppt_Id (in) The first existing ID. (out) The summed ID
+ * @param ppt_OtherId (in) The second existing ID. (out) NULL
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_sum(
-    const ITC_Id_t *const pt_Id1,
-    const ITC_Id_t *const pt_Id2,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
 );
 
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */

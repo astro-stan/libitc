@@ -1295,26 +1295,39 @@ ITC_Status_t ITC_Id_validate(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_split(
-    const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_Id1,
-    ITC_Id_t **ppt_Id2
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_NewId = NULL;
 
-    if (!ppt_Id1 || !ppt_Id2)
+    if (!ppt_Id || !ppt_OtherId)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateId(pt_Id, true);
+        t_Status = validateId(*ppt_Id, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = splitIdI(pt_Id, ppt_Id1, ppt_Id2);
+        t_Status = splitIdI(*ppt_Id, &pt_NewId, ppt_OtherId);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Save the parent pointer in case the original ID was a subtree */
+        pt_NewId->pt_Parent = (*ppt_Id)->pt_Parent;
+
+        t_Status = ITC_Id_destroy(ppt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        *ppt_Id = pt_NewId;
     }
 
     return t_Status;
@@ -1325,31 +1338,51 @@ ITC_Status_t ITC_Id_split(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_sum(
-    const ITC_Id_t *const pt_Id1,
-    const ITC_Id_t *const pt_Id2,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_SummedId = NULL;
 
-    if (!ppt_Id)
+    if (!ppt_Id || !ppt_OtherId)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateId(pt_Id1, true);
+        t_Status = validateId(*ppt_Id, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateId(pt_Id2, true);
+        t_Status = validateId(*ppt_OtherId, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = sumIdI(pt_Id1, pt_Id2, ppt_Id);
+        t_Status = sumIdI(*ppt_Id, *ppt_OtherId, &pt_SummedId);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the second ID */
+        t_Status = ITC_Id_destroy(ppt_OtherId);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Save the parent pointer in case the original ID was a subtree */
+        pt_SummedId->pt_Parent = (*ppt_Id)->pt_Parent;
+
+        /* Destroy the first ID */
+        t_Status = ITC_Id_destroy(ppt_Id);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        *ppt_Id = pt_SummedId;
     }
 
     return t_Status;

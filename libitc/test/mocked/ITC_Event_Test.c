@@ -182,43 +182,9 @@ void ITC_Event_Test_normaliseEventIsRecoveredOnFailure(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(gpt_ParentEvent->pt_Right, 2);
 }
 
-/* Test successful joining of two Events is properly cleaned up */
-void ITC_Event_Test_joinCopiedSourceEventsAreDestroyedOnExit(void)
-{
-    ITC_Event_t *pt_SummedEvent;
-    ITC_Event_t t_NewEvent1 = { 0 };
-    ITC_Event_t *pt_NewEvent1 = &t_NewEvent1;
-    ITC_Event_t t_NewEvent2 = { 0 };
-    ITC_Event_t *pt_NewEvent2 = &t_NewEvent2;
-    ITC_Event_t t_NewEvent3 = { 0 };
-    ITC_Event_t *pt_NewEvent3 = &t_NewEvent3;
-
-    /* Setup expectations */
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
-    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
-    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent1);
-
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
-    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
-    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent2);
-
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
-    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
-    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent3);
-
-    ITC_Port_free_ExpectAndReturn(pt_NewEvent1, ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(pt_NewEvent2, ITC_STATUS_SUCCESS);
-
-    /* Test joining the Events */
-    TEST_SUCCESS(ITC_Event_join(gpt_LeafEvent, gpt_LeafEvent, &pt_SummedEvent));
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedEvent, 0);
-}
-
 /* Test failed summing of two Events is properly cleaned up */
 void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
 {
-    ITC_Event_t *pt_SummedEvent;
-
     ITC_Event_t rt_NewEvent[3] = { 0 };
     ITC_Event_t *rpt_NewEvent[] = {
         &rt_NewEvent[0],
@@ -310,8 +276,44 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
 
     /* Test failing to join the Events */
     TEST_FAILURE(
-        ITC_Event_join(gpt_ParentEvent, gpt_LeafEvent, &pt_SummedEvent),
+        ITC_Event_join(&gpt_ParentEvent, &gpt_LeafEvent),
         ITC_STATUS_FAILURE);
+}
+
+/* Test successful joining of two Events is properly cleaned up */
+void ITC_Event_Test_joinOriginalAndCopiedEventsAreDestroyedOnSucess(void)
+{
+    ITC_Event_t t_OtherEvent = gt_LeafNode;
+    ITC_Event_t *pt_OtherEvent = &t_OtherEvent;
+
+    ITC_Event_t t_NewEvent1 = { 0 };
+    ITC_Event_t *pt_NewEvent1 = &t_NewEvent1;
+    ITC_Event_t t_NewEvent2 = { 0 };
+    ITC_Event_t *pt_NewEvent2 = &t_NewEvent2;
+    ITC_Event_t t_NewEvent3 = { 0 };
+    ITC_Event_t *pt_NewEvent3 = &t_NewEvent3;
+
+    /* Setup expectations */
+    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
+    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent1);
+
+    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
+    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent2);
+
+    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
+    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent3);
+
+    ITC_Port_free_ExpectAndReturn(pt_NewEvent1, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(pt_NewEvent2, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(pt_OtherEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(gpt_LeafEvent, ITC_STATUS_SUCCESS);
+
+    /* Test joining the Events */
+    TEST_SUCCESS(ITC_Event_join(&gpt_LeafEvent, &pt_OtherEvent));
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(gpt_LeafEvent, 0);
 }
 
 /* Test failed maximise an Event is properly recovered from */
