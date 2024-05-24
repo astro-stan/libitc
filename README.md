@@ -358,7 +358,7 @@ meson setup -Dtests=true test-build
 meson test -C test-build
 ```
 
-> :bulb: If you have [Valgind](https://valgrind.org/) installed and available on your `$PATH`, Meson will automatically use it to check for possible memory leaks or other undesired behaviour while executing the unit tests.
+> :bulb: If you have [Valgind](https://valgrind.org/) installed and available on your `$PATH`, Meson will automatically use it to check for memory leaks or other undesired behaviour while executing the unit tests.
 
 ## License
 
