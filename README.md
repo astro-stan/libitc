@@ -92,8 +92,7 @@ Let's start simple.
 
 <details>
 <summary>
-
-Create a `Stamp`, add an `Event` to it, then proceed to destroy it.
+Create a <code>Stamp</code>, add an <code>Event</code> to it, then proceed to destroy it and exit.
 </summary>
 
 ```c
@@ -131,8 +130,7 @@ int main(void)
 
 <details>
 <summary>
-
-Create a `Stamp`, fork it, add `Event`s to both stamps (making them **concurrent**), and then compare them. Finally, destroy both stamps and exit.
+Create a <code>Stamp</code>, fork it, add <code>Event</code>s to both stamps (making them <strong>concurrent</strong>), and then compare them. Finally, destroy both stamps and exit.
 </summary>
 
 ```c
