@@ -78,7 +78,7 @@ gcc main.c ./name-of-the-setup-directory/bin/libitc.a -I./libitc/include -o main
 
 Or, if your project uses Meson as its build system, you can incorporate the libitc project as a subproject of your project instead.
 
-### Usage
+### Usage Examples
 
 Let's go over some basic usage examples.
 
@@ -93,30 +93,38 @@ Create a `Stamp`, add an `Event` to it, then proceed to destroy it and exit.
 
 ```c
 #include "ITC.h"
+
 #include <stddef.h> /* For access to the `NULL` macro */
 
 int main(void)
 {
-  ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-  ITC_Stamp_t *pt_Stamp = NULL;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    ITC_Stamp_t *pt_Stamp = NULL;
 
-  /* Allocate the Stamp */
-  t_Status = ITC_Stamp_newSeed(&pt_Stamp);
+    /* Allocate the Stamp */
+    t_Status = ITC_Stamp_newSeed(&pt_Stamp);
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Add an Event */
-      t_Status = ITC_Stamp_event(pt_Stamp);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add an Event */
+        t_Status = ITC_Stamp_event(pt_Stamp);
+    }
 
-  /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
-  if (pt_Stamp)
-  {
-      /* Deallocate the Stamp */
-      t_Status = ITC_Stamp_destroy(&pt_Stamp);
-  }
+    /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
+    if (pt_Stamp)
+    {
+        /* Deallocate the Stamp */
+        t_OpStatus = ITC_Stamp_destroy(&pt_Stamp);
 
-  return t_Status;
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return the last error */
+            t_Status = t_OpStatus;
+        }
+    }
+
+    return t_Status;
 }
 ```
 
@@ -131,74 +139,75 @@ Create a `Stamp`, fork it, add `Event`s to both stamps (making them **concurrent
 
 ```c
 #include "ITC.h"
+
 #include <stddef.h> /* For access to the `NULL` macro */
 
 int main(void)
 {
-  ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-  ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-  ITC_Stamp_t *pt_Stamp1 = NULL;
-  ITC_Stamp_t *pt_Stamp2 = NULL;
-  ITC_Stamp_Comparison_t t_Result;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    ITC_Stamp_t *pt_Stamp1 = NULL;
+    ITC_Stamp_t *pt_Stamp2 = NULL;
+    ITC_Stamp_Comparison_t t_Result;
 
-  /* Allocate the Stamp */
-  t_Status = ITC_Stamp_newSeed(&pt_Stamp1);
+    /* Allocate the Stamp */
+    t_Status = ITC_Stamp_newSeed(&pt_Stamp1);
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Fork the Stamp */
-      t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Fork the Stamp */
+        t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Add an Event to Stamp1 */
-      t_Status = ITC_Stamp_event(pt_Stamp1);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add an Event to Stamp1 */
+        t_Status = ITC_Stamp_event(pt_Stamp1);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Add an Event to Stamp2 */
-      t_Status = ITC_Stamp_event(pt_Stamp2);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add an Event to Stamp2 */
+        t_Status = ITC_Stamp_event(pt_Stamp2);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Compare the Stamps */
-      t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Compare the Stamps */
+        t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
 
-      if (t_Result != ITC_STAMP_COMPARISON_CONCURRENT)
-      {
-          /* Something is not right, these Stamps should be concurrent */
-          t_Status = ITC_STATUS_FAILURE;
-      }
-  }
+        if (t_Result != ITC_STAMP_COMPARISON_CONCURRENT)
+        {
+            /* Something is not right, these Stamps should be concurrent */
+            t_Status = ITC_STATUS_FAILURE;
+        }
+    }
 
-  /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
-  if (pt_Stamp1)
-  {
-      /* Deallocate Stamp1 */
-      t_OpStatus = ITC_Stamp_destroy(&pt_Stamp1);
+    /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
+    if (pt_Stamp1)
+    {
+        /* Deallocate Stamp1 */
+        t_OpStatus = ITC_Stamp_destroy(&pt_Stamp1);
 
-      if (t_OpStatus != ITC_STATUS_SUCCESS)
-      {
-          /* Return the last error */
-          t_Status = t_OpStatus;
-      }
-  }
-  if (pt_Stamp2)
-  {
-      /* Deallocate Stamp2 */
-      t_OpStatus = ITC_Stamp_destroy(&pt_Stamp2);
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return the last error */
+            t_Status = t_OpStatus;
+        }
+    }
+    if (pt_Stamp2)
+    {
+        /* Deallocate Stamp2 */
+        t_OpStatus = ITC_Stamp_destroy(&pt_Stamp2);
 
-      if (t_OpStatus != ITC_STATUS_SUCCESS)
-      {
-          /* Return the last error */
-          t_Status = t_OpStatus;
-      }
-  }
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return the last error */
+            t_Status = t_OpStatus;
+        }
+    }
 
-  return t_Status;
+    return t_Status;
 }
 ```
 
@@ -213,133 +222,206 @@ Create a `Stamp`, fork it, add an `Event` to it (making one stamp **greater than
 
 ```c
 #include "ITC.h"
+
 #include <stddef.h> /* For access to the `NULL` macro */
 
 int main(void)
 {
-  ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-  ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
-  ITC_Stamp_t *pt_Stamp1 = NULL;
-  ITC_Stamp_t *pt_Stamp2 = NULL;
-  ITC_Stamp_t *pt_PeekStamp1 = NULL;
-  ITC_Stamp_Comparison_t t_Result;
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    ITC_Stamp_t *pt_Stamp1 = NULL;
+    ITC_Stamp_t *pt_Stamp2 = NULL;
+    ITC_Stamp_t *pt_PeekStamp1 = NULL;
+    ITC_Stamp_Comparison_t t_Result;
 
-  /* Allocate the Stamp */
-  t_Status = ITC_Stamp_newSeed(&pt_Stamp1);
+    /* Allocate the Stamp */
+    t_Status = ITC_Stamp_newSeed(&pt_Stamp1);
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Fork the Stamp */
-      t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Fork the Stamp */
+        t_Status = ITC_Stamp_fork(&pt_Stamp1, &pt_Stamp2);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Add an Event to Stamp1 */
-      t_Status = ITC_Stamp_event(pt_Stamp1);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add an Event to Stamp1 */
+        t_Status = ITC_Stamp_event(pt_Stamp1);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Compare the Stamps */
-      t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Compare the Stamps */
+        t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
 
-      if (t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
-      {
-          /* Something is not right, Stamp1 should be greater than Stamp2 */
-          t_Status = ITC_STATUS_FAILURE;
-      }
-  }
+        if (t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
+        {
+            /* Something is not right, Stamp1 should be greater than Stamp2 */
+            t_Status = ITC_STATUS_FAILURE;
+        }
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Compare the Stamps the other way around */
-      t_Status = ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result);
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Compare the Stamps the other way around */
+        t_Status = ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result);
 
-      if (t_Result != ITC_STAMP_COMPARISON_LESS_THAN)
-      {
-          /* Something is not right, Stamp2 should be less than Stamp1 */
-          t_Status = ITC_STATUS_FAILURE;
-      }
-  }
+        if (t_Result != ITC_STAMP_COMPARISON_LESS_THAN)
+        {
+            /* Something is not right, Stamp2 should be less than Stamp1 */
+            t_Status = ITC_STATUS_FAILURE;
+        }
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Create a peek Stamp */
-      t_Status = ITC_Stamp_newPeek(pt_Stamp1, &pt_PeekStamp1);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Create a peek Stamp */
+        t_Status = ITC_Stamp_newPeek(pt_Stamp1, &pt_PeekStamp1);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Share the causal history of Stamp1 with Stamp2.
-       * No need to deallocate `pt_PeekStamp1`. `ITC_Stamp_join`
-       * will deallocate it on exit, to prevent it from being used
-       * again after joining. */
-      t_Status = ITC_Stamp_join(&pt_Stamp2, &pt_PeekStamp1);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Share the causal history of Stamp1 with Stamp2.
+        * No need to deallocate `pt_PeekStamp1`. `ITC_Stamp_join`
+        * will deallocate it on exit, to prevent it from being used
+        * again after joining. */
+        t_Status = ITC_Stamp_join(&pt_Stamp2, &pt_PeekStamp1);
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Compare the Stamps */
-      t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Compare the Stamps */
+        t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
 
-      if (t_Result != ITC_STAMP_COMPARISON_EQUAL ||
-          t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
-      {
-          /* Something is not right, Stamp1 should be greater than or equal to
-           * Stamp2 because the causal history was shared */
-          t_Status = ITC_STATUS_FAILURE;
-      }
-  }
+        if (t_Result != ITC_STAMP_COMPARISON_EQUAL ||
+            t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
+        {
+            /* Something is not right, Stamp1 should be greater than or equal to
+            * Stamp2 because the causal history was shared */
+            t_Status = ITC_STATUS_FAILURE;
+        }
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Compare the Stamps the other way around */
-      t_Status = ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result);
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Compare the Stamps the other way around */
+        t_Status = ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result);
 
-      if (t_Result != ITC_STAMP_COMPARISON_EQUAL ||
-          t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
-      {
-          /* Something is not right, Stamp1 should be greater than or equal to
-           * Stamp2 because the causal history was shared */
-          t_Status = ITC_STATUS_FAILURE;
-      }
-  }
+        if (t_Result != ITC_STAMP_COMPARISON_EQUAL ||
+            t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
+        {
+            /* Something is not right, Stamp1 should be greater than or equal to
+            * Stamp2 because the causal history was shared */
+            t_Status = ITC_STATUS_FAILURE;
+        }
+    }
 
-  if (t_Status == ITC_STATUS_SUCCESS)
-  {
-      /* Join Stamp2 with Stamp1.
-       * No need to deallocate `pt_Stamp2`. `ITC_Stamp_join`
-       * will deallocate it on exit, to prevent it from being used
-       * again after joining. */
-      t_Status = ITC_Stamp_join(&pt_Stamp1, &pt_Stamp2);
-  }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Join Stamp2 with Stamp1.
+        * No need to deallocate `pt_Stamp2`. `ITC_Stamp_join`
+        * will deallocate it on exit, to prevent it from being used
+        * again after joining. */
+        t_Status = ITC_Stamp_join(&pt_Stamp1, &pt_Stamp2);
+    }
 
-  /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
-  if (pt_Stamp1)
-  {
-      /* Deallocate Stamp1 */
-      t_OpStatus = ITC_Stamp_destroy(&pt_Stamp1);
+    /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
+    if (pt_Stamp1)
+    {
+        /* Deallocate Stamp1 */
+        t_OpStatus = ITC_Stamp_destroy(&pt_Stamp1);
 
-      if (t_OpStatus != ITC_STATUS_SUCCESS)
-      {
-          /* Return the last error */
-          t_Status = t_OpStatus;
-      }
-  }
-  if (pt_Stamp2)
-  {
-      /* Deallocate Stamp2 */
-      t_OpStatus = ITC_Stamp_destroy(&pt_Stamp2);
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return the last error */
+            t_Status = t_OpStatus;
+        }
+    }
+    if (pt_Stamp2)
+    {
+        /* Deallocate Stamp2 */
+        t_OpStatus = ITC_Stamp_destroy(&pt_Stamp2);
 
-      if (t_OpStatus != ITC_STATUS_SUCCESS)
-      {
-          /* Return the last error */
-          t_Status = t_OpStatus;
-      }
-  }
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return the last error */
+            t_Status = t_OpStatus;
+        }
+    }
 
-  return t_Status;
+    return t_Status;
+}
+```
+
+</details>
+
+##### Ser-Des
+
+Serialise and deserialise a Stamp.
+
+> :bulb: If the [extended API](#feature-configuration) is enabled, identical operations
+can be performed on IDs and Events as well.
+
+<details>
+<summary>Code:</summary>
+
+```c
+#include "ITC.h"
+
+#include <stddef.h> /* For access to the `NULL` macro */
+#include <stdint.h>
+
+int main(void)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS;
+    ITC_Stamp_t *pt_Stamp = NULL;
+    uint8_t ru8_StampBuffer[10] = { 0 };
+    uint32_t u32_StampBufferCurrentLen = sizeof(ru8_StampBuffer);
+
+    /* Allocate the Stamp */
+    t_Status = ITC_Stamp_newSeed(&pt_Stamp);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Serialise the Stamp.
+         * NOTE: `u32_StampBufferCurrentLen` will be set to the length of
+         * the data in the buffer on exit */
+        t_Status = ITC_SerDes_serialiseStamp(
+            pt_Stamp, &ru8_StampBuffer[0], &u32_StampBufferCurrentLen);
+    }
+
+    if (t_Status == ITC_STATUS_INSUFFICIENT_RESOURCES)
+    {
+        /* Allocate a bigger buffer and try again */
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the Stamp */
+        t_Status = ITC_Stamp_destroy(&pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Deserialise the Stamp */
+        t_Status = ITC_SerDes_deserialiseStamp(
+            &ru8_StampBuffer[0], u32_StampBufferCurrentLen, &pt_Stamp);
+    }
+
+    if (pt_Stamp)
+    {
+        /* Destroy the Stamp */
+        t_OpStatus = ITC_Stamp_destroy(&pt_Stamp);
+
+        if (t_OpStatus != ITC_STATUS_SUCCESS)
+        {
+            /* Return the last error */
+            t_Status = t_OpStatus;
+        }
+    }
+
+    return t_Status;
 }
 ```
 
