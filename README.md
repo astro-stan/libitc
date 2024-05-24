@@ -360,7 +360,7 @@ int main(void)
 Serialise and deserialise a Stamp.
 
 > :bulb: If the [extended API](#feature-configuration) is enabled, identical operations
-can be performed on IDs and Events as well.
+can be performed on `ID`s and `Events` as well.
 
 <details>
 <summary>Code:</summary>
