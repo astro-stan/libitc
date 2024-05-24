@@ -81,7 +81,7 @@ Or, if your project uses Meson as its build system, you can incorporate the libi
 
 Let's go over some basic usage examples.
 
-##### Hello World
+#### Hello World
 
 Let's start simple.
 
@@ -129,7 +129,7 @@ int main(void)
 
 </details>
 
-##### Create-Fork-Event-Compare
+#### Create-Fork-Event-Compare
 
 Create a `Stamp`, fork it, add `Event`s to both stamps (making them **concurrent**), and then compare them. Finally, destroy both stamps and exit.
 
@@ -212,7 +212,7 @@ int main(void)
 
 </details>
 
-##### Create-Fork-Event-Peek-Compare-Join
+#### Create-Fork-Event-Peek-Compare-Join
 
 Create a `Stamp`, fork it, add an `Event` to it (making one stamp **greater than** the other). Compare the stamps. Share causal history via a `Peek Stamp`, then compare the stamps again. Then proceed to join the stamps back into a `Seed Stamp`. Finally, deallocate the remaining stamp and exit.
 
@@ -354,7 +354,7 @@ int main(void)
 
 </details>
 
-##### Ser-Des
+#### Ser-Des
 
 Serialise and deserialise a Stamp.
 
