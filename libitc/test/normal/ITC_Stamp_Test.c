@@ -288,19 +288,16 @@ void ITC_Stamp_Test_forkStampFailInvalidParam(void)
     ITC_Stamp_t *pt_DummyStamp = NULL;
 
     TEST_FAILURE(
-        ITC_Stamp_fork(pt_DummyStamp, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Stamp_fork(&pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Stamp_fork(NULL, &pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
-    TEST_FAILURE(
-        ITC_Stamp_fork(NULL, NULL, &pt_DummyStamp), ITC_STATUS_INVALID_PARAM);
+        ITC_Stamp_fork(NULL, &pt_DummyStamp), ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test forking a Stamp fails with corrupt stamp */
 void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
 {
     ITC_Stamp_t *pt_Stamp;
-    ITC_Stamp_t *pt_ForkedStamp1;
-    ITC_Stamp_t *pt_ForkedStamp2;
+    ITC_Stamp_t *pt_OtherStamp;
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
@@ -312,7 +309,7 @@ void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2),
+            ITC_Stamp_fork(&pt_Stamp, &pt_OtherStamp),
             ITC_STATUS_CORRUPT_STAMP);
 
         /* Destroy the Stamp */
@@ -324,8 +321,7 @@ void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
 void ITC_Stamp_Test_forkStampFailWithCorruptIdOrEvent(void)
 {
     ITC_Stamp_t *pt_Stamp;
-    ITC_Stamp_t *pt_ForkedStamp1;
-    ITC_Stamp_t *pt_ForkedStamp2;
+    ITC_Stamp_t *pt_OtherStamp;
 
     /* Create a new stamp */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
@@ -343,7 +339,7 @@ void ITC_Stamp_Test_forkStampFailWithCorruptIdOrEvent(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2),
+            ITC_Stamp_fork(&pt_Stamp, &pt_OtherStamp),
             ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the ID */
@@ -366,7 +362,7 @@ void ITC_Stamp_Test_forkStampFailWithCorruptIdOrEvent(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2),
+            ITC_Stamp_fork(&pt_Stamp, &pt_OtherStamp),
             ITC_STATUS_CORRUPT_EVENT);
 
         /* Destroy the Event */
@@ -380,30 +376,25 @@ void ITC_Stamp_Test_forkStampFailWithCorruptIdOrEvent(void)
 /* Test forking a Stamp succeeds */
 void ITC_Stamp_Test_forkStampSuccessful(void)
 {
-    ITC_Stamp_t *pt_OriginalStamp;
-    ITC_Stamp_t *pt_ForkedStamp1;
-    ITC_Stamp_t *pt_ForkedStamp2;
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_OtherStamp;
 
     /* Create a new Stamp */
-    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_OriginalStamp));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
 
     /* Fork the Stamp */
-    TEST_SUCCESS(
-        ITC_Stamp_fork(pt_OriginalStamp, &pt_ForkedStamp1, &pt_ForkedStamp2));
-
-    /* Destroy the original Stamp */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OriginalStamp));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp, &pt_OtherStamp));
 
     /* Test the ID was cloned and split and the Event history was cloned */
-    TEST_ITC_ID_IS_SEED_NULL_ID(pt_ForkedStamp1->pt_Id);
-    TEST_ITC_ID_IS_NULL_SEED_ID(pt_ForkedStamp2->pt_Id);
-    TEST_ASSERT_TRUE(pt_ForkedStamp1->pt_Event != pt_ForkedStamp2->pt_Event);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ForkedStamp1->pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ForkedStamp2->pt_Event, 0);
+    TEST_ITC_ID_IS_SEED_NULL_ID(pt_Stamp->pt_Id);
+    TEST_ITC_ID_IS_NULL_SEED_ID(pt_OtherStamp->pt_Id);
+    TEST_ASSERT_TRUE(pt_Stamp->pt_Event != pt_OtherStamp->pt_Event);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherStamp->pt_Event, 0);
 
     /* Destroy the forked Stamps */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp1));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp2));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OtherStamp));
 }
 
 /* Test joining two Stamps fails with invalid param */
@@ -412,22 +403,19 @@ void ITC_Stamp_Test_joinStampsFailInvalidParam(void)
     ITC_Stamp_t *pt_DummyStamp = NULL;
 
     TEST_FAILURE(
-        ITC_Stamp_join(pt_DummyStamp, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Stamp_join(&pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Stamp_join(NULL, pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
-    TEST_FAILURE(
-        ITC_Stamp_join(NULL, NULL, &pt_DummyStamp), ITC_STATUS_INVALID_PARAM);
+        ITC_Stamp_join(NULL, &pt_DummyStamp), ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test joining two Stamps fails with corrupt stamp */
 void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
 {
-    ITC_Stamp_t *pt_Stamp1;
-    ITC_Stamp_t *pt_Stamp2;
-    ITC_Stamp_t *pt_JoinedStamp;
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_OtherStamp;
 
     /* Construct the other Stamp */
-    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_OtherStamp));
 
     /* Test different invalid Stamps are handled properly */
     for (uint32_t u32_I = 0;
@@ -435,38 +423,37 @@ void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
          u32_I++)
     {
         /* Construct an invalid Stamp */
-        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp1);
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_join(pt_Stamp1, pt_Stamp2, &pt_JoinedStamp),
+            ITC_Stamp_join(&pt_Stamp, &pt_OtherStamp),
             ITC_STATUS_CORRUPT_STAMP);
         /* And the other way around */
         TEST_FAILURE(
-            ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
+            ITC_Stamp_join(&pt_OtherStamp, &pt_Stamp),
             ITC_STATUS_CORRUPT_STAMP);
 
         /* Destroy the Stamp */
-        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp1);
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
     }
 
     /* Destroy the other Stamp */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OtherStamp));
 }
 
 /* Test joining a Stamp fails with corrupt Id or Event */
 void ITC_Stamp_Test_joinStampFailWithCorruptIdOrEvent(void)
 {
-    ITC_Stamp_t *pt_Stamp1;
-    ITC_Stamp_t *pt_Stamp2;
-    ITC_Stamp_t *pt_JoinedStamp;
+    ITC_Stamp_t *pt_Stamp;
+    ITC_Stamp_t *pt_OtherStamp;
 
     /* Create new Stamps */
-    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp1));
-    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_OtherStamp));
 
     /* Deallocate the valid ID */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp1->pt_Id));
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
 
     /* Test different invalid IDs are handled properly */
     for (uint32_t u32_I = 0;
@@ -474,26 +461,26 @@ void ITC_Stamp_Test_joinStampFailWithCorruptIdOrEvent(void)
          u32_I++)
     {
         /* Construct an invalid ID */
-        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp1->pt_Id);
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_join(pt_Stamp1, pt_Stamp2, &pt_JoinedStamp),
+            ITC_Stamp_join(&pt_Stamp, &pt_OtherStamp),
             ITC_STATUS_CORRUPT_ID);
         /* Test the other way around */
         TEST_FAILURE(
-            ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
+            ITC_Stamp_join(&pt_OtherStamp, &pt_Stamp),
             ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the ID */
-        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp1->pt_Id);
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
     }
 
     /* Allocate a valid ID */
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp1->pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
 
     /* Deallocate the valid Event */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp1->pt_Event));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
 
     /* Test different invalid Events are handled properly */
     for (uint32_t u32_I = 0;
@@ -501,57 +488,47 @@ void ITC_Stamp_Test_joinStampFailWithCorruptIdOrEvent(void)
          u32_I++)
     {
         /* Construct an invalid Event */
-        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp1->pt_Event);
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Stamp_join(pt_Stamp1, pt_Stamp2, &pt_JoinedStamp),
+            ITC_Stamp_join(&pt_Stamp, &pt_OtherStamp),
             ITC_STATUS_CORRUPT_EVENT);
         /* Test the other way around */
         TEST_FAILURE(
-            ITC_Stamp_join(pt_Stamp2, pt_Stamp1, &pt_JoinedStamp),
+            ITC_Stamp_join(&pt_OtherStamp, &pt_Stamp),
             ITC_STATUS_CORRUPT_EVENT);
 
         /* Destroy the Event */
-        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp1->pt_Event);
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
     }
 
     /* Deallocate the Stamps */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp1));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp2));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OtherStamp));
 }
 
 /* Test joining two Stamps succeeds */
 void ITC_Stamp_Test_joinStampsSuccessful(void)
 {
     ITC_Stamp_t *pt_Stamp;
-    ITC_Stamp_t *pt_ForkedStamp1;
-    ITC_Stamp_t *pt_ForkedStamp2;
+    ITC_Stamp_t *pt_OtherStamp;
 
     /* Create a new Stamp */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
 
     /* Fork the Stamp */
-    TEST_SUCCESS(
-        ITC_Stamp_fork(pt_Stamp, &pt_ForkedStamp1, &pt_ForkedStamp2));
-
-    /* Destroy the original Stamp */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp, &pt_OtherStamp));
 
     /* Join the Stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_join(pt_ForkedStamp1, pt_ForkedStamp2, &pt_Stamp));
-
-    /* Destroy the forked Stamps */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp1));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_ForkedStamp2));
+    TEST_SUCCESS(ITC_Stamp_join(&pt_OtherStamp, &pt_Stamp));
 
     /* Test the ID is a seed ID and the Event history is a leaf with 0 events */
-    TEST_ITC_ID_IS_SEED_ID(pt_Stamp->pt_Id);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 0);
+    TEST_ITC_ID_IS_SEED_ID(pt_OtherStamp->pt_Id);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherStamp->pt_Event, 0);
 
     /* Destroy the original Stamp */
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OtherStamp));
 }
 
 /* Test inflating the Event of as Stamp fails with invalid param */
@@ -868,289 +845,189 @@ void ITC_Stamp_Test_compareStampsSucceeds(void)
 /* Test full Stamp lifecycle */
 void ITC_Stamp_Test_fullStampLifecycle(void)
 {
-    ITC_Stamp_t *pt_OriginalStamp;
-    ITC_Stamp_t *pt_SplitStamp1;
-    ITC_Stamp_t *pt_SplitStamp11;
-    ITC_Stamp_t *pt_SplitStamp12;
-    ITC_Stamp_t *pt_SplitStamp111;
-    ITC_Stamp_t *pt_SplitStamp121;
-    ITC_Stamp_t *pt_SplitStamp112;
-    ITC_Stamp_t *pt_SplitStamp122;
-    ITC_Stamp_t *pt_SplitStamp2;
-    ITC_Stamp_t *pt_SplitStamp21;
-    ITC_Stamp_t *pt_SplitStamp22;
-    ITC_Stamp_t *pt_SplitStamp211;
-    ITC_Stamp_t *pt_SplitStamp221;
-    ITC_Stamp_t *pt_SplitStamp212;
-    ITC_Stamp_t *pt_SplitStamp222;
+    ITC_Stamp_t *pt_Stamp0 = NULL;
+    ITC_Stamp_t *pt_Stamp1 = NULL;
+    ITC_Stamp_t *pt_Stamp2 = NULL;
+    ITC_Stamp_t *pt_Stamp3 = NULL;
+    ITC_Stamp_t *pt_Stamp4 = NULL;
+    ITC_Stamp_t *pt_Stamp5 = NULL;
+    ITC_Stamp_t *pt_Stamp6 = NULL;
+    ITC_Stamp_t *pt_Stamp7 = NULL;
 
-    ITC_Stamp_t *pt_SummedStamp = NULL;
-    ITC_Stamp_t *pt_TmpStamp = NULL;
+    /* clang-format off */
+    /* Each pair corresponds to the call arg order of `ITC_Stamp_join`.
+     * The join order is arbitrary */
+    ITC_Stamp_t **rppt_JoinOrder[] = {
+        &pt_Stamp1, &pt_Stamp2,
+        &pt_Stamp1, &pt_Stamp5,
+        &pt_Stamp6, &pt_Stamp3,
+        &pt_Stamp1, &pt_Stamp6,
+        &pt_Stamp0, &pt_Stamp1,
+        &pt_Stamp4, &pt_Stamp7,
+        &pt_Stamp0, &pt_Stamp4,
+    };
+    /* clang-format on */
+
+    ITC_Stamp_t *pt_TmpStamp1;
+    ITC_Stamp_t *pt_TmpStamp2;
 
     ITC_Stamp_Comparison_t t_Result;
 
     /* Create the initial stamp */
-    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_OriginalStamp));
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp0));
 
     /* Split into Stamps with (1, 0) and (0, 1) IDs */
-    TEST_SUCCESS(
-        ITC_Stamp_fork(pt_OriginalStamp, &pt_SplitStamp1, &pt_SplitStamp2));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_OriginalStamp));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp0, &pt_Stamp4));
 
     /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp1));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp1));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp2));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp0));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp0));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp4));
 
     /* Test stamp ordering */
-    TEST_SUCCESS(ITC_Stamp_compare(pt_SplitStamp1, pt_SplitStamp2, &t_Result));
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp0, pt_Stamp4, &t_Result));
     TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_CONCURRENT, t_Result);
 
     /* Split into Stamps with IDs:
-     * - ((1, 0), 0)
-     * - (0, (1, 0))
-     * - ((0, 1), 0)
-     * - (0, (0, 1))
+     * pt_Stamp0 = ((1, 0), 0)
+     * pt_Stamp2 = ((0, 1), 0)
+     * pt_Stamp4 = (0, (1, 0))
+     * pt_Stamp6 = (0, (0, 1))
      */
-    TEST_SUCCESS(
-        ITC_Stamp_fork(pt_SplitStamp1, &pt_SplitStamp11, &pt_SplitStamp21));
-    TEST_SUCCESS(
-        ITC_Stamp_fork(pt_SplitStamp2, &pt_SplitStamp12, &pt_SplitStamp22));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp1));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp2));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp0, &pt_Stamp2));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp4, &pt_Stamp6));
 
     /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp11));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp22));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp2));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp6));
 
     /* Test stamp ordering */
-    TEST_SUCCESS(ITC_Stamp_compare(pt_SplitStamp11, pt_SplitStamp22, &t_Result));
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp2, pt_Stamp6, &t_Result));
     TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_CONCURRENT, t_Result);
-    TEST_SUCCESS(ITC_Stamp_compare(pt_SplitStamp11, pt_SplitStamp21, &t_Result));
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp2, pt_Stamp0, &t_Result));
     TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(ITC_Stamp_compare(pt_SplitStamp12, pt_SplitStamp22, &t_Result));
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp4, pt_Stamp6, &t_Result));
     TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_LESS_THAN, t_Result);
-    TEST_SUCCESS(ITC_Stamp_compare(pt_SplitStamp12, pt_SplitStamp21, &t_Result));
+    TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp0, pt_Stamp4, &t_Result));
     TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_CONCURRENT, t_Result);
 
     /* Split into Stamps with IDs:
-     * - (((1, 0), 0), 0)
-     * - (0, ((1, 0), 0))
-     * - ((0, (1, 0)), 0)
-     * - (0, (0, (1, 0)))
-     * - (((0, 1), 0), 0)
-     * - (0, ((0, 1), 0))
-     * - ((0, (0, 1)), 0)
-     * - (0, (0, (0, 1)))
+     * pt_Stamp0 = (((1, 0), 0), 0)
+     * pt_Stamp1 = (((0, 1), 0), 0)
+     * pt_Stamp2 = ((0, (1, 0)), 0)
+     * pt_Stamp3 = ((0, (0, 1)), 0)
+     * pt_Stamp4 = (0, ((1, 0), 0))
+     * pt_Stamp5 = (0, ((0, 1), 0))
+     * pt_Stamp6 = (0, (0, (1, 0)))
+     * pt_Stamp7 = (0, (0, (0, 1)))
      */
-    TEST_SUCCESS(ITC_Stamp_fork(
-        pt_SplitStamp11, &pt_SplitStamp111, &pt_SplitStamp211));
-    TEST_SUCCESS(ITC_Stamp_fork(
-        pt_SplitStamp12, &pt_SplitStamp112, &pt_SplitStamp212));
-    TEST_SUCCESS(ITC_Stamp_fork(
-        pt_SplitStamp21, &pt_SplitStamp121, &pt_SplitStamp221));
-    TEST_SUCCESS(ITC_Stamp_fork(
-        pt_SplitStamp22, &pt_SplitStamp122, &pt_SplitStamp222));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp11));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp12));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp21));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp22));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp0, &pt_Stamp1));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp2, &pt_Stamp3));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp4, &pt_Stamp5));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp6, &pt_Stamp7));
 
     /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp211));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp212));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp222));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp222));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp122));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp111));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp1));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp3));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp5));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp6));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp7));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp7));
 
     /* Too lasy to test ordering here... It's probably fine (TM) */
 
     /* Sum them back into to a seed Stamp while adding events in
      * arbitrary order */
+    for (uint32_t u32_I = 0; u32_I < ARRAY_COUNT(rppt_JoinOrder); u32_I += 2)
+    {
+        /* Clone the Stamps for comparison */
+        TEST_SUCCESS(
+            ITC_Stamp_clone(*rppt_JoinOrder[u32_I], &pt_TmpStamp1));
+        TEST_SUCCESS(
+            ITC_Stamp_clone(*rppt_JoinOrder[u32_I + 1], &pt_TmpStamp2));
 
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp222, pt_SplitStamp121, &pt_SummedStamp));
+        /* Join 2 Stamps */
+        TEST_SUCCESS(
+            ITC_Stamp_join(rppt_JoinOrder[u32_I], rppt_JoinOrder[u32_I + 1]));
 
-    /* Test the joined Stamp is greater than both of the source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp222, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp121, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
+        /* Test the joined Stamp is greater-than or equal to both of the
+         * source stamps */
+        TEST_SUCCESS(
+            ITC_Stamp_compare(
+                *rppt_JoinOrder[u32_I],
+                pt_TmpStamp1,
+                &t_Result));
+        TEST_ASSERT_TRUE((t_Result == ITC_STAMP_COMPARISON_GREATER_THAN) ||
+                         (t_Result == ITC_STAMP_COMPARISON_EQUAL));
+        TEST_SUCCESS(
+            ITC_Stamp_compare(
+                *rppt_JoinOrder[u32_I],
+                pt_TmpStamp2,
+                &t_Result));
+        TEST_ASSERT_TRUE((t_Result == ITC_STAMP_COMPARISON_GREATER_THAN) ||
+                         (t_Result == ITC_STAMP_COMPARISON_EQUAL));
 
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp222));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp121));
+        TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp1));
+        TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp2));
 
-    /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_clone(pt_SummedStamp, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp211, pt_TmpStamp, &pt_SummedStamp));
-
-    /* Test the joined Stamp is greater than both of the source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp211, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_TmpStamp, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp211));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
-
-    /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_clone(pt_SummedStamp, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp122, pt_TmpStamp, &pt_SummedStamp));
-
-    /* Test the joined Stamp is greater than both of the source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp122, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_TmpStamp, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp122));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
-
-    /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_clone(pt_SummedStamp, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp111, pt_TmpStamp, &pt_SummedStamp));
-
-    /* Test the joined Stamp is greater than both of the source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp111, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_TmpStamp, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp111));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
-
-    TEST_SUCCESS(ITC_Stamp_clone(pt_SummedStamp, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp221, pt_TmpStamp, &pt_SummedStamp));
-
-    /* Test the joined Stamp is greater than or equal to both of the
-     * source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp221, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_TmpStamp, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_EQUAL, t_Result);
-
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp221));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
-
-    /* Add some events */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_clone(pt_SummedStamp, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp212, pt_TmpStamp, &pt_SummedStamp));
-
-    /* Test the joined Stamp is greater than both of the source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp212, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_TmpStamp, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp212));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
-
-    TEST_SUCCESS(ITC_Stamp_clone(pt_SummedStamp, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp112, pt_TmpStamp, &pt_SummedStamp));
-
-    /* Test the joined Stamp is greater than or equal to both of the
-     * source stamps */
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_SplitStamp112, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
-    TEST_SUCCESS(
-        ITC_Stamp_compare(pt_SummedStamp, pt_TmpStamp, &t_Result));
-    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_EQUAL, t_Result);
-
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp112));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
+        /* Add Event on every second iteration but not the last one */
+        if ((u32_I % 4 == 0) && ((u32_I + 4) < ARRAY_COUNT(rppt_JoinOrder)))
+        {
+            TEST_SUCCESS(ITC_Stamp_event(*rppt_JoinOrder[u32_I]));
+        }
+    }
 
     /* clang-format off */
     /* Test the summed up Stamp has a seed ID with a
-     * (1, 3, (0, (0, 0, 1), 8)) Event tree */
-    TEST_ITC_ID_IS_SEED_ID(pt_SummedStamp->pt_Id);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_SummedStamp->pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event->pt_Left, 3);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_SummedStamp->pt_Event->pt_Right, 0);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_SummedStamp->pt_Event->pt_Right->pt_Left, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event->pt_Right->pt_Left->pt_Left, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event->pt_Right->pt_Left->pt_Right, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event->pt_Right->pt_Right, 8);
+     * (1, 3, (0, (0, 0, 1), 3)) Event tree */
+    TEST_ITC_ID_IS_SEED_ID(pt_Stamp0->pt_Id);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp0->pt_Event, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Left, 3);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp0->pt_Event->pt_Right, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp0->pt_Event->pt_Right->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Right->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Right->pt_Left->pt_Right, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Right->pt_Right, 3);
     /* clang-format on */
 
     /* Add an event */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SummedStamp));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp0));
 
     /* Test the summed up Stamp has a seed ID with a
-     * (9) Event tree */
-    TEST_ITC_ID_IS_SEED_ID(pt_SummedStamp->pt_Id);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event, 9);
+     * (4) Event tree */
+    TEST_ITC_ID_IS_SEED_ID(pt_Stamp0->pt_Id);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event, 4);
 
     /* Split into Stamps with (1, 0) and (0, 1) IDs again */
-    TEST_SUCCESS(ITC_Stamp_fork(
-        pt_SummedStamp, &pt_SplitStamp1, &pt_SplitStamp2));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
+    TEST_SUCCESS(ITC_Stamp_fork(&pt_Stamp0, &pt_Stamp1));
 
     /* Add Event */
-    TEST_SUCCESS(ITC_Stamp_event(pt_SplitStamp1));
+    TEST_SUCCESS(ITC_Stamp_event(pt_Stamp1));
 
-    /* Share the Event history */
-    TEST_SUCCESS(ITC_Stamp_newPeek(pt_SplitStamp1, &pt_SummedStamp));
-    TEST_SUCCESS(ITC_Stamp_join(pt_SummedStamp, pt_SplitStamp2, &pt_TmpStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp2));
+    /* Share the Event history through a peek Stamp */
+    TEST_SUCCESS(ITC_Stamp_newPeek(pt_Stamp1, &pt_TmpStamp1));
+    TEST_SUCCESS(ITC_Stamp_join(&pt_Stamp0, &pt_TmpStamp1));
 
-    /* Test the Stamps have the different IDs but the same Event history */
-    TEST_ITC_ID_IS_SEED_NULL_ID(pt_SplitStamp1->pt_Id);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_SplitStamp1->pt_Event, 9);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SplitStamp1->pt_Event->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SplitStamp1->pt_Event->pt_Right, 0);
-    TEST_ITC_ID_IS_NULL_SEED_ID(pt_TmpStamp->pt_Id);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_TmpStamp->pt_Event, 9);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_TmpStamp->pt_Event->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_TmpStamp->pt_Event->pt_Right, 0);
+    /* Test the Stamp IDs haven't changed but the Event history has been shared */
+    TEST_ITC_ID_IS_SEED_NULL_ID(pt_Stamp0->pt_Id);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp0->pt_Event, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Right, 1);
+    TEST_ITC_ID_IS_NULL_SEED_ID(pt_Stamp1->pt_Id);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp1->pt_Event, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp1->pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp1->pt_Event->pt_Right, 1);
 
-    TEST_SUCCESS(ITC_Stamp_join(pt_SplitStamp1, pt_TmpStamp, &pt_SummedStamp));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SplitStamp1));
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp));
+    /* Join Stamps back into a Stamp with a seed ID */
+    TEST_SUCCESS(ITC_Stamp_join(&pt_Stamp0, &pt_Stamp1));
 
-    /* Test the Stamps has a seed ID but the same Event history */
-    TEST_ITC_ID_IS_SEED_ID(pt_SummedStamp->pt_Id);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_SummedStamp->pt_Event, 9);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_SummedStamp->pt_Event->pt_Right, 0);
+    /* Test the Stamp has a seed ID but the same Event history */
+    TEST_ITC_ID_IS_SEED_ID(pt_Stamp0->pt_Id);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Stamp0->pt_Event, 4);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp0->pt_Event->pt_Right, 1);
 
-    TEST_SUCCESS(ITC_Stamp_destroy(&pt_SummedStamp));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp0));
 }
 
 /* Test creating a Stamp from an ID fails with invalid param */
