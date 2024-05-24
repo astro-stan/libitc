@@ -409,6 +409,7 @@ int main(void)
             &ru8_StampBuffer[0], u32_StampBufferCurrentLen, &pt_Stamp);
     }
 
+    /* Passing a `NULL` to `ITC_Stamp_destroy` is safe, but let's be prudent */
     if (pt_Stamp)
     {
         /* Destroy the Stamp */
