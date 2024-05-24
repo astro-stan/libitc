@@ -41,7 +41,7 @@ To configure the build use the `meson setup` command:
 meson setup -Doptimization=2 -Ddebug=false build
 ```
 
-See [Meson built-in options](https://mesonbuild.com/Builtin-options.html) for more information on the used build options.
+See [Meson built-in options](https://mesonbuild.com/Builtin-options.html) for more information on the used options.
 
 #### Feature Configuration
 
