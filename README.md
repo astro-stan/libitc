@@ -12,16 +12,15 @@ highly dynamic number of replicas/processes in a distributed system.
 
 ## Features
 
-* Implements the full ITC mechanism as described in the original research paper from 2008
+* Implements the full ITC mechanism as described in the research paper.
 * Written in C99. It has no dependencies apart from a few C standard library
-  header files
-* Minimises stack usage by **not** relying on recursion
-* Generally tries to be as efficient and as small as possible
-* Can be configured to use either 32 or 64-bit event counters
-* Provides handy serialisation and deserialisation APIs
+  header files (`CMock` is only used for unit testing).
+* Minimises stack usage by **not** relying on recursion.
+* Generally tries to be as efficient and as small as possible.
+* Can be configured to use either 32 or 64-bit event counters.
+* Provides handy serialisation and deserialisation APIs.
 * Provides an optional "extended" API interface (based on
-  [this article](https://ferd.ca/interval-tree-clocks.html)), giving you more fine-grained control over the ITC lifecycle. This is not part of the original
-  mechanism and is intended for more advanced use cases.
+  [this article](https://ferd.ca/interval-tree-clocks.html)), giving you more fine-grained control over the ITC lifecycle. This is not part of the original mechanism and is intended for more advanced use cases.
 
 ## Getting Started
 
