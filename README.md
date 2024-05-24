@@ -1,6 +1,6 @@
 # libitc
 
-<img src="https://img.shields.io/badge/C-99-gray?color=blue" alt="C99"> <img src="https://img.shields.io/github/actions/workflow/status/sdimovv/libitc/.github%2Fworkflows%2Fbuild-and-run-tests.yml?branch=main&logo=github" alt="Build Status"> <a href="https://github.com/sdimovv/libitc/releases/latest"> <img src="https://img.shields.io/github/v/release/sdimovv/libitc" alt="Latest GitHub Release"></a> <a onclick="return false;"><img src="https://img.shields.io/github/license/sdimovv/libitc" alt="License AGPL-3.0"></a>
+<img src="https://img.shields.io/badge/C-99-gray?color=blue" alt="C99"> <img src="https://img.shields.io/github/actions/workflow/status/sdimovv/libitc/.github%2Fworkflows%2Fbuild-and-run-tests.yml?branch=main&logo=github" alt="Build Status"> <a href="https://github.com/sdimovv/libitc/releases/latest"> <img src="https://img.shields.io/github/v/release/sdimovv/libitc" alt="Latest GitHub Release"></a> <a><img src="https://img.shields.io/github/license/sdimovv/libitc" alt="License AGPL-3.0"></a>
 
 A tiny, pure C99, library implementing the [Interval Tree Clocks](https://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf) mechanism introduced by Almeida et al. in 2008.
 
