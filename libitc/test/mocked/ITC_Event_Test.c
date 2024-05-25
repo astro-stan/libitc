@@ -378,22 +378,24 @@ void ITC_Event_Test_fillEventIsRecoveredOnFailure(void)
     ITC_Event_t *pt_NewEvent2 = &t_NewEvent2;
 
     /* Create the ID to work with */
-    ITC_Id_t t_RootId = { 0 };
-    ITC_Id_t t_LeftChildId = { 0 };
-    ITC_Id_t t_RightChildId = { 0 };
+    ITC_Id_t t_ParentId = { 0 };
+    ITC_Id_t t_NestedSeedId = { 0 };
+    ITC_Id_t t_NestedNullId = { 0 };
+    ITC_Id_t t_SeedId = {0 };
 
     bool b_WasFilled;
 
-    /* Assign interval ownership */
-    t_RootId.b_IsOwner = false;
-    t_LeftChildId.b_IsOwner = true;
-    t_RightChildId.b_IsOwner = false;
+    /* Assign interval ownerships */
+    t_ParentId.b_IsOwner = false;
+    t_NestedSeedId.b_IsOwner = true;
+    t_NestedNullId.b_IsOwner = false;
+    t_SeedId.b_IsOwner = true;
 
-    /* Connect the ID tree */
-    t_RootId.pt_Left = &t_LeftChildId;
-    t_RootId.pt_Right = &t_RightChildId;
-    t_LeftChildId.pt_Parent = &t_RootId;
-    t_RightChildId.pt_Parent = &t_RootId;
+    /* Connect the parent ID tree */
+    t_ParentId.pt_Left = &t_NestedSeedId;
+    t_ParentId.pt_Right = &t_NestedNullId;
+    t_NestedSeedId.pt_Parent = &t_ParentId;
+    t_NestedNullId.pt_Parent = &t_ParentId;
 
     /* Setup expectations */
     ITC_Port_free_ExpectAndReturn(
@@ -415,7 +417,7 @@ void ITC_Event_Test_fillEventIsRecoveredOnFailure(void)
     gpt_ParentEvent->pt_Left->t_Count = 3;
     gpt_ParentEvent->pt_Right->t_Count = 0;
     TEST_FAILURE(
-        ITC_Event_fill(gpt_ParentEvent, t_RootId.pt_Left, &b_WasFilled),
+        ITC_Event_fill(gpt_ParentEvent, &t_SeedId, &b_WasFilled),
         ITC_STATUS_FAILURE);
 
     /* Test the Event is the same but the children have been restored */
@@ -432,7 +434,7 @@ void ITC_Event_Test_fillEventIsRecoveredOnFailure(void)
     gpt_ParentEvent->pt_Left->t_Count = 0;
     gpt_ParentEvent->pt_Right->t_Count = 1;
     TEST_FAILURE(
-        ITC_Event_fill(gpt_ParentEvent, &t_RootId, &b_WasFilled),
+        ITC_Event_fill(gpt_ParentEvent, &t_ParentId, &b_WasFilled),
         ITC_STATUS_EVENT_COUNTER_OVERFLOW);
 
     /* Test the Event was incremented but couldn't be normalised due to an
@@ -452,20 +454,22 @@ void ITC_Event_Test_growEventIsRecoveredOnFailure(void)
     ITC_Event_t *pt_NewEvent1 = &t_NewEvent1;
 
     /* Create the ID to work with */
-    ITC_Id_t t_RootId = { 0 };
-    ITC_Id_t t_LeftChildId = { 0 };
-    ITC_Id_t t_RightChildId = { 0 };
+    ITC_Id_t t_ParentId = { 0 };
+    ITC_Id_t t_NestedSeedId = { 0 };
+    ITC_Id_t t_NestedNullId = { 0 };
+    ITC_Id_t t_SeedId = {0 };
 
-    /* Assign interval ownership */
-    t_RootId.b_IsOwner = false;
-    t_LeftChildId.b_IsOwner = true;
-    t_RightChildId.b_IsOwner = false;
+    /* Assign interval ownerships */
+    t_ParentId.b_IsOwner = false;
+    t_NestedSeedId.b_IsOwner = true;
+    t_NestedNullId.b_IsOwner = false;
+    t_SeedId.b_IsOwner = true;
 
-    /* Connect the ID tree */
-    t_RootId.pt_Left = &t_LeftChildId;
-    t_RootId.pt_Right = &t_RightChildId;
-    t_LeftChildId.pt_Parent = &t_RootId;
-    t_RightChildId.pt_Parent = &t_RootId;
+    /* Connect the parent ID tree */
+    t_ParentId.pt_Left = &t_NestedSeedId;
+    t_ParentId.pt_Right = &t_NestedNullId;
+    t_NestedSeedId.pt_Parent = &t_ParentId;
+    t_NestedNullId.pt_Parent = &t_ParentId;
 
     /* Setup expectations */
     ITC_Port_malloc_ExpectAndReturn(
@@ -480,7 +484,8 @@ void ITC_Event_Test_growEventIsRecoveredOnFailure(void)
     ITC_Port_free_ExpectAndReturn(&t_NewEvent1, ITC_STATUS_SUCCESS);
 
     /* Test failing to grow a (0) Event with a (1, 0) ID */
-    TEST_FAILURE(ITC_Event_grow(gpt_LeafEvent, &t_RootId), ITC_STATUS_FAILURE);
+    TEST_FAILURE(
+        ITC_Event_grow(gpt_LeafEvent, &t_ParentId), ITC_STATUS_FAILURE);
 
     /* Test the Event is the same but the children have been restored */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(gpt_LeafEvent, 0);
@@ -491,7 +496,7 @@ void ITC_Event_Test_growEventIsRecoveredOnFailure(void)
     /* Test failing to fill a (MAX_EVENT_COUNT) Event with a seed ID */
     gpt_LeafEvent->t_Count = ~((ITC_Event_Counter_t)0);
     TEST_FAILURE(
-        ITC_Event_grow(gpt_LeafEvent, t_RootId.pt_Left),
+        ITC_Event_grow(gpt_LeafEvent, &t_SeedId),
         ITC_STATUS_EVENT_COUNTER_OVERFLOW);
 
     /* Test the Event couldn't be incremented and was kept the same */

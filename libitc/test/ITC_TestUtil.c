@@ -119,6 +119,34 @@ static void newInvalidIdWithAsymmetricNestedParentRight(
 }
 
 /**
+ * @brief Create a new invalid Id subtree
+ *
+ * @param pt_Id (out) The pointer to the Id
+ */
+static void newInvalidIdSubtree(
+    ITC_Id_t **ppt_Id
+)
+{
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(ppt_Id, (ITC_Id_t *)123));
+}
+
+/**
+ * @brief Deallocate an invalid Id subtree created with
+ * `newInvalidIdSubtree`
+ *
+ *
+ * @param pt_Id (in) The pointer to the root of the Id.
+ */
+static void destroyInvalidIdSubtree(
+    ITC_Id_t **ppt_Id
+)
+{
+    /* Fix the damage so the Id can be properly deallocated */
+    (*ppt_Id)->pt_Parent = NULL;
+    TEST_SUCCESS(ITC_Id_destroy(ppt_Id));
+}
+
+/**
  * @brief Create a new invalid not normalised ID
  *
  * @param pt_Id (out) The pointer to the ID
@@ -175,7 +203,7 @@ static void newInvalidIdWithNullParentPointer(
  * `newInvalidIdWithNullParentPointer`
  *
  *
- * @param pt_Id (in) The pointer to the root if the ID.
+ * @param pt_Id (in) The pointer to the root of the ID.
  */
 static void destroyInvalidIdWithNullParentPointer(
     ITC_Id_t **ppt_Id
@@ -207,7 +235,7 @@ static void newInvalidIdWithInvalidParentPointer(
  * @brief Deallocate an invalid ID created with
  * `newInvalidIdWithInvalidParentPointer`
  *
- * @param pt_Id (in) The pointer to the root if the ID.
+ * @param pt_Id (in) The pointer to the root of the ID.
  */
 static void destroyInvalidIdWithInvalidParentPointer(
     ITC_Id_t **ppt_Id
@@ -535,7 +563,7 @@ static void newInvalidEventSubtree(
  * `newInvalidEventSubtree`
  *
  *
- * @param pt_Event (in) The pointer to the root if the Event.
+ * @param pt_Event (in) The pointer to the root of the Event.
  */
 static void destroyInvalidEventSubtree(
     ITC_Event_t **ppt_Event
@@ -606,7 +634,7 @@ static void newInvalidEventWithNullParentPointer(
  * `newInvalidEventWithNullParentPointer`
  *
  *
- * @param pt_Event (in) The pointer to the root if the Event.
+ * @param pt_Event (in) The pointer to the root of the Event.
  */
 static void destroyInvalidEventWithNullParentPointer(
     ITC_Event_t **ppt_Event
@@ -642,7 +670,7 @@ static void newInvalidEventWithInvalidParentPointer(
  * @brief Deallocate an invalid Event created with
  * `newInvalidEventWithInvalidParentPointer`
  *
- * @param pt_Event (in) The pointer to the root if the Event.
+ * @param pt_Event (in) The pointer to the root of the Event.
  */
 static void destroyInvalidEventWithInvalidParentPointer(
     ITC_Event_t **ppt_Event
@@ -1240,6 +1268,7 @@ void (*const gpv_InvalidIdConstructorTable[])(ITC_Id_t **) =
     newInvalidIdWithAsymmetricRootParentRight,
     newInvalidIdWithAsymmetricNestedParentLeft,
     newInvalidIdWithAsymmetricNestedParentRight,
+    newInvalidIdSubtree,
     newInvalidIdWithRootParentOwner,
     newInvalidIdWithNestedParentOwner,
     newInvalidIdWithNullParentPointer,
@@ -1264,6 +1293,7 @@ void (*const gpv_InvalidIdDestructorTable[])(ITC_Id_t **) =
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
+    destroyInvalidIdSubtree,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     (void (*)(ITC_Id_t **))ITC_Id_destroy,
     destroyInvalidIdWithNullParentPointer,

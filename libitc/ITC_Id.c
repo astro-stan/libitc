@@ -44,18 +44,15 @@ static ITC_Status_t validateId(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     const ITC_Id_t *pt_CurrentIdParent = NULL; /* The current ID node */
-    const ITC_Id_t *pt_RootIdParent = NULL; /* The parent of the root node */
 
     if(!pt_Id)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-    else
+    /* Subtrees are considered invalid when coming through the public API */
+    else if (pt_Id->pt_Parent)
     {
-        /* Remember the root parent ID as this might be a subtree */
-        pt_RootIdParent = pt_Id->pt_Parent;
-
-        pt_CurrentIdParent = pt_RootIdParent;
+        t_Status = ITC_STATUS_CORRUPT_ID;
     }
 
     /* Perform a pre-order traversal */
@@ -96,15 +93,15 @@ static ITC_Status_t validateId(
             {
                 /* Loop until the current element is no longer reachable
                  * through the parent's right child */
-                while (pt_CurrentIdParent != pt_RootIdParent &&
-                    pt_CurrentIdParent->pt_Right == pt_Id)
+                while (pt_CurrentIdParent &&
+                       pt_CurrentIdParent->pt_Right == pt_Id)
                 {
                     pt_Id = pt_Id->pt_Parent;
                     pt_CurrentIdParent = pt_CurrentIdParent->pt_Parent;
                 }
 
                 /* There is a right subtree that has not been explored yet */
-                if (pt_CurrentIdParent != pt_RootIdParent)
+                if (pt_CurrentIdParent)
                 {
                     pt_Id = pt_CurrentIdParent->pt_Right;
                 }
