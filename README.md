@@ -292,8 +292,8 @@ int main(void)
         /* Compare the Stamps */
         t_Status = ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result);
 
-        if (t_Result != ITC_STAMP_COMPARISON_EQUAL ||
-            t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
+        if (!(t_Result & (ITC_STAMP_COMPARISON_EQUAL |
+                          ITC_STAMP_COMPARISON_GREATER_THAN)))
         {
             /* Something is not right, Stamp1 should be greater than or equal to
             * Stamp2 because the causal history was shared */
@@ -306,11 +306,11 @@ int main(void)
         /* Compare the Stamps the other way around */
         t_Status = ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result);
 
-        if (t_Result != ITC_STAMP_COMPARISON_EQUAL ||
-            t_Result != ITC_STAMP_COMPARISON_GREATER_THAN)
+        if (!(t_Result & (ITC_STAMP_COMPARISON_EQUAL |
+                          ITC_STAMP_COMPARISON_GREATER_THAN)))
         {
-            /* Something is not right, Stamp1 should be greater than or equal to
-            * Stamp2 because the causal history was shared */
+            /* Something is not right, Stamp2 should be greater than or equal to
+            * Stamp1 because the causal history was shared */
             t_Status = ITC_STATUS_FAILURE;
         }
     }
