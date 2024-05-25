@@ -214,7 +214,7 @@ int main(void)
 
 #### Create-Fork-Event-Peek-Compare-Join
 
-Create a `Stamp`, fork it, add an `Event` to it (making one stamp **greater than** the other). Compare the stamps. Share causal history via a `Peek Stamp`, then compare the stamps again. Then proceed to join the stamps back into a `Seed Stamp`. Finally, deallocate the remaining stamp and exit.
+Create a `Stamp`, fork it, and add an `Event` to it (making one stamp **greater than** the other). Compare the stamps. Share causal history via a `Peek Stamp`, then compare the stamps again. Then proceed to join the stamps back into a `Seed Stamp`. Finally, deallocate the remaining stamp and exit.
 
 <details>
 <summary>Code:</summary>
@@ -436,7 +436,7 @@ meson setup -Dtests=true test-build
 meson test -C test-build
 ```
 
-> :bulb: If you have [Valgind](https://valgrind.org/) installed and available on your `$PATH`, Meson will automatically use it to check for memory leaks or other undesired behaviour while executing the unit tests.
+> :bulb: If you have [Valgrind](https://valgrind.org/) installed and available on your `$PATH`, Meson will automatically use it to check for memory leaks or other undesired behaviour while executing the unit tests.
 
 ## License
 
