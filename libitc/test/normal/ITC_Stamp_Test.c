@@ -633,7 +633,7 @@ void ITC_Stamp_Test_eventStampSuccessful(void)
     /* Test the Event counter has grown */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 1);
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp, pt_OriginalStamp, &t_Result));
-    TEST_ASSERT_TRUE(t_Result == ITC_STAMP_COMPARISON_GREATER_THAN);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
 
     /* Create a new peek Stamp */
     TEST_SUCCESS(ITC_Stamp_newPeek(pt_Stamp, &pt_PeekStamp));
@@ -644,7 +644,7 @@ void ITC_Stamp_Test_eventStampSuccessful(void)
     /* Test the Event counter has not changed */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_PeekStamp->pt_Event, 1);
     TEST_SUCCESS(ITC_Stamp_compare(pt_PeekStamp, pt_Stamp, &t_Result));
-    TEST_ASSERT_TRUE(t_Result == ITC_STAMP_COMPARISON_EQUAL);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_EQUAL, t_Result);
 
     /* Destroy the Stamps */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
@@ -671,7 +671,7 @@ void ITC_Stamp_Test_eventStampSuccessful(void)
     /* Test the Event counter has been filled */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 3);
     TEST_SUCCESS(ITC_Stamp_compare(pt_Stamp, pt_OriginalStamp, &t_Result));
-    TEST_ASSERT_TRUE(t_Result == ITC_STAMP_COMPARISON_GREATER_THAN);
+    TEST_ASSERT_EQUAL(ITC_STAMP_COMPARISON_GREATER_THAN, t_Result);
 
     /* Destroy the Stamps */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
@@ -957,15 +957,12 @@ void ITC_Stamp_Test_fullStampLifecycle(void)
                 *rppt_JoinOrder[u32_I],
                 pt_TmpStamp1,
                 &t_Result));
-        TEST_ASSERT_TRUE((t_Result == ITC_STAMP_COMPARISON_GREATER_THAN) ||
-                         (t_Result == ITC_STAMP_COMPARISON_EQUAL));
+        TEST_ASSERT_TRUE(t_Result & (ITC_STAMP_COMPARISON_EQUAL |
+                                     ITC_STAMP_COMPARISON_GREATER_THAN));
         TEST_SUCCESS(
-            ITC_Stamp_compare(
-                *rppt_JoinOrder[u32_I],
-                pt_TmpStamp2,
-                &t_Result));
-        TEST_ASSERT_TRUE((t_Result == ITC_STAMP_COMPARISON_GREATER_THAN) ||
-                         (t_Result == ITC_STAMP_COMPARISON_EQUAL));
+            ITC_Stamp_compare(*rppt_JoinOrder[u32_I], pt_TmpStamp2, &t_Result));
+        TEST_ASSERT_TRUE(t_Result & (ITC_STAMP_COMPARISON_EQUAL |
+                                     ITC_STAMP_COMPARISON_GREATER_THAN));
 
         TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp1));
         TEST_SUCCESS(ITC_Stamp_destroy(&pt_TmpStamp2));

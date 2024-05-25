@@ -17,13 +17,13 @@
 typedef enum
 {
     /* The Stamp smaller than the other Stamp */
-    ITC_STAMP_COMPARISON_LESS_THAN,
+    ITC_STAMP_COMPARISON_LESS_THAN = (1 << 0),
     /* The Stamp bigger than the other Stamp */
-    ITC_STAMP_COMPARISON_GREATER_THAN,
+    ITC_STAMP_COMPARISON_GREATER_THAN = (1 << 1),
     /* The Stamp is equal to the other Stamp */
-    ITC_STAMP_COMPARISON_EQUAL,
+    ITC_STAMP_COMPARISON_EQUAL = (1 << 2),
     /* The Stamp is concurrent to the other Stamp */
-    ITC_STAMP_COMPARISON_CONCURRENT,
+    ITC_STAMP_COMPARISON_CONCURRENT = (1 << 3),
 } ITC_Stamp_Comparison_t;
 
 /* The ITC Stamp */
