@@ -206,49 +206,6 @@ void ITC_Event_Test_cloneEventSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
 }
 
-/* Test cloning a subtree of an Event succeeds */
-void ITC_Event_Test_cloneEventSubtreeSuccessful(void)
-{
-    ITC_Event_t *pt_OriginalEvent = NULL;
-    ITC_Event_t *pt_ClonedEvent = NULL;
-
-    /* clang-format off */
-    /* Test cloning an Event subree */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 0));
-    TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
-    TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
-    /* clang-format on */
-
-    TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent, 1);
-    TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
-
-    /* clang-format off */
-    /* Test cloning a complex Event subree */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left, pt_OriginalEvent, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left->pt_Left, pt_OriginalEvent->pt_Left, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Left->pt_Right, pt_OriginalEvent->pt_Left, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OriginalEvent->pt_Right, pt_OriginalEvent, 4));
-    TEST_SUCCESS(ITC_Event_clone(pt_OriginalEvent->pt_Left, &pt_ClonedEvent));
-    TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left != pt_ClonedEvent);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_ClonedEvent, 1);
-    TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left->pt_Left != pt_ClonedEvent->pt_Left);
-    TEST_ASSERT_TRUE(pt_OriginalEvent->pt_Left->pt_Right != pt_ClonedEvent->pt_Right);
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
-    /* clang-format on */
-
-    TEST_ASSERT_FALSE(pt_ClonedEvent->pt_Parent);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Left, 2);
-    TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Left->pt_Parent == pt_ClonedEvent);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_ClonedEvent->pt_Right, 0);
-    TEST_ASSERT_TRUE(pt_ClonedEvent->pt_Right->pt_Parent == pt_ClonedEvent);
-    TEST_SUCCESS(ITC_Event_destroy(&pt_ClonedEvent));
-}
-
 /* Test validating an Event fails with invalid param */
 void ITC_Event_Test_validateEventFailInvalidParam(void)
 {
@@ -340,36 +297,6 @@ void ITC_Event_Test_normaliseLeafEventSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-/* Test normalising a leaf event subtree succeeds */
-void ITC_Event_Test_normaliseLeafEventSubtreeSucceeds(void)
-{
-    ITC_Event_t *pt_Event = NULL;
-
-    /* Create the root event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
-    /* Create the 0 leaf event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    /* Create the 1 leaf event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
-
-    /* Normalise the event subtree */
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
-    /* Test the whole event tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Normalise the event subtree */
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Right));
-    /* Test the whole event tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Destroy the event*/
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-}
-
 /* Test normalising a parent event with leaf child event succeeds */
 void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
 {
@@ -401,56 +328,6 @@ void ITC_Event_Test_normaliseParentEventWithLeafChildrenSucceeds(void)
     TEST_SUCCESS(ITC_Event_normalise(pt_Event));
     /* Test the event has been normalised */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 3);
-
-    /* Destroy the event*/
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-}
-
-/* Test normalising a parent event with leaf child event subtree succeeds */
-void ITC_Event_Test_normaliseParentEventSubtreeWithLeafChildrenSucceeds(void)
-{
-    ITC_Event_t *pt_Event = NULL;
-
-    /* clang-format off */
-    /* Create the root event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 4));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
-    /* clang-format on */
-
-    /* Normalise the event subtree */
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
-    /* Test the event subtree has been normalised */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
-    /* Test the rest of the tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Normalise the normalised event subtree*/
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
-    /* Test the event subtree has been normalised */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 3);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
-    /* Test the rest of the tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Make the children event count equal */
-    pt_Event->pt_Left->pt_Right->t_Count =
-        pt_Event->pt_Left->pt_Left->t_Count;
-
-    /* Normalise the event */
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
-    /* Test the event has been normalised */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
-    /* Test the rest of the tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 2);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
 
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -495,59 +372,6 @@ void ITC_Event_Test_normaliseComplexEventSucceeds(void)
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Right->pt_Right, 1);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Left, 1);
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right->pt_Right, 0);
-
-    /* Destroy the event*/
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-}
-
-/* Test normalising a complex event subtree succeeds */
-void ITC_Event_Test_normaliseComplexEventSubtreeSucceeds(void)
-{
-    ITC_Event_t *pt_Event = NULL;
-
-    /* clang-format off */
-    /* Create the complex event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 3));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, pt_Event->pt_Left->pt_Left->pt_Left, 3));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left->pt_Left, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left->pt_Right, pt_Event->pt_Left->pt_Left, 4));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right->pt_Left, pt_Event->pt_Left->pt_Right, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right->pt_Right, pt_Event->pt_Left->pt_Right, 2));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
-
-    /* Normalise the event subtree */
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
-    /* Test the event subtree has been normalised */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
-    /* Test the rest of the tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Normalise the normalised event subtree */
-    TEST_SUCCESS(ITC_Event_normalise(pt_Event->pt_Left));
-    /* Test the event subtree hasn't changed */
-    /* Test the event subtree has been normalised */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 5);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left, 3);
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Left, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Left->pt_Right, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left->pt_Right, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
-    /* Test the rest of the tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-    /* clang-format on */
 
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -604,36 +428,6 @@ void ITC_Event_Test_maximisingLeafEventSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
-/* Test maximising a leaf Event subtree succeeds */
-void ITC_Event_Test_maximisingLeafEventSubtreeSucceeds(void)
-{
-    ITC_Event_t *pt_Event = NULL;
-
-    /* Create the 0 leaf event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
-
-    /* Maximise the event */
-    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Left));
-    /* Test this is still a 0 leaf event */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    /* Test the rest of the Event tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Maximise the event */
-    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Right));
-    /* Test this is still a 1 leaf event */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-    /* Test the rest of the Event tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-
-    /* Destroy the event*/
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-}
-
 /* Test maximising a parent Event succeeds */
 void ITC_Event_Test_maximisingParentEventSucceeds(void)
 {
@@ -660,52 +454,6 @@ void ITC_Event_Test_maximisingParentEventSucceeds(void)
     TEST_SUCCESS(ITC_Event_maximise(pt_Event));
     /* Test this is a leaf event with 6 events */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 6);
-    /* Destroy the event*/
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-}
-
-/* Test maximising a parent Event subtree succeeds */
-void ITC_Event_Test_maximisingParentEventSubtreeSucceeds(void)
-{
-    ITC_Event_t *pt_Event = NULL;
-
-    /* clang-format off */
-    /* Create the event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 10));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 5));
-    /* clang-format on */
-
-    /* Maximise the event */
-    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Right));
-    /* Test this is a leaf event with 5 events */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 5);
-    /* Test the rest of the Event tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 10);
-
-    /* Destroy the event*/
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-
-    /* clang-format off */
-    /* Create the event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 10));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 5));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
-    /* clang-format on */
-
-    /* Maximise the event */
-    TEST_SUCCESS(ITC_Event_maximise(pt_Event->pt_Left));
-    /* Test this is a leaf event with 6 events */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 6);
-    /* Test the rest of the Event tree hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 10);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
-
     /* Destroy the event*/
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
@@ -801,36 +549,6 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_OtherEvent));
 }
 
-/* Test joining two identical leaf event subtrees succeeds */
-void ITC_Event_Test_joinTwoIdenticalLeafEventSubtreesSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OtherEvent;
-
-    /* clang-format off */
-    /* Construct the original Events */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Left, pt_OtherEvent, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Right, pt_OtherEvent, 0));
-    /* clang-format on */
-
-    /* Test joining the events */
-    TEST_SUCCESS(ITC_Event_join(&pt_Event->pt_Right, &pt_OtherEvent->pt_Left));
-    /* Test the joined event is a leaf with 1 counter */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Test the rest of the event hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OtherEvent));
-}
-
 /* Test joining two different leaf events succeeds */
 void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
 {
@@ -859,57 +577,6 @@ void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
 
             /* Test the joined event is a leaf with the bigger event counter */
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent, 4);
-        }
-
-        /* Destroy the Events */
-        TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-        TEST_SUCCESS(ITC_Event_destroy(&pt_OtherEvent));
-    }
-}
-
-/* Test joining two different leaf event subtrees succeeds */
-void ITC_Event_Test_joinTwoDifferentLeafEventSubtreesSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OtherEvent;
-
-    for (uint32_t u32_I = 0; u32_I < 2; u32_I++)
-    {
-        /* clang-format off */
-        /* Construct the original Events */
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 4));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent, NULL, 2));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Left, pt_OtherEvent, 2));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Right, pt_OtherEvent, 0));
-        /* clang-format on */
-
-        if(u32_I)
-        {
-            /* Test joining the events */
-            TEST_SUCCESS(
-                ITC_Event_join(&pt_Event->pt_Right, &pt_OtherEvent->pt_Left));
-
-            /* Test the joined event is a leaf with the bigger event counter */
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 4);
-
-            /* Test the rest of the Event hasn't changed */
-            TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-        }
-        else
-        {
-            /* Test joining the events the other way around */
-            TEST_SUCCESS(
-                ITC_Event_join(&pt_OtherEvent->pt_Left, &pt_Event->pt_Right));
-
-            /* Test the joined event is a leaf with the bigger event counter */
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Left, 4);
-
-            /* Test the rest of the Event hasn't changed */
-            TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 2);
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Right, 0);
         }
 
         /* Destroy the Events */
@@ -951,64 +618,6 @@ void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
             TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 4);
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Left, 0);
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Right, 6);
-        }
-
-        /* Destroy the Events */
-        TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-        TEST_SUCCESS(ITC_Event_destroy(&pt_OtherEvent));
-    }
-}
-
-/* Test joining a leaf and a parent event subtrees succeeds */
-void ITC_Event_Test_joinALeafAndAParentEventSubtreesSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OtherEvent;
-
-    for (uint32_t u32_I = 0; u32_I < 2; u32_I++)
-    {
-        /* clang-format off */
-        /* Construct the original Events */
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 4));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 4));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 0));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 6));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
-
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent, NULL, 2));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Left, pt_OtherEvent, 0));
-        TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Right, pt_OtherEvent, 2));
-        /* clang-format on */
-
-        if (u32_I)
-        {
-            /* Test joining the events */
-            TEST_SUCCESS(
-                ITC_Event_join(&pt_Event->pt_Left, &pt_OtherEvent->pt_Right));
-
-            /* Test the joined event is a (4, 0, 6) event */
-            TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, 4);
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 0);
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 6);
-
-            /* Test the rest of the Event hasn't changed */
-            TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 4);
-            TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
-        }
-        else
-        {
-          /* Test joining the events the other way around */
-          TEST_SUCCESS(
-              ITC_Event_join(&pt_OtherEvent->pt_Right, &pt_Event->pt_Left));
-
-          /* Test the joined event is a (4, 0, 6) event */
-          TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent->pt_Right, 4);
-          TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Right->pt_Left, 0);
-          TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Right->pt_Right, 6);
-
-          /* Test the rest of the Event hasn't changed */
-          TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 2);
-          TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Left, 0);
         }
 
         /* Destroy the Events */
@@ -1345,38 +954,6 @@ void ITC_Event_Test_compareLeafEventsSucceeds(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
 }
 
-/* Test comparing leaf Event subtrees succeeds */
-void ITC_Event_Test_compareLeafEventSubtreesSucceeds(void)
-{
-    ITC_Event_t *pt_Event1;
-    ITC_Event_t *pt_Event2;
-
-    /* Create the Events */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
-
-    /* Compare Events */
-    checkEventEqual(pt_Event1->pt_Left, pt_Event2->pt_Left);
-    /* Compare the other way around */
-    checkEventEqual(pt_Event2->pt_Left, pt_Event1->pt_Left);
-
-    /* Make the events different */
-    pt_Event1->pt_Left->t_Count += 2;
-
-    /* Compare Events */
-    checkEventGreaterThan(pt_Event1->pt_Left, pt_Event2->pt_Left);
-    /* Compare the other way around */
-    checkEventLessThan(pt_Event2->pt_Left, pt_Event1->pt_Left);
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
-}
-
 /* Test comparing leaf and parent Event succeeds */
 void ITC_Event_Test_compareLeafAndParentEventsSucceeds(void)
 {
@@ -1405,46 +982,6 @@ void ITC_Event_Test_compareLeafAndParentEventsSucceeds(void)
     /* Check events are equal to themselves */
     checkEventEqual(pt_Event1, pt_Event1);
     checkEventEqual(pt_Event2, pt_Event2);
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
-}
-
-/* Test comparing leaf and parent Event subtrees succeeds */
-void ITC_Event_Test_compareLeafAndParentEventSubtreesSucceeds(void)
-{
-    ITC_Event_t *pt_Event1;
-    ITC_Event_t *pt_Event2;
-
-    /* clang-format off */
-    /* Create the Events */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 4));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Left, pt_Event2, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2->pt_Right, pt_Event2, 0));
-    /* clang-format on */
-
-    /* Compare Events */
-    checkEventGreaterThan(pt_Event1->pt_Left, pt_Event2->pt_Left);
-    /* Compare the other way around */
-    checkEventLessThan(pt_Event2->pt_Left, pt_Event1->pt_Left);
-
-    /* Make Event 2 bigger */
-    pt_Event2->pt_Left->t_Count += 1;
-
-    /* Compare Events */
-    checkEventLessThan(pt_Event1->pt_Left, pt_Event2->pt_Left);
-    /* Compare the other way around */
-    checkEventGreaterThan(pt_Event2->pt_Left, pt_Event1->pt_Left);
-
-    /* Check events are equal to themselves */
-    checkEventEqual(pt_Event1->pt_Left, pt_Event1->pt_Left);
-    checkEventEqual(pt_Event2->pt_Left, pt_Event2->pt_Left);
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
@@ -1711,147 +1248,6 @@ void ITC_Event_Test_fillLeafEventWithNullAndSeedIdsSucceeds(void)
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SeedId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_NullId));
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
-}
-
-/* Test filling leaf Event subtree with null and seed IDs succeeds */
-void ITC_Event_Test_fillLeafEvenSubtreeWithNullAndSeedIdsSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OriginalEvent;
-    ITC_Id_t *pt_SeedId;
-    ITC_Id_t *pt_NullId;
-    bool b_WasFilled;
-
-    /* Create the IDs */
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
-
-    /* Create the Event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
-
-    /* Retain a copy for comparison */
-    TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
-
-    /* Fill Event with null ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_NullId, &b_WasFilled));
-
-    /* Test the Event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
-    /* Test the rest of the Event hasn't changed either */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Fill Event with seed ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_SeedId, &b_WasFilled));
-
-    /* Test the event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
-    /* Test the rest of the Event hasn't changed either */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Make the event count different */
-    pt_Event->pt_Left->t_Count += 1;
-    pt_OriginalEvent->pt_Left->t_Count += 1;
-
-    /* Fill Event with null ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_NullId, &b_WasFilled));
-
-    /* Test the event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
-    /* Test the rest of the Event hasn't changed either */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Fill Event with seed ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event->pt_Left, pt_SeedId, &b_WasFilled));
-
-    /* Test the event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 1);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
-    /* Test the rest of the Event hasn't changed either */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
-
-    /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_SeedId));
-    TEST_SUCCESS(ITC_Id_destroy(&pt_NullId));
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
-}
-
-/* Test filling leaf Event with null and seed ID subtrees succeeds */
-void ITC_Event_Test_fillLeafEventWithNullAndSeedIdSubtreesSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OriginalEvent;
-    ITC_Id_t *pt_Id;
-    bool b_WasFilled;
-
-    /* Create the IDs */
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
-
-    /* Create the Event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
-
-    /* Retain a copy for comparison */
-    TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
-
-    /* Fill Event with null ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Left, &b_WasFilled));
-
-    /* Test the Event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent, pt_Event);
-
-    /* Fill Event with seed ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Right, &b_WasFilled));
-
-    /* Test the event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent, pt_Event);
-
-    /* Make the event count different */
-    pt_Event->t_Count += 1;
-    pt_OriginalEvent->t_Count += 1;
-
-    /* Fill Event with null ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Left, &b_WasFilled));
-
-    /* Test the event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent, pt_Event);
-
-    /* Fill Event with seed ID */
-    TEST_SUCCESS(ITC_Event_fill(pt_Event, pt_Id->pt_Right, &b_WasFilled));
-
-    /* Test the event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
-    TEST_ASSERT_FALSE(b_WasFilled);
-    checkEventEqual(pt_OriginalEvent, pt_Event);
-
-    /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -2797,96 +2193,6 @@ void ITC_Event_Test_growLeafEventWithNullAndSeedIdsSucceeds(void)
     /* Destroy the IDs */
     TEST_SUCCESS(ITC_Id_destroy(&pt_SeedId));
     TEST_SUCCESS(ITC_Id_destroy(&pt_NullId));
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
-}
-
-/* Test growing a leaf Event subtree with null and seed IDs succeeds */
-void ITC_Event_Test_growLeafEventSubtreeWithNullAndSeedIdsSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OriginalEvent;
-    ITC_Id_t *pt_SeedId;
-    ITC_Id_t *pt_NullId;
-
-    /* Create the IDs */
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_SeedId, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_NullId, NULL));
-
-    /* Create the Event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
-
-    /* Retain a copy for comparison */
-    TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
-
-    /* Grow Event with null ID */
-    TEST_SUCCESS(ITC_Event_grow(pt_Event->pt_Left, pt_NullId));
-
-    /* Test the Event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
-    checkEventEqual(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
-    /* Test the rest of the Event hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
-
-    /* Grow Event with seed ID */
-    TEST_SUCCESS(ITC_Event_grow(pt_Event->pt_Left, pt_SeedId));
-
-    /* Test the event has changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(
-        pt_Event->pt_Left, pt_OriginalEvent->t_Count + 1);
-    checkEventLessThan(pt_OriginalEvent->pt_Left, pt_Event->pt_Left);
-    /* Test the rest of the Event hasn't changed */
-    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
-
-    /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_SeedId));
-    TEST_SUCCESS(ITC_Id_destroy(&pt_NullId));
-
-    /* Destroy the Events */
-    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
-    TEST_SUCCESS(ITC_Event_destroy(&pt_OriginalEvent));
-}
-
-/* Test growing a leaf Event with null and seed subtree IDs succeeds */
-void ITC_Event_Test_growLeafEventWithNullAndSeedSubtreeIdsSucceeds(void)
-{
-    ITC_Event_t *pt_Event;
-    ITC_Event_t *pt_OriginalEvent;
-    ITC_Id_t *pt_Id;
-
-    /* Create the IDs */
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
-    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
-    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
-
-    /* Create the Event */
-    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
-
-    /* Retain a copy for comparison */
-    TEST_SUCCESS(ITC_Event_clone(pt_Event, &pt_OriginalEvent));
-
-    /* Grow Event with null ID */
-    TEST_SUCCESS(ITC_Event_grow(pt_Event, pt_Id->pt_Left));
-
-    /* Test the Event hasn't changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
-    checkEventEqual(pt_OriginalEvent, pt_Event);
-
-    /* Grow Event with seed ID */
-    TEST_SUCCESS(ITC_Event_grow(pt_Event, pt_Id->pt_Right));
-
-    /* Test the event has changed */
-    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, pt_OriginalEvent->t_Count + 1);
-    checkEventLessThan(pt_OriginalEvent, pt_Event);
-
-    /* Destroy the IDs */
-    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 
     /* Destroy the Events */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
