@@ -519,6 +519,34 @@ static void newInvalidEventWithAsymmetricNestedParentRight(
 }
 
 /**
+ * @brief Create a new invalid Event subtree
+ *
+ * @param pt_Event (out) The pointer to the Event
+ */
+static void newInvalidEventSubtree(
+    ITC_Event_t **ppt_Event
+)
+{
+    TEST_SUCCESS(ITC_TestUtil_newEvent(ppt_Event, (ITC_Event_t *)123, 0));
+}
+
+/**
+ * @brief Deallocate an invalid Event subtree created with
+ * `newInvalidEventSubtree`
+ *
+ *
+ * @param pt_Event (in) The pointer to the root if the Event.
+ */
+static void destroyInvalidEventSubtree(
+    ITC_Event_t **ppt_Event
+)
+{
+    /* Fix the damage so the Event can be properly deallocated */
+    (*ppt_Event)->pt_Parent = NULL;
+    TEST_SUCCESS(ITC_Event_destroy(ppt_Event));
+}
+
+/**
  * @brief Create a new invalid not normalised Event
  *
  * @param pt_Event (out) The pointer to the Event
@@ -1290,6 +1318,7 @@ void (*const gpv_InvalidEventConstructorTable[])(ITC_Event_t **) =
     newInvalidEventWithAsymmetricRootParentRight,
     newInvalidEventWithAsymmetricNestedParentLeft,
     newInvalidEventWithAsymmetricNestedParentRight,
+    newInvalidEventSubtree,
     newInvalidEventWithNullParentPointer,
     newInvalidEventWithInvalidParentPointer,
     /* Normalisation related invalid Events.
@@ -1313,6 +1342,7 @@ void (*const gpv_InvalidEventDestructorTable[])(ITC_Event_t **) =
     (void (*)(ITC_Event_t **))ITC_Event_destroy,
     (void (*)(ITC_Event_t **))ITC_Event_destroy,
     (void (*)(ITC_Event_t **))ITC_Event_destroy,
+    destroyInvalidEventSubtree,
     destroyInvalidEventWithNullParentPointer,
     destroyInvalidEventWithInvalidParentPointer,
     /* Normalisation related invalid Events.

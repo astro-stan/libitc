@@ -31,7 +31,7 @@
  * the `gpv_InvalidEventConstructorTable` and `gpv_InvalidEventDestructorTable`
  * tables.
  */
-#define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (6)
+#define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (7)
 
 /******************************************************************************
  *  Global variables

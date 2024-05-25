@@ -47,19 +47,15 @@ static ITC_Status_t validateEvent(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     /* The current Event parent */
     const ITC_Event_t *pt_CurrentEventParent = NULL;
-    /* The parent of the root Event */
-    const ITC_Event_t *pt_RootEventParent = NULL;
 
     if(!pt_Event)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-    else
+    /* Subtrees are considered invalid when coming through the public API */
+    else if (pt_Event->pt_Parent)
     {
-        /* Remember the root parent Event as this might be a subtree */
-        pt_RootEventParent = pt_Event->pt_Parent;
-
-        pt_CurrentEventParent = pt_RootEventParent;
+        t_Status = ITC_STATUS_CORRUPT_EVENT;
     }
 
     /* Perform a pre-order traversal */
@@ -101,15 +97,15 @@ static ITC_Status_t validateEvent(
             {
                 /* Loop until the current element is no longer reachable
                  * through the parent's right child */
-                while (pt_CurrentEventParent != pt_RootEventParent &&
-                    pt_CurrentEventParent->pt_Right == pt_Event)
+                while (pt_CurrentEventParent &&
+                       pt_CurrentEventParent->pt_Right == pt_Event)
                 {
                     pt_Event = pt_Event->pt_Parent;
                     pt_CurrentEventParent = pt_CurrentEventParent->pt_Parent;
                 }
 
                 /* There is a right subtree that has not been explored yet */
-                if (pt_CurrentEventParent != pt_RootEventParent)
+                if (pt_CurrentEventParent)
                 {
                     pt_Event = pt_CurrentEventParent->pt_Right;
                 }
