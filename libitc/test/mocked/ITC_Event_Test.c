@@ -308,8 +308,8 @@ void ITC_Event_Test_joinOriginalAndCopiedEventsAreDestroyedOnSucess(void)
 
     ITC_Port_free_ExpectAndReturn(pt_NewEvent1, ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(pt_NewEvent2, ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(pt_OtherEvent, ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(gpt_LeafEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(pt_OtherEvent, ITC_STATUS_SUCCESS);
 
     /* Test joining the Events */
     TEST_SUCCESS(ITC_Event_join(&gpt_LeafEvent, &pt_OtherEvent));
