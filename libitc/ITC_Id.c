@@ -1330,6 +1330,7 @@ ITC_Status_t ITC_Id_split(
          * operation was successful */
         (void)ITC_Id_destroy(ppt_Id);
 
+        /* Return the first half of the split ID */
         *ppt_Id = pt_NewId;
     }
 
