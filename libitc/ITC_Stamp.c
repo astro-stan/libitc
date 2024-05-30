@@ -746,11 +746,11 @@ ITC_Status_t ITC_Stamp_destroy(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
     ITC_Status_t t_FreeStatus = ITC_STATUS_SUCCESS; /* The last free status */
 
-    if (!ppt_Stamp || !(*ppt_Stamp))
+    if (!ppt_Stamp)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-    else
+    else if (*ppt_Stamp)
     {
         if ((*ppt_Stamp)->pt_Event)
         {
