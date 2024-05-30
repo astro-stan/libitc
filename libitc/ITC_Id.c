@@ -1316,14 +1316,21 @@ ITC_Status_t ITC_Id_split(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Save the parent pointer in case the original ID was a subtree */
+        /* XXX: Save the parent pointer in case the original ID was a subtree.
+         * This makes no sense from a functional point of view, especially
+         * since `validateId` should fail if a subtree is passed in. However,
+         * if that somehow fails and a subtree is split, the new Id will lose
+         * the reference to the original Id subtree's parent nodes, which
+         * would lead to a memory leak. */
         pt_NewId->pt_Parent = (*ppt_Id)->pt_Parent;
 
-        t_Status = ITC_Id_destroy(ppt_Id);
-    }
+        /* Destroy the old ID.
+         * Ignore return statuses. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey that the overall sum
+         * operation was successful */
+        (void)ITC_Id_destroy(ppt_Id);
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
+        /* Return the first half of the split ID */
         *ppt_Id = pt_NewId;
     }
 
@@ -1364,21 +1371,22 @@ ITC_Status_t ITC_Id_sum(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Destroy the second ID */
-        t_Status = ITC_Id_destroy(ppt_OtherId);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Save the parent pointer in case the original ID was a subtree */
+        /* XXX: Save the parent pointer in case the original ID was a subtree.
+         * This makes no sense from a functional point of view, especially
+         * since `validateId` should fail if a subtree is passed in. However,
+         * if that somehow fails and a subtree is summed, the new Id will lose
+         * the reference to the original Id subtree's parent nodes, which
+         * would lead to a memory leak. */
         pt_SummedId->pt_Parent = (*ppt_Id)->pt_Parent;
 
-        /* Destroy the first ID */
-        t_Status = ITC_Id_destroy(ppt_Id);
-    }
+        /* Destroy the old IDs.
+         * Ignore return statuses. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey that the overall sum
+         * operation was successful */
+        (void)ITC_Id_destroy(ppt_Id);
+        (void)ITC_Id_destroy(ppt_OtherId);
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
+        /* Return the summed ID */
         *ppt_Id = pt_SummedId;
     }
 

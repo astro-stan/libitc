@@ -2073,21 +2073,22 @@ ITC_Status_t ITC_Event_join(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Destroy the second Event */
-        t_Status = ITC_Event_destroy(ppt_OtherEvent);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Save the parent pointer in case the original Event was a subtree */
+        /* XXX: Save the parent pointer in case the original Event was a subtree.
+         * This makes no sense from a functional point of view, especially
+         * since `validateEvent` should fail if a subtree is passed in.
+         * However, if that somehow fails and a subtree is joined, the new Event
+         * will lose the reference to the original Event subtree's parent nodes,
+         * which would lead to a memory leak. */
         pt_JoinedEvent->pt_Parent = (*ppt_Event)->pt_Parent;
 
-        /* Destroy the first Event */
-        t_Status = ITC_Event_destroy(ppt_Event);
-    }
+        /* Destroy the old Events
+         * Ignore return statuses. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey that the overall join
+         * operation was successful */
+        (void)ITC_Event_destroy(ppt_Event);
+        (void)ITC_Event_destroy(ppt_OtherEvent);
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
+        /* Return the joined Event */
         *ppt_Event = pt_JoinedEvent;
     }
 

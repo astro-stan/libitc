@@ -339,8 +339,8 @@ void ITC_Id_Test_sumIdOriginalIdsAreDestroyedOnSuccess(void)
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewId1);
 
-    ITC_Port_free_ExpectAndReturn(pt_OtherId, ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(gpt_LeafId, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(pt_OtherId, ITC_STATUS_SUCCESS);
 
     /* Test summing the IDs */
     pt_OtherId->b_IsOwner = false;
