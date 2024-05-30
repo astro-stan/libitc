@@ -1324,8 +1324,8 @@ ITC_Status_t ITC_Id_split(
          * would lead to a memory leak. */
         pt_NewId->pt_Parent = (*ppt_Id)->pt_Parent;
 
-        /* Destroy the old ID */
-        /* Ignore return statuses. There is nothing else to do if the destroy
+        /* Destroy the old ID.
+         * Ignore return statuses. There is nothing else to do if the destroy
          * fails. Also it is more important to convey that the overall sum
          * operation was successful */
         (void)ITC_Id_destroy(ppt_Id);
@@ -1378,8 +1378,8 @@ ITC_Status_t ITC_Id_sum(
          * would lead to a memory leak. */
         pt_SummedId->pt_Parent = (*ppt_Id)->pt_Parent;
 
-        /* Destroy the old IDs */
-        /* Ignore return statuses. There is nothing else to do if the destroy
+        /* Destroy the old IDs.
+         * Ignore return statuses. There is nothing else to do if the destroy
          * fails. Also it is more important to convey that the overall sum
          * operation was successful */
         (void)ITC_Id_destroy(ppt_Id);
