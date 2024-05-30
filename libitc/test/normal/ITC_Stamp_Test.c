@@ -31,10 +31,18 @@ void tearDown(void) {}
 /* Test destroying a Stamp fails with invalid param */
 void ITC_Stamp_Test_destroyStampFailInvalidParam(void)
 {
+    TEST_FAILURE(ITC_Stamp_destroy(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test destroying a Stamp suceeds */
+void ITC_Stamp_Test_destroyStampSuccessful(void)
+{
     ITC_Stamp_t *pt_Dummy = NULL;
 
-    TEST_FAILURE(ITC_Stamp_destroy(NULL), ITC_STATUS_INVALID_PARAM);
-    TEST_FAILURE(ITC_Stamp_destroy(&pt_Dummy), ITC_STATUS_INVALID_PARAM);
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Dummy));
+
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Dummy));
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Dummy));
 }
 
 /* Test creating a Stamp fails with invalid param */

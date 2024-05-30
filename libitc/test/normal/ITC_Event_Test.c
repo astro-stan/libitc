@@ -114,8 +114,8 @@ void ITC_Event_Test_destroyEventSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Dummy));
 }
 
-/* Test creating a NULL Event fails with invalid param */
-void ITC_Event_Test_createNullEventFailInvalidParam(void)
+/* Test creating a Event fails with invalid param */
+void ITC_Event_Test_createEventFailInvalidParam(void)
 {
     TEST_FAILURE(ITC_Event_new(NULL), ITC_STATUS_INVALID_PARAM);
 }
