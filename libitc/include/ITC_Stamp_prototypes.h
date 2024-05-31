@@ -71,6 +71,17 @@ ITC_Status_t ITC_Stamp_clone(
 );
 
 /**
+ * @brief Validate a Stamp
+ *
+ * @param pt_Stamp The Stamp to validate
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Stamp_validate(
+    const ITC_Stamp_t *const pt_Stamp
+);
+
+/**
  * @brief Fork an existing Stamp
  * Creates 2 stamps with distinct (non-overlaping) IDs and the same
  * event history.

@@ -290,6 +290,98 @@ void ITC_Stamp_Test_cloneStampSuccessful(void)
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_ClonedStamp));
 }
 
+/* Test validating a Stamp fails with invalid param */
+void ITC_Stamp_Test_validateStampFailInvalidParam(void)
+{
+    TEST_FAILURE(ITC_Stamp_validate(NULL), ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test validating a Stamp fails with corrupt Stamp */
+void ITC_Stamp_Test_validatingStampFailWithCorruptStamp(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+
+    /* Test different invalid Stamps are handled properly.
+     * Only test invalid Stamps that are not related to normalisation */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Stamp_validate(pt_Stamp), ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the ID */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+}
+
+/* Test validating a Stamp fails with corrupt Id or Event */
+void ITC_Stamp_Test_validateStampFailWithCorruptIdOrEvent(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+
+    /* Create a new stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Deallocate the valid ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Stamp->pt_Id));
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Stamp->pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Stamp_validate(pt_Stamp), ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Stamp->pt_Id);
+    }
+
+    /* Allocate a valid ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id, NULL));
+
+    /* Deallocate the valid Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Stamp->pt_Event));
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Stamp->pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(ITC_Stamp_validate(pt_Stamp), ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Stamp->pt_Event);
+    }
+
+    /* Deallocate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test validating a Stamp succeeds */
+void ITC_Stamp_Test_validateStampSuccessful(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+    /* Validate the Stamp */
+    TEST_SUCCESS(ITC_Stamp_validate(pt_Stamp));
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
 /* Test forking a Stamp fails with invalid param */
 void ITC_Stamp_Test_forkStampFailInvalidParam(void)
 {
