@@ -1394,6 +1394,71 @@ ITC_Status_t ITC_Id_sum(
 }
 
 /******************************************************************************
+ * Split an ID similar to ::ITC_Id_split() but do not modify the source ID
+ ******************************************************************************/
+
+ITC_Status_t ITC_Id_splitConst(
+    const ITC_Id_t *const pt_Id,
+    ITC_Id_t **ppt_Id1,
+    ITC_Id_t **ppt_Id2
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (!ppt_Id1 || !ppt_Id2)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = splitIdI(pt_Id, ppt_Id1, ppt_Id2);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
+ * Sum two IDs similar to ::ITC_Id_sum() but do not modify the source IDs
+ ******************************************************************************/
+
+ITC_Status_t ITC_Id_sumConst(
+    const ITC_Id_t *const pt_Id1,
+    const ITC_Id_t *const pt_Id2,
+    ITC_Id_t **ppt_Id
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (!ppt_Id)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id1, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id2, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = sumIdI(pt_Id1, pt_Id2, ppt_Id);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
  * Serialise an existing ITC Id
  ******************************************************************************/
 
