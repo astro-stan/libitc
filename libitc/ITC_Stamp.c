@@ -1163,7 +1163,7 @@ ITC_Status_t ITC_Stamp_newFromId(
         return ITC_STATUS_INVALID_PARAM;
     }
 
-    return newStamp(ppt_Stamp, pt_Id, NULL, false, true, false);
+    return newStampWithIdAndEvent(ppt_Stamp, pt_Id, NULL, false, true, false);
 }
 
 /******************************************************************************
@@ -1181,7 +1181,8 @@ ITC_Status_t ITC_Stamp_newFromIdAndEvent(
         return ITC_STATUS_INVALID_PARAM;
     }
 
-    return newStamp(ppt_Stamp, pt_Id, pt_Event, false, true, true);
+    return newStampWithIdAndEvent(
+        ppt_Stamp, pt_Id, pt_Event, false, true, true);
 }
 
 /******************************************************************************
@@ -1198,7 +1199,7 @@ ITC_Status_t ITC_Stamp_newPeekFromEvent(
         return ITC_STATUS_INVALID_PARAM;
     }
 
-    return newStamp(ppt_Stamp, NULL, pt_Event, true, false, true);
+    return newStampWithIdAndEvent(ppt_Stamp, NULL, pt_Event, true, false, true);
 }
 
 /******************************************************************************
