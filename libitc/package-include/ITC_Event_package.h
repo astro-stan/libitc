@@ -93,6 +93,21 @@ ITC_Status_t ITC_Event_join(
 );
 
 /**
+ * @brief Join two Events similar to ::ITC_Event_join() but do not modify the source Events
+ *
+ * @param pt_Event1 The first existing Event
+ * @param pt_Event2 The second existing Event
+ * @param ppt_Event The joined Event
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Event_joinConst(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_t **ppt_Event
+);
+
+/**
  * @brief Check if an Event is `less than or equal` (`<=`) to another Event
  *
  * @param pt_Event1 The first Event

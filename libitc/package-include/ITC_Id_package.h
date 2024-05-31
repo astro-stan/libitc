@@ -114,6 +114,36 @@ ITC_Status_t ITC_Id_sum(
 
 #endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
 
+/**
+ * @brief Split an ID similar to ::ITC_Id_split() but do not modify the source ID
+ *
+ * @param pt_Id The existing ID
+ * @param ppt_Id1 The first half of the split ID
+ * @param ppt_Id2 The second half of the split ID
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Id_splitConst(
+    const ITC_Id_t *const pt_Id,
+    ITC_Id_t **ppt_Id1,
+    ITC_Id_t **ppt_Id2
+);
+
+/**
+ * @brief Sum two IDs similar to ::ITC_Id_sum() but do not modify the source IDs
+ *
+ * @param ppt_Id1 The first existing ID
+ * @param ppt_Id2 The second existing ID
+ * @param ppt_Id The summed ID
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+ITC_Status_t ITC_Id_sumConst(
+    const ITC_Id_t *const pt_Id1,
+    const ITC_Id_t *const pt_Id2,
+    ITC_Id_t **ppt_Id
+);
+
 #if IS_UNIT_TEST_BUILD
 
 /**

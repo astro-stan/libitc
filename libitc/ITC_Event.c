@@ -2096,6 +2096,41 @@ ITC_Status_t ITC_Event_join(
 }
 
 /******************************************************************************
+ * Join two Events similar to ::ITC_Event_join() but do not modify the source Events
+ ******************************************************************************/
+
+ITC_Status_t ITC_Event_joinConst(
+    const ITC_Event_t *const pt_Event1,
+    const ITC_Event_t *const pt_Event2,
+    ITC_Event_t **ppt_Event
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+
+    if (!ppt_Event)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event1, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event2, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = joinEventE(pt_Event1, pt_Event2, ppt_Event);
+    }
+
+    return t_Status;
+}
+
+/******************************************************************************
  * Check if an Event is `less than or equal` (`<=`) to another Event
  ******************************************************************************/
 
