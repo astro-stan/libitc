@@ -62,7 +62,41 @@ static ITC_Status_t validateStamp(
 }
 
 /**
- * @brief Allocate a new ITC Stamp
+ * @brief Allocate a new Stamp without Id or Event components
+ *
+ * @param ppt_Stamp (out) The pointer to the new Stamp
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t newStamp(
+    ITC_Stamp_t **ppt_Stamp
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+    ITC_Stamp_t *pt_Alloc;
+
+    t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Stamp_t));
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Initialise members */
+        pt_Alloc->pt_Event = NULL;
+        pt_Alloc->pt_Id = NULL;
+
+        /* Return the pointer to the allocated memory */
+        *ppt_Stamp = pt_Alloc;
+    }
+    else
+    {
+        /* Sanitise pointer */
+        *ppt_Stamp = NULL;
+    }
+
+    return t_Status;
+}
+
+/**
+ * @brief Allocate a new ITC Stamp and init it with ID and Event components
  *
  * @note If `pt_Id != NULL && b_CloneId == false` the `pt_Id` will not be
  * deallocated in case of failure. Similarly if
@@ -82,7 +116,7 @@ static ITC_Status_t validateStamp(
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
-static ITC_Status_t newStamp(
+static ITC_Status_t newStampWithIdAndEvent(
     ITC_Stamp_t **ppt_Stamp,
     ITC_Id_t *pt_Id,
     ITC_Event_t *pt_Event,
@@ -91,42 +125,30 @@ static ITC_Status_t newStamp(
     bool b_CloneEvent
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Stamp_t *pt_Alloc = NULL;
+    ITC_Status_t t_Status; /* The current status */
 
-    if (!ppt_Stamp)
-    {
-        t_Status = ITC_STATUS_INVALID_PARAM;
-    }
-    else
-    {
-        t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Stamp_t));
-    }
+    t_Status = newStamp(ppt_Stamp);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Initialise members */
-        pt_Alloc->pt_Event = NULL;
-        pt_Alloc->pt_Id = NULL;
-
         if (pt_Id)
         {
             if (b_CloneId)
             {
-                t_Status = ITC_Id_clone(pt_Id, &pt_Alloc->pt_Id);
+                t_Status = ITC_Id_clone(pt_Id, &(*ppt_Stamp)->pt_Id);
             }
             else
             {
-                pt_Alloc->pt_Id = pt_Id;
+                (*ppt_Stamp)->pt_Id = pt_Id;
             }
         }
         else if (b_CreateNullId)
         {
-            t_Status = ITC_Id_newNull(&pt_Alloc->pt_Id);
+            t_Status = ITC_Id_newNull(&(*ppt_Stamp)->pt_Id);
         }
         else
         {
-            t_Status = ITC_Id_newSeed(&pt_Alloc->pt_Id);
+            t_Status = ITC_Id_newSeed(&(*ppt_Stamp)->pt_Id);
         }
     }
 
@@ -136,41 +158,36 @@ static ITC_Status_t newStamp(
         {
             if (b_CloneEvent)
             {
-                t_Status = ITC_Event_clone(pt_Event, &pt_Alloc->pt_Event);
+                t_Status = ITC_Event_clone(pt_Event, &(*ppt_Stamp)->pt_Event);
             }
             else
             {
-                pt_Alloc->pt_Event = pt_Event;
+                (*ppt_Stamp)->pt_Event = pt_Event;
             }
         }
         else
         {
-            t_Status = ITC_Event_new(&pt_Alloc->pt_Event);
+            t_Status = ITC_Event_new(&(*ppt_Stamp)->pt_Event);
         }
     }
 
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        /* Return the pointer to the allocated memory */
-        *ppt_Stamp = pt_Alloc;
-    }
-    else if(pt_Alloc)
+    if (t_Status != ITC_STATUS_SUCCESS && ppt_Stamp && *ppt_Stamp)
     {
         /* If the ID wasn't cloned do not deallocate it on failure */
         if (pt_Id && !b_CloneId)
         {
-            pt_Alloc->pt_Id = NULL;
+            (*ppt_Stamp)->pt_Id = NULL;
         }
 
         /* If the Event wasn't cloned do not deallocate it on failure */
         if (pt_Event && !b_CloneEvent)
         {
-            pt_Alloc->pt_Event = NULL;
+            (*ppt_Stamp)->pt_Event = NULL;
         }
 
         /* Destroy anything that might have been allocated.
          * Ignore return status, there is nothing else to do if destroy fails */
-        (void)ITC_Stamp_destroy(&pt_Alloc);
+        (void)ITC_Stamp_destroy(ppt_Stamp);
         *ppt_Stamp = NULL;
     }
 
@@ -669,7 +686,8 @@ static ITC_Status_t deserialiseStamp(
     /* Create the Stamp */
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newStamp(ppt_Stamp, pt_Id, pt_Event, false, false, false);
+        t_Status = newStampWithIdAndEvent(
+            ppt_Stamp, pt_Id, pt_Event, false, false, false);
     }
 
     if (t_Status != ITC_STATUS_SUCCESS)
@@ -710,7 +728,12 @@ ITC_Status_t ITC_Stamp_newSeed(
     ITC_Stamp_t **ppt_Stamp
 )
 {
-    return newStamp(ppt_Stamp, NULL, NULL, false, false, false);
+    if (!ppt_Stamp)
+    {
+        return ITC_STATUS_INVALID_PARAM;
+    }
+
+    return newStampWithIdAndEvent(ppt_Stamp, NULL, NULL, false, false, false);
 }
 
 /******************************************************************************
@@ -724,11 +747,19 @@ ITC_Status_t ITC_Stamp_newPeek(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateStamp(pt_Stamp);
+    if (!ppt_PeekStamp)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newStamp(
+        t_Status = validateStamp(pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = newStampWithIdAndEvent(
             ppt_PeekStamp, NULL, pt_Stamp->pt_Event, true, false, true);
     }
 
@@ -802,11 +833,19 @@ ITC_Status_t ITC_Stamp_clone(
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateStamp(pt_Stamp);
+    if (!ppt_ClonedStamp)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = newStamp(
+        t_Status = validateStamp(pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = newStampWithIdAndEvent(
             ppt_ClonedStamp,
             pt_Stamp->pt_Id,
             pt_Stamp->pt_Event,
@@ -828,8 +867,8 @@ ITC_Status_t ITC_Stamp_fork(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Status_t t_OpStatus = ITC_STATUS_SUCCESS; /* The current status */
-    ITC_Id_t *pt_OtherId;
+    ITC_Id_t *pt_SplitId1 = NULL;
+    ITC_Id_t *pt_SplitId2 = NULL;
 
     if (!ppt_Stamp || !ppt_OtherStamp)
     {
@@ -838,41 +877,58 @@ ITC_Status_t ITC_Stamp_fork(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Init Stamp */
+        *ppt_OtherStamp = NULL;
+
         t_Status = validateStamp(*ppt_Stamp);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Split the ID */
-        t_Status = ITC_Id_split(&(*ppt_Stamp)->pt_Id, &pt_OtherId);
+        t_Status = ITC_Id_splitConst(
+            (*ppt_Stamp)->pt_Id, &pt_SplitId1, &pt_SplitId2);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* Create the other stamp */
-        t_Status = newStamp(
+        /* Create the other Stamp and clone the Event component */
+        t_Status = newStampWithIdAndEvent(
             ppt_OtherStamp,
-            pt_OtherId,
+            pt_SplitId2,
             (*ppt_Stamp)->pt_Event,
             false,
             false,
             true);
 
-        if (t_Status != ITC_STATUS_SUCCESS)
+        if (t_Status == ITC_STATUS_SUCCESS)
         {
-            /* Try to sum the ID back to what it was */
-            t_OpStatus = ITC_Id_sum(&(*ppt_Stamp)->pt_Id, &pt_OtherId);
-
-            /* Give up and dispose of the interval. It is now lost */
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Destroy the ID
-                * Ignore the return status. There is nothing else to do if
-                * destroy fails and its more important to return the original
-                * reason for the failure */
-                (void)ITC_Id_destroy(&pt_OtherId);
-            }
+            /* Forget the ID. The Stamp now has "ownership" of it and its
+             * destruct function will deallocated it when needed */
+            pt_SplitId2 = NULL;
         }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the first Stamp ID.
+         * Ignore return status. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey that the overall fork
+         * operation was successful. */
+        (void)ITC_Id_destroy(&(*ppt_Stamp)->pt_Id);
+
+        /* Replace with the first half of the split ID */
+        (*ppt_Stamp)->pt_Id = pt_SplitId1;
+    }
+    else
+    {
+        /* Deallocate the Stamp and IDs.
+         * Ignore return status. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey original reason for
+         * the failure, rather than the destroy failure */
+        (void)ITC_Stamp_destroy(ppt_OtherStamp);
+        (void)ITC_Id_destroy(&pt_SplitId1);
+        (void)ITC_Id_destroy(&pt_SplitId2);
     }
 
     return t_Status;
@@ -918,6 +974,9 @@ ITC_Status_t ITC_Stamp_join(
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_SummedId = NULL;
+    ITC_Event_t *pt_JoinedEvent = NULL;
+    ITC_Stamp_t *pt_JoinedStamp = NULL;
 
     if (!ppt_Stamp || !ppt_OtherStamp)
     {
@@ -936,23 +995,51 @@ ITC_Status_t ITC_Stamp_join(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Event_join(
-            &(*ppt_Stamp)->pt_Event, &(*ppt_OtherStamp)->pt_Event);
-    }
-
-    /* XXX: There is no way to "split" the Event tree back to what it was
-     * originally if the ID sum call fails. This is not ideal but the resulting
-     * Stamp will just be greater-than or equal to both of the original Stamps
-     * (effectively the same as when doing a join with a peek Stamp), which at
-     * least _should_ not lead to causality violations */
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = ITC_Id_sum(&(*ppt_Stamp)->pt_Id, &(*ppt_OtherStamp)->pt_Id);
+        t_Status = ITC_Id_sumConst(
+            (*ppt_Stamp)->pt_Id, (*ppt_OtherStamp)->pt_Id, &pt_SummedId);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_Stamp_destroy(ppt_OtherStamp);
+        t_Status = ITC_Event_joinConst(
+            (*ppt_Stamp)->pt_Event,
+            (*ppt_OtherStamp)->pt_Event,
+            &pt_JoinedEvent);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = newStamp(&pt_JoinedStamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the source Stamps
+         * Ignore return statuses. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey that the overall join
+         * operation was successful. */
+        (void)ITC_Stamp_destroy(ppt_Stamp);
+        (void)ITC_Stamp_destroy(ppt_OtherStamp);
+
+        /* Create the new Stamp. */
+        pt_JoinedStamp->pt_Event = pt_JoinedEvent;
+        pt_JoinedStamp->pt_Id = pt_SummedId;
+        /* Forget the ID and Event. The Stamp now has "ownership" */
+        pt_SummedId = NULL;
+        pt_JoinedEvent = NULL;
+
+        /* Return the joined Stamp */
+        *ppt_Stamp = pt_JoinedStamp;
+    }
+    else
+    {
+        /* Something went wrong, destroy anything that might have been created.
+         * Ignore return statuses. There is nothing else to do if the destroy
+         * fails. Also it is more important to convey the original reason
+         * for the failure, rather than the destroy failure. */
+        (void)ITC_Id_destroy(&pt_SummedId);
+        (void)ITC_Event_destroy(&pt_JoinedEvent);
+        (void)ITC_Stamp_destroy(&pt_JoinedStamp);
     }
 
     return t_Status;
@@ -1071,7 +1158,7 @@ ITC_Status_t ITC_Stamp_newFromId(
     ITC_Stamp_t **ppt_Stamp
 )
 {
-    if (!pt_Id)
+    if (!pt_Id || !ppt_Stamp)
     {
         return ITC_STATUS_INVALID_PARAM;
     }
@@ -1089,7 +1176,7 @@ ITC_Status_t ITC_Stamp_newFromIdAndEvent(
     ITC_Stamp_t **ppt_Stamp
 )
 {
-    if (!pt_Id || !pt_Event)
+    if (!pt_Id || !pt_Event || !ppt_Stamp)
     {
         return ITC_STATUS_INVALID_PARAM;
     }
@@ -1106,7 +1193,7 @@ ITC_Status_t ITC_Stamp_newPeekFromEvent(
     ITC_Stamp_t **ppt_Stamp
 )
 {
-    if (!pt_Event)
+    if (!pt_Event || !ppt_Stamp)
     {
         return ITC_STATUS_INVALID_PARAM;
     }
