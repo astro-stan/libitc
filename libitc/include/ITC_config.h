@@ -55,11 +55,12 @@
 
 #ifndef ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 /** Enabling this setting gives access to a few additional API calls,
- * which can be used to get an ASCII encodded representation of an ID or Event.
- * When enabled, the following functions become available as part of
+ * which can be used to get an ASCII encodded representation of an ID, Event
+ * or Stamp. When enabled, the following functions become available as part of
  * the public API:
  *   * `ITC_SerDes_serialiseIdToString`
  *   * `ITC_SerDes_serialiseEventToString`
+ *   * `ITC_SerDes_serialiseStampToString`
  */
 #define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (1)
 #endif

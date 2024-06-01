@@ -1141,9 +1141,6 @@ void ITC_SerDes_Test_serialiseEventParentToStringFailWithInsufficentResources(vo
     const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 4294967295), 0))";
 #endif
 
-    /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
-
     /* clang-format off */
     /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
@@ -1630,6 +1627,285 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
         sizeof(ru8_ExpectedStampSerialisedData));
 
     /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test serialising a Stamp to string fails with invalid param */
+void ITC_SerDes_Test_serialiseStampToStringFailInvalidParam(void)
+{
+    ITC_Stamp_t *pt_Dummy = NULL;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Dummy,
+            &rc_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            NULL,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Dummy,
+            rc_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test serialising an Stamp to string fails with corrupt Stamp */
+void ITC_SerDes_Test_serialiseToStringStampFailWithCorruptStamp(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseStampToString(
+                pt_Stamp,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+}
+
+/* Test serialising a Stamp with leaf ID and Event to string succeeds */
+void ITC_SerDes_Test_serialiseStampWithLeafIdAndEventToStringSuccessful(void)
+{
+    ITC_Stamp_t *pt_Stamp = NULL;
+    char rc_Buffer[8];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedNewStampSerialisedData = "{1; 0}";
+    const char *z_ExpectedBiggerStampSerialisedData = "{1; 12}";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Serialise the Stamp to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedNewStampSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedNewStampSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedNewStampSerialisedData) + 1);
+
+    /* Test the buffer len hasn't been exceeded */
+    TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[7]);
+
+    /* Make the Event component bigger */
+    pt_Stamp->pt_Event->t_Count = 12;
+
+    /* Reset the buffer size */
+    u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Serialise the Stamp to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedBiggerStampSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedBiggerStampSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedBiggerStampSerialisedData) + 1);
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test serialising an Stamp to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseStampToStringFailWithInsufficentResources(void)
+{
+    ITC_Stamp_t *pt_Stamp = NULL;
+    char rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN];
+    uint32_t u32_BufferSize;
+
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Set the last byte to a random value */
+    rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN - 1] = 0xAA;
+
+    /* The min len requires just a NULL termination byte, but the overall
+     * status is still insufficent resources, as there was no space to serialise
+     * the Stamp */
+    u32_BufferSize = sizeof(rc_Buffer);
+    /* Serialise the Stamp to string */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    /* Test the buffer was NULL terminated */
+    TEST_ASSERT_EQUAL_CHAR(
+        '\0',
+        rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN - 1]);
+
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test serialising a Stamp with parent components to string succeeds */
+void ITC_SerDes_Test_serialiseStampWithParentComponentsToStringSuccessful(void)
+{
+    ITC_Stamp_t *pt_Stamp = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[39];
+#else
+    char rc_Buffer[29];
+#endif
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 18446744073709551615, 0)}";
+#else
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 4294967295, 0)}";
+#endif
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* clang-format off */
+    /* Add nodes to the ID component */
+    pt_Stamp->pt_Id->b_IsOwner = false;
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id->pt_Left, pt_Stamp->pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Stamp->pt_Id->pt_Right, pt_Stamp->pt_Id));
+
+    /* Add nodes to the Event component */
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT32_MAX));
+#endif
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 0));
+    /* clang-format on */
+
+    /* Serialise the Stamp to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedStampSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        &z_ExpectedStampSerialisedData[0],
+        &rc_Buffer[0],
+        strlen(z_ExpectedStampSerialisedData) + 1);
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test serialising a Stamp with parent components to string fails with
+ * insufficent resources */
+void ITC_SerDes_Test_serialiseStampWithParentComponentsToStringFailWithInsufficentResources(void)
+{
+    ITC_Stamp_t *pt_Stamp = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[38];
+#else
+    char rc_Buffer[28];
+#endif
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 18446744073709551615, 0)}";
+#else
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 4294967295, 0)}";
+#endif
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* clang-format off */
+    /* Add nodes to the ID component */
+    pt_Stamp->pt_Id->b_IsOwner = false;
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id->pt_Left, pt_Stamp->pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Stamp->pt_Id->pt_Right, pt_Stamp->pt_Id));
+
+    /* Add nodes to the Event component */
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT32_MAX));
+#endif
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 0));
+    /* clang-format on */
+
+    for (uint32_t u32_I = ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN;
+         u32_I <= strlen(z_ExpectedStampSerialisedData);
+         u32_I++)
+    {
+        /* Init to a random value */
+        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+        u32_BufferSize = u32_I;
+        /* Serialise the Stamp to string */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseStampToString(
+                pt_Stamp,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+        /* Test the string is NULL terminated and the length was not exceeded */
+        TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
+        for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
+        {
+            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+        }
+
+        /* Test the partial output is what is expected */
+        TEST_ASSERT_EQUAL_STRING_LEN(
+            z_ExpectedStampSerialisedData,
+            &rc_Buffer[0],
+            strnlen(&rc_Buffer[0], u32_I));
+    }
+
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 }
 

@@ -526,6 +526,151 @@ static ITC_Status_t serialiseStamp(
     return t_Status;
 }
 
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+
+/**
+ * @brief Serialise an existing ITC Stamp to ASCII string
+ *
+ * @note The output buffer is always NULL-terminated
+ * @param ppt_Stamp The pointer to the Stamp
+ * @param pc_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes (including the NULL termination byte).
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t serialiseStampToString(
+    const ITC_Stamp_t *pt_Stamp,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;        /* The current status */
+    uint32_t u32_Offset = 0;
+    uint32_t u32_ComponentSize = 0;
+
+    if (*pu32_BufferSize < 1)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    /* Check there is space left in the buffer, taking into
+     * account the NULL termination byte */
+    if (t_Status == ITC_STATUS_SUCCESS && u32_Offset >= (*pu32_BufferSize - 1))
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add opening bracket */
+        pc_Buffer[u32_Offset] = '{';
+        /* Increment offset */
+        u32_Offset++;
+
+        /* Check there is space left in the buffer, taking into
+         * account min amount of space needed for the ID component.
+         * Do not include a NULL termination byte. That is included in the
+         * min ID component length */
+        if (u32_Offset >= (*pu32_BufferSize - ITC_SER_TO_STR_ID_MIN_BUFFER_LEN))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Calculate the space left in the buffer */
+        u32_ComponentSize = *pu32_BufferSize - u32_Offset;
+
+        /* Serialise the ID component */
+        t_Status = ITC_SerDes_serialiseIdToString(
+            pt_Stamp->pt_Id, &pc_Buffer[u32_Offset], &u32_ComponentSize);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Increment offset but ignore the NULL byte in the end */
+        u32_Offset += u32_ComponentSize - 1;
+
+        /* Check there is space left in the buffer, taking into
+         * account the NULL termination byte, the semicolon and space */
+        if (u32_Offset >= (*pu32_BufferSize - 2))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add semicolon and space to separate the ID and Event components */
+        pc_Buffer[u32_Offset] = ';';
+        u32_Offset++;
+        pc_Buffer[u32_Offset] = ' ';
+        u32_Offset++;
+
+        /* Check there is space left in the buffer, taking into
+         * account min amount of space needed for the Event component.
+         * Do not include a NULL termination byte. That is included in the
+         * min Event component length */
+        if (u32_Offset >=
+                (*pu32_BufferSize - ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Calculate the space left in the buffer */
+        u32_ComponentSize = *pu32_BufferSize - u32_Offset;
+
+        /* Serialise the Event component */
+        t_Status = ITC_SerDes_serialiseEventToString(
+            pt_Stamp->pt_Event, &pc_Buffer[u32_Offset], &u32_ComponentSize);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Increment offset but ignore the NULL byte in the end */
+        u32_Offset += u32_ComponentSize - 1;
+
+        /* Check there is space left in the buffer, taking into
+         * account the NULL termination byte */
+        if (u32_Offset >= (*pu32_BufferSize - 1))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Add closing bracket */
+        pc_Buffer[u32_Offset] = '}';
+        /* Increment offset */
+        u32_Offset++;
+    }
+
+    if (t_Status != ITC_STATUS_INVALID_PARAM)
+    {
+        /* Add a NULL termination byte */
+        pc_Buffer[u32_Offset] = '\0';
+        /* Increment offset */
+        u32_Offset++;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+
 /**
  * @brief Deserialise an ITC Stamp
  *
@@ -1157,6 +1302,42 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
 
     return t_Status;
 }
+
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+
+/******************************************************************************
+ * Serialise an existing ITC Stamp to string
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_serialiseStampToString(
+    const ITC_Stamp_t *const pt_Stamp,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        (uint8_t *)&pc_Buffer[0],
+        pu32_BufferSize,
+        ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN,
+        true);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateStamp(pt_Stamp);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = serialiseStampToString(
+            pt_Stamp, &pc_Buffer[0], pu32_BufferSize);
+    }
+
+    return t_Status;
+}
+
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 #if ITC_CONFIG_ENABLE_EXTENDED_API
 
