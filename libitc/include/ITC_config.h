@@ -50,7 +50,7 @@
  *   * `ITC_Stamp_setId`
  *   * `ITC_Stamp_setEvent`
  */
-#define ITC_CONFIG_ENABLE_EXTENDED_API                                       (1)
+#define ITC_CONFIG_ENABLE_EXTENDED_API                                       (0)
 #endif
 
 #ifndef ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
@@ -62,7 +62,7 @@
  *   * `ITC_SerDes_serialiseEventToString`
  *   * `ITC_SerDes_serialiseStampToString`
  */
-#define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (1)
+#define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (0)
 #endif
 
 #endif /* ITC_CONFIG_H_ */
