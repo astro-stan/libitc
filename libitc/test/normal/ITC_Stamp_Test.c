@@ -1681,7 +1681,7 @@ void ITC_Stamp_Test_setIdOfStampFailWithCorruptId(void)
     /* Destroy the Stamp */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 #else
-  TEST_IGNORE_MESSAGE("Extended API support is disabled");
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 

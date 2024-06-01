@@ -19,7 +19,7 @@
  *   happens every nanosecond, this counter will saturate in about 584.5 years.
 */
 #define ITC_CONFIG_USE_64BIT_EVENT_COUNTERS                                  (0)
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
 
 #ifndef ITC_CONFIG_ENABLE_EXTENDED_API
 /** Enabling this setting gives access to a few additional API calls,
@@ -51,7 +51,7 @@
  *   * `ITC_Stamp_setEvent`
  */
 #define ITC_CONFIG_ENABLE_EXTENDED_API                                       (0)
-#endif
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #ifndef ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 /** Enabling this setting gives access to a few additional API calls,
@@ -63,6 +63,6 @@
  *   * `ITC_SerDes_serialiseStampToString`
  */
 #define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (0)
-#endif
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 #endif /* ITC_CONFIG_H_ */
