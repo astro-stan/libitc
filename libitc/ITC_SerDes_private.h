@@ -163,9 +163,11 @@
         ITC_SERDES_STAMP_EVENT_COMPONENT_LEN_OFFSET)
 
 /* The minimum possible length of an ID serialisation (to string) string buffer
- * - one for a leaf ID - requires 1 byte to represent the ID and a NULL byte
- * (`"1\0"`) or (`"0\0"`) */
-#define ITC_SER_TO_STR_ID_MIN_BUFFER_LEN                                     (2)
+ * - a NULL terminated buffer. Requires 1 byte for the NULL termination. Keeping
+ * the minimum length requirement to be just a NULL terminator ensures that even
+ * if the buffer is too small to hold any usable data, it will still at least be
+ * NULL terminated. */
+#define ITC_SER_TO_STR_ID_MIN_BUFFER_LEN                                     (1)
 
 /******************************************************************************
  * Types

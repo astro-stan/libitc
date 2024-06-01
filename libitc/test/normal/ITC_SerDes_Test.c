@@ -384,12 +384,18 @@ void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
 void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
 {
     ITC_Id_t *pt_Id = NULL;
-    char rc_Buffer[10];
+    char rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN];
     uint32_t u32_BufferSize;
 
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
-    u32_BufferSize = ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1;
+    /* Set the last byte to a random value */
+    rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1] = 0xAA;
+
+    /* The min len requires just a NULL termination byte, but the overall
+     * status is still insufficent resources, as there was no space to serialise
+     * the ID */
+    u32_BufferSize = sizeof(rc_Buffer);
     /* Serialise the ID to string */
     TEST_FAILURE(
         ITC_SerDes_serialiseIdToString(
@@ -397,6 +403,11 @@ void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
             &rc_Buffer[0],
             &u32_BufferSize),
         ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    /* Test the buffer was NULL terminated */
+    TEST_ASSERT_EQUAL_CHAR(
+        '\0',
+        rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1]);
 
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 }
@@ -484,11 +495,13 @@ void ITC_SerDes_Test_serialiseIdParentToStringFailWithInsufficentResources(void)
             ITC_STATUS_INSUFFICIENT_RESOURCES);
 
         /* Test the string is NULL terminated and the length was not exceeded */
-        TEST_ASSERT_EQUAL(u32_I - 1, strlen(&rc_Buffer[0]));
+        TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
 
         /* Test the partial output is what is expected */
         TEST_ASSERT_EQUAL_STRING_LEN(
-            z_ExpectedIdSerialisedData, &rc_Buffer[0], u32_I - 1);
+            z_ExpectedIdSerialisedData,
+            &rc_Buffer[0],
+            strnlen(&rc_Buffer[0], u32_I));
     }
 
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));

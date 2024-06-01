@@ -1087,8 +1087,8 @@ static ITC_Status_t serialiseIdToString(
                     pt_Id = pt_CurrentIdParent->pt_Right;
 
                     /* Check there is space left in the buffer, taking into
-                     * account the NULL termination byte */
-                    if (u32_Offset >= (*pu32_BufferSize - 1))
+                     * account the NULL termination byte, comma and space */
+                    if (u32_Offset >= (*pu32_BufferSize - 3))
                     {
                         t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
                     }
@@ -1097,16 +1097,7 @@ static ITC_Status_t serialiseIdToString(
                         /* Add a comma to signify the start of a new node */
                         pc_Buffer[u32_Offset] = ',';
                         u32_Offset++;
-                    }
 
-                    /* Check there is space left in the buffer, taking into
-                     * account the NULL termination byte */
-                    if (u32_Offset >= (*pu32_BufferSize - 1))
-                    {
-                        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
-                    }
-                    else
-                    {
                         /* Add a space between nodes */
                         pc_Buffer[u32_Offset] = ' ';
                         u32_Offset++;
@@ -1682,7 +1673,6 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
 
     return t_Status;
 }
-
 
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
