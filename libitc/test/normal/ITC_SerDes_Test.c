@@ -909,6 +909,284 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
+/* Test serialising a Event to string fails with invalid param */
+void ITC_SerDes_Test_serialiseEventToStringFailInvalidParam(void)
+{
+    ITC_Event_t *pt_Dummy = NULL;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Dummy,
+            &rc_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            NULL,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Dummy,
+            rc_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test serialising an Event to string fails with corrupt Event */
+void ITC_SerDes_Test_serialiseToStringEventFailWithCorruptEvent(void)
+{
+    ITC_Event_t *pt_Event;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseEventToString(
+                pt_Event,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+}
+
+/* Test serialising a leaf Event to string succeeds */
+void ITC_SerDes_Test_serialiseEventLeafToStringSuccessful(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+    char rc_Buffer[3];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedNewEventSerialisedData = "0";
+    const char *z_ExpectedBiggerEventSerialisedData = "12";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    /* Serialise the Event to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedNewEventSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedNewEventSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedNewEventSerialisedData) + 1);
+
+    /* Test the buffer len hasn't been exceeded */
+    TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[2]);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 12));
+
+    /* Reset the buffer size */
+    u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Serialise the Event to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedBiggerEventSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedBiggerEventSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedBiggerEventSerialisedData) + 1);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising an Event to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseEventToStringFailWithInsufficentResources(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+    char rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN];
+    uint32_t u32_BufferSize;
+
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    /* Set the last byte to a random value */
+    rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN - 1] = 0xAA;
+
+    /* The min len requires just a NULL termination byte, but the overall
+     * status is still insufficent resources, as there was no space to serialise
+     * the Event */
+    u32_BufferSize = sizeof(rc_Buffer);
+    /* Serialise the Event to string */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    /* Test the buffer was NULL terminated */
+    TEST_ASSERT_EQUAL_CHAR(
+        '\0',
+        rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN - 1]);
+
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising a parent Event to string succeeds */
+void ITC_SerDes_Test_serialiseEventParentToStringSuccessful(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[48];
+#else
+    char rc_Buffer[38];
+#endif
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 18446744073709551615), 0))";
+#else
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 4294967295), 0))";
+#endif
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* clang-format off */
+    /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4242));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT32_MAX));
+#endif
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    /* clang-format on */
+
+    /* Serialise the Event to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedEventSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        &z_ExpectedEventSerialisedData[0],
+        &rc_Buffer[0],
+        strlen(z_ExpectedEventSerialisedData) + 1);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising a parent Event to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseEventParentToStringFailWithInsufficentResources(void)
+{
+    ITC_Event_t *pt_Event = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[47];
+#else
+    char rc_Buffer[37];
+#endif
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 18446744073709551615), 0))";
+#else
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 4294967295), 0))";
+#endif
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* clang-format off */
+    /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4242));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT32_MAX));
+#endif
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    /* clang-format on */
+
+    for (uint32_t u32_I = ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN;
+         u32_I <= strlen(z_ExpectedEventSerialisedData);
+         u32_I++)
+    {
+        /* Init to a random value */
+        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+        u32_BufferSize = u32_I;
+        /* Serialise the Event to string */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseEventToString(
+                pt_Event,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+        /* Test the string is NULL terminated and the length was not exceeded */
+        TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
+        for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
+        {
+            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+        }
+
+        /* Test the partial output is what is expected */
+        TEST_ASSERT_EQUAL_STRING_LEN(
+            z_ExpectedEventSerialisedData,
+            &rc_Buffer[0],
+            strnlen(&rc_Buffer[0], u32_I));
+    }
+
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
 /* Test deserialising an Event fails with invalid param */
 void ITC_SerDes_Test_deserialiseEventFailInvalidParam(void)
 {

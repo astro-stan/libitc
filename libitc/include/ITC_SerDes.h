@@ -187,6 +187,24 @@ ITC_Status_t ITC_SerDes_serialiseIdToString(
     uint32_t *const pu32_BufferSize
 );
 
+/**
+ * @brief Serialise an existing ITC Event to ASCII string
+ *
+ * @note The output buffer is always NULL-terminated
+ * @param ppt_Event The pointer to the Event
+ * @param pc_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes (including the NULL termination byte).
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+ITC_Status_t ITC_SerDes_serialiseEventToString(
+    const ITC_Event_t *const pt_Event,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+);
+
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 #endif /* ITC_SERDES_H_ */

@@ -15,9 +15,9 @@
 #include "ITC_SerDes_private.h"
 #include "ITC_SerDes_Util_package.h"
 
-#if ITC_CONFIG_ENABLE_EXTENDED_API
+#if ITC_CONFIG_ENABLE_EXTENDED_API || ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 #include "ITC_SerDes.h"
-#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API || ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 #include "ITC_Id_package.h"
 #include "ITC_Id_private.h"
@@ -1727,6 +1727,262 @@ static ITC_Status_t serialiseEvent(
     return t_Status;
 }
 
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+
+/**
+ * @brief Serialise an Event counter to ASCII string
+ *
+ * This function intentionally avoids using `sprintf` to improve portability
+ * and efficiency.
+ *
+ * @warning The resulting string is NOT NULL terminated.
+ * @param t_Count The event counter
+ * @param pc_Buffer The buffer where to write the data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t eventCounterToString(
+    ITC_Event_Counter_t t_Count,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+    uint32_t u32_Offset = 0;
+    char c_Tmp = 0;
+
+    do
+    {
+        /* Check there is space left in the buffer */
+        if (u32_Offset >= *pu32_BufferSize)
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+        else
+        {
+            /* Serialise the next digit */
+            pc_Buffer[u32_Offset] = '0' + (char)(t_Count % 10);
+            t_Count /= 10;
+            u32_Offset++;
+        }
+    } while (t_Status == ITC_STATUS_SUCCESS && t_Count);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Reverse the string to get the final output */
+        for (uint32_t u32_I = u32_Offset - 1;
+             u32_I > (u32_Offset - 1) / 2;
+             u32_I--)
+        {
+            c_Tmp = pc_Buffer[u32_I];
+            pc_Buffer[u32_I] = pc_Buffer[u32_Offset - 1 - u32_I];
+            pc_Buffer[u32_Offset - 1 - u32_I] = c_Tmp;
+        }
+
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+
+/**
+ * @brief Serialise an existing ITC Event to ASCII string
+ *
+ * @note The output buffer is always NULL-terminated
+ * @param ppt_Event The pointer to the Event
+ * @param pc_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes (including the NULL termination byte).
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t serialiseEventToString(
+    const ITC_Event_t *pt_Event,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    /* The current Event node */
+    const ITC_Event_t *pt_CurrentEventParent = NULL;
+    /* The root parent */
+    const ITC_Event_t *pt_RootEventParent = pt_Event->pt_Parent;
+    uint32_t u32_Offset = 0;
+    /* The size of the stringified current node event counter */
+    uint32_t u32_EventCounterSize = 0;
+
+    if (*pu32_BufferSize < 1)
+    {
+        /* Ensure there is at least space for the NULL termination */
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    /* Perform a pre-order traversal */
+    while (t_Status == ITC_STATUS_SUCCESS && pt_Event)
+    {
+        /* Check there is space left in the buffer, taking into account the
+         * NULL termination byte */
+        if (u32_Offset >= (*pu32_BufferSize - 1))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS && ITC_EVENT_IS_PARENT_EVENT(pt_Event))
+        {
+            /* Open a bracket to signify a parent node */
+            pc_Buffer[u32_Offset] = '(';
+            /* Increment the offset */
+            u32_Offset++;
+
+            /* Check there is space left in the buffer, taking into account the
+             * NULL termination byte */
+             if (u32_Offset >= (*pu32_BufferSize - 1))
+             {
+                 t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+             }
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Calculate the space left in the buffer, taking into account the
+             * NULL termination byte */
+            u32_EventCounterSize = *pu32_BufferSize - u32_Offset - 1;
+
+            /* Serialise the current node event counter */
+            t_Status = eventCounterToString(
+                pt_Event->t_Count,
+                &pc_Buffer[u32_Offset],
+                &u32_EventCounterSize);
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Increment the offset */
+            u32_Offset += u32_EventCounterSize;
+
+            /* If this is a parent, check there is space left in the buffer,
+             * taking into account the NULL termination byte, and the space for
+             * the extra comma and space */
+            if (ITC_EVENT_IS_PARENT_EVENT(pt_Event) &&
+                u32_Offset >= (*pu32_BufferSize - 2))
+            {
+                t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+            }
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            if (ITC_EVENT_IS_PARENT_EVENT(pt_Event))
+            {
+                /* Add a comma to separete the current node counter from
+                 * its children */
+                pc_Buffer[u32_Offset] = ',';
+                /* Increment the offset */
+                u32_Offset++;
+
+                /* Add space between the current node counter and child nodes */
+                pc_Buffer[u32_Offset] = ' ';
+                /* Increment the offset */
+                u32_Offset++;
+            }
+
+            /* Descend into left tree */
+            if (pt_Event->pt_Left)
+            {
+                /* Remember the parent address */
+                pt_CurrentEventParent = pt_Event;
+
+                pt_Event = pt_Event->pt_Left;
+            }
+            /* Valid parent ITC Event trees always have both left and right
+             * nodes. Thus, there is no need to check if the current node
+             * doesn't have a left child but has a right one.
+             *
+             * Instead directly start backtracking up the tree */
+            else
+            {
+                /* Loop until the current element is no longer reachable
+                 * through the parent's right child */
+                while (t_Status == ITC_STATUS_SUCCESS &&
+                       pt_CurrentEventParent != pt_RootEventParent &&
+                       pt_CurrentEventParent->pt_Right == pt_Event)
+                {
+                    pt_Event = pt_Event->pt_Parent;
+                    pt_CurrentEventParent = pt_CurrentEventParent->pt_Parent;
+
+                    /* Check there is space left in the buffer, taking into
+                     * account the NULL termination byte and bracket */
+                    if (u32_Offset >= (*pu32_BufferSize - 1))
+                    {
+                        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+                    }
+                    else
+                    {
+                        /* Close the current parent node bracket */
+                        pc_Buffer[u32_Offset] = ')';
+                        /* Increment the offset */
+                        u32_Offset++;
+                    }
+                }
+
+                /* There is a right subtree that has not been explored yet */
+                if (t_Status == ITC_STATUS_SUCCESS &&
+                    pt_CurrentEventParent != pt_RootEventParent)
+                {
+                    pt_Event = pt_CurrentEventParent->pt_Right;
+
+                    /* Check there is space left in the buffer, taking into
+                     * account the NULL termination byte, comma and space */
+                    if (u32_Offset >= (*pu32_BufferSize - 2))
+                    {
+                        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+                    }
+                    else
+                    {
+                        /* Add a comma to signify the start of a new node */
+                        pc_Buffer[u32_Offset] = ',';
+                        /* Increment the offset */
+                        u32_Offset++;
+
+                        /* Add space between nodes */
+                        pc_Buffer[u32_Offset] = ' ';
+                        /* Increment the offset */
+                        u32_Offset++;
+                    }
+                }
+                else
+                {
+                    pt_Event = NULL;
+                }
+            }
+        }
+    }
+
+    if (t_Status != ITC_STATUS_INVALID_PARAM)
+    {
+        /* Ensure the string is always NULL-termiated */
+        pc_Buffer[u32_Offset] = '\0';
+        u32_Offset++;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+
+
 /**
  * @brief Deserialise an ITC Event
  *
@@ -2300,6 +2556,42 @@ ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
 
     return t_Status;
 }
+
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+
+/******************************************************************************
+ * Serialise an existing ITC Event to string
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_serialiseEventToString(
+    const ITC_Event_t *const pt_Event,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        (uint8_t *)&pc_Buffer[0],
+        pu32_BufferSize,
+        ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN,
+        true);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(pt_Event, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = serialiseEventToString(
+            pt_Event, &pc_Buffer[0], pu32_BufferSize);
+    }
+
+    return t_Status;
+}
+
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 #if ITC_CONFIG_ENABLE_EXTENDED_API
 
