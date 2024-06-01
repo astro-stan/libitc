@@ -24,6 +24,10 @@
 
 #include <stdint.h>
 
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#include <string.h>
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+
 /******************************************************************************
  *  Private functions
  ******************************************************************************/
@@ -255,6 +259,238 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
         sizeof(ru8_ExpectedIdSerialisedData));
 
     /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test serialising a Id to string fails with invalid param */
+void ITC_SerDes_Test_serialiseIdToStringFailInvalidParam(void)
+{
+    ITC_Id_t *pt_Dummy = NULL;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Dummy,
+            &rc_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            NULL,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Dummy,
+            rc_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+}
+
+/* Test serialising an ID to string fails with corrupt ID */
+void ITC_SerDes_Test_serialiseToStringIdFailWithCorruptId(void)
+{
+    ITC_Id_t *pt_Id;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseIdToString(
+                pt_Id,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
+    }
+}
+
+/* Test serialising a leaf ID to string succeeds */
+void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
+{
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[10];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedSeedIdSerialisedData = "1";
+    const char *z_ExpectedNullIdSerialisedData = "0";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new seed ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
+
+    /* Serialise the ID to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseIdToString(pt_Id, &rc_Buffer[0], &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedSeedIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedSeedIdSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedSeedIdSerialisedData) + 1);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new null ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+
+    /* Reset the buffer size */
+    u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Serialise the ID to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseIdToString(
+            pt_Id,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedNullIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedNullIdSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedNullIdSerialisedData) + 1);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test serialising an ID to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
+{
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[10];
+    uint32_t u32_BufferSize;
+
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
+
+    u32_BufferSize = ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1;
+    /* Serialise the ID to string */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Id,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test serialising a parent ID to string succeeds */
+void ITC_SerDes_Test_serialiseIdParentToStringSuccessful(void)
+{
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[22];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedIdSerialisedData = "((0, 1), ((1, 0), 1))";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* clang-format off */
+    /* Create a new ((0, 1), ((1, 0), 1)) ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
+
+    /* Serialise the ID to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseIdToString(
+            pt_Id,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        &z_ExpectedIdSerialisedData[0],
+        &rc_Buffer[0],
+        strlen(z_ExpectedIdSerialisedData) + 1);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test serialising a parent ID to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseIdParentToStringFailWithInsufficentResources(void)
+{
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[21];
+    uint32_t u32_BufferSize;
+
+    const char *z_ExpectedIdSerialisedData = "((0, 1), ((1, 0), 1))";
+
+    /* clang-format off */
+    /* Create a new ((0, 1), ((1, 0), 1)) ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
+
+
+    for (uint32_t u32_I = ITC_SER_TO_STR_ID_MIN_BUFFER_LEN;
+         u32_I <= strlen(z_ExpectedIdSerialisedData);
+         u32_I++)
+    {
+        /* Init to a random value */
+        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+        u32_BufferSize = u32_I;
+        /* Serialise the ID to string */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseIdToString(
+                pt_Id,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+        /* Test the string is NULL terminated and the length was not exceeded */
+        TEST_ASSERT_EQUAL(u32_I - 1, strlen(&rc_Buffer[0]));
+
+        /* Test the partial output is what is expected */
+        TEST_ASSERT_EQUAL_STRING_LEN(
+            z_ExpectedIdSerialisedData, &rc_Buffer[0], u32_I - 1);
+    }
+
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 }
 

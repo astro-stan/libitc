@@ -143,6 +143,11 @@
    ITC_SERDES_STAMP_SET_EVENT_COMPONENT_LEN_LEN(                               \
         (ITC_SerDes_Header_t)0U, u8_LenEvent))
 
+/* The minimum possible length of an ID serialisation (to string) string buffer
+ * - one for a leaf ID - requires 1 byte to represent the ID and a NULL byte
+ * (`"1\0"`) or (`"0\0"`) */
+#define ITC_SER_TO_STR_ID_MIN_BUFFER_LEN                                     (2)
+
 /******************************************************************************
  * Types
  ******************************************************************************/

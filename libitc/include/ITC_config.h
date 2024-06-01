@@ -50,7 +50,16 @@
  *   * `ITC_Stamp_setId`
  *   * `ITC_Stamp_setEvent`
  */
-#define ITC_CONFIG_ENABLE_EXTENDED_API                                       (0)
+#define ITC_CONFIG_ENABLE_EXTENDED_API                                       (1)
+#endif
+
+#ifndef ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+/** Enabling this setting gives access to a few additional API calls,
+ * which can be used to get an ASCII encodded representation of an ID. When
+ * enabled, the following functions become available as part of the public API:
+ *   * `ITC_SerDes_serialiseIdToString`
+ */
+#define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (1)
 #endif
 
 #endif /* ITC_CONFIG_H_ */
