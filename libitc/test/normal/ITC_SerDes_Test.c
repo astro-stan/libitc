@@ -329,7 +329,7 @@ void ITC_SerDes_Test_serialiseToStringIdFailWithCorruptId(void)
 void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
 {
     ITC_Id_t *pt_Id = NULL;
-    char rc_Buffer[10];
+    char rc_Buffer[2];
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
 
     const char *z_ExpectedSeedIdSerialisedData = "1";
@@ -346,7 +346,8 @@ void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
         ITC_SerDes_serialiseIdToString(pt_Id, &rc_Buffer[0], &u32_BufferSize));
 
     /* Test the serialised data is what is expected */
-    TEST_ASSERT_EQUAL(strlen(z_ExpectedSeedIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedSeedIdSerialisedData) + 1, u32_BufferSize);
     TEST_ASSERT_EQUAL_STRING_LEN(
         z_ExpectedSeedIdSerialisedData,
         &rc_Buffer[0],
@@ -496,6 +497,10 @@ void ITC_SerDes_Test_serialiseIdParentToStringFailWithInsufficentResources(void)
 
         /* Test the string is NULL terminated and the length was not exceeded */
         TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
+        for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
+        {
+            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+        }
 
         /* Test the partial output is what is expected */
         TEST_ASSERT_EQUAL_STRING_LEN(

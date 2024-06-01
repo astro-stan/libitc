@@ -170,7 +170,7 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
 /**
- * @brief Serialise an existing ITC Id to string
+ * @brief Serialise an existing ITC Id to ASCII string
  *
  * @note The output buffer is always NULL-terminated
  * @param ppt_Id The pointer to the Id

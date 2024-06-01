@@ -987,7 +987,7 @@ static ITC_Status_t serialiseId(
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
 /**
- * @brief Serialise an existing ITC Id to string
+ * @brief Serialise an existing ITC Id to ASCII string
  *
  * @param ppt_Id The pointer to the Id
  * @param pc_Buffer The buffer to hold the serialised data
@@ -1067,7 +1067,7 @@ static ITC_Status_t serialiseIdToString(
                     pt_CurrentIdParent = pt_CurrentIdParent->pt_Parent;
 
                     /* Check there is space left in the buffer, taking into
-                     * account the NULL termination byte */
+                     * account the NULL termination byte and bracket */
                     if (u32_Offset >= (*pu32_BufferSize - 1))
                     {
                         t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
@@ -1088,7 +1088,7 @@ static ITC_Status_t serialiseIdToString(
 
                     /* Check there is space left in the buffer, taking into
                      * account the NULL termination byte, comma and space */
-                    if (u32_Offset >= (*pu32_BufferSize - 3))
+                    if (u32_Offset >= (*pu32_BufferSize - 2))
                     {
                         t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
                     }
