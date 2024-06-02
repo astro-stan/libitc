@@ -8,9 +8,15 @@
  *
  */
 #include "ITC_Stamp.h"
+#include "ITC_config.h"
 #include "ITC_SerDes.h"
-#include "ITC_SerDes_private.h"
+
+#if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
+#include "ITC_SerDes_package.h"
+#endif /* !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API) */
+
 #include "ITC_SerDes_Util_package.h"
+#include "ITC_SerDes_private.h"
 
 #include "ITC_Event_package.h"
 #include "ITC_Id_package.h"
