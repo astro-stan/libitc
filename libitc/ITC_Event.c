@@ -1731,7 +1731,7 @@ static ITC_Status_t serialiseEvent(
     return t_Status;
 }
 
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
 /**
  * @brief Serialise an Event counter to ASCII string
@@ -1984,7 +1984,7 @@ static ITC_Status_t serialiseEventToString(
     return t_Status;
 }
 
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 
 /**
