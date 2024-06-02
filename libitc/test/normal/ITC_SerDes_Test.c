@@ -306,7 +306,7 @@ void ITC_SerDes_Test_serialiseIdToStringFailInvalidParam(void)
 }
 
 /* Test serialising an ID to string fails with corrupt ID */
-void ITC_SerDes_Test_serialiseToStringIdFailWithCorruptId(void)
+void ITC_SerDes_Test_serialiseIdToStringFailWithCorruptId(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Id_t *pt_Id;
@@ -338,7 +338,7 @@ void ITC_SerDes_Test_serialiseToStringIdFailWithCorruptId(void)
 }
 
 /* Test serialising a leaf ID to string succeeds */
-void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
+void ITC_SerDes_Test_serialiseIdToStringLeafSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Id_t *pt_Id = NULL;
@@ -434,7 +434,7 @@ void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
 }
 
 /* Test serialising a parent ID to string succeeds */
-void ITC_SerDes_Test_serialiseIdParentToStringSuccessful(void)
+void ITC_SerDes_Test_serialiseIdToStringParentSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Id_t *pt_Id = NULL;
@@ -481,7 +481,7 @@ void ITC_SerDes_Test_serialiseIdParentToStringSuccessful(void)
 }
 
 /* Test serialising a parent ID to string fails with insufficent resources */
-void ITC_SerDes_Test_serialiseIdParentToStringFailWithInsufficentResources(void)
+void ITC_SerDes_Test_serialiseIdToStringParentFailWithInsufficentResources(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Id_t *pt_Id = NULL;
@@ -982,7 +982,7 @@ void ITC_SerDes_Test_serialiseEventToStringFailInvalidParam(void)
 }
 
 /* Test serialising an Event to string fails with corrupt Event */
-void ITC_SerDes_Test_serialiseToStringEventFailWithCorruptEvent(void)
+void ITC_SerDes_Test_serialiseEventToStringFailWithCorruptEvent(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Event_t *pt_Event;
@@ -1014,7 +1014,7 @@ void ITC_SerDes_Test_serialiseToStringEventFailWithCorruptEvent(void)
 }
 
 /* Test serialising a leaf Event to string succeeds */
-void ITC_SerDes_Test_serialiseEventLeafToStringSuccessful(void)
+void ITC_SerDes_Test_serialiseEventToStringLeafSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Event_t *pt_Event = NULL;
@@ -1116,7 +1116,7 @@ void ITC_SerDes_Test_serialiseEventToStringFailWithInsufficentResources(void)
 }
 
 /* Test serialising a parent Event to string succeeds */
-void ITC_SerDes_Test_serialiseEventParentToStringSuccessful(void)
+void ITC_SerDes_Test_serialiseEventToStringParentSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Event_t *pt_Event = NULL;
@@ -1173,7 +1173,7 @@ void ITC_SerDes_Test_serialiseEventParentToStringSuccessful(void)
 }
 
 /* Test serialising a parent Event to string fails with insufficent resources */
-void ITC_SerDes_Test_serialiseEventParentToStringFailWithInsufficentResources(void)
+void ITC_SerDes_Test_serialiseEventToStringParentFailWithInsufficentResources(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Event_t *pt_Event = NULL;
@@ -1721,8 +1721,8 @@ void ITC_SerDes_Test_serialiseStampToStringFailInvalidParam(void)
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 }
 
-/* Test serialising an Stamp to string fails with corrupt Stamp */
-void ITC_SerDes_Test_serialiseToStringStampFailWithCorruptStamp(void)
+/* Test serialising a Stamp to string fails with corrupt Stamp */
+void ITC_SerDes_Test_serialiseStampToStringFailWithCorruptStamp(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Stamp_t *pt_Stamp;
@@ -1754,7 +1754,7 @@ void ITC_SerDes_Test_serialiseToStringStampFailWithCorruptStamp(void)
 }
 
 /* Test serialising a Stamp with leaf ID and Event to string succeeds */
-void ITC_SerDes_Test_serialiseStampWithLeafIdAndEventToStringSuccessful(void)
+void ITC_SerDes_Test_serialiseStampToStringWithLeafIdAndEventSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Stamp_t *pt_Stamp = NULL;
@@ -1816,7 +1816,7 @@ void ITC_SerDes_Test_serialiseStampWithLeafIdAndEventToStringSuccessful(void)
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 }
 
-/* Test serialising an Stamp to string fails with insufficent resources */
+/* Test serialising a Stamp to string fails with insufficent resources */
 void ITC_SerDes_Test_serialiseStampToStringFailWithInsufficentResources(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
@@ -1853,7 +1853,7 @@ void ITC_SerDes_Test_serialiseStampToStringFailWithInsufficentResources(void)
 }
 
 /* Test serialising a Stamp with parent components to string succeeds */
-void ITC_SerDes_Test_serialiseStampWithParentComponentsToStringSuccessful(void)
+void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsSuccessful(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Stamp_t *pt_Stamp = NULL;
@@ -1914,7 +1914,7 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsToStringSuccessful(void)
 
 /* Test serialising a Stamp with parent components to string fails with
  * insufficent resources */
-void ITC_SerDes_Test_serialiseStampWithParentComponentsToStringFailWithInsufficentResources(void)
+void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsFailWithInsufficentResources(void)
 {
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
     ITC_Stamp_t *pt_Stamp = NULL;
@@ -2018,7 +2018,7 @@ void ITC_SerDes_Test_deserialiseStampFailInvalidParam(void)
         ITC_STATUS_INVALID_PARAM);
 }
 
-/* Test deserialising an Stamp fails with corrupt Stamp */
+/* Test deserialising a Stamp fails with corrupt Stamp */
 void ITC_SerDes_Test_deserialiseStampFailWithCorruptStamp(void)
 {
     ITC_Stamp_t *pt_Stamp;
