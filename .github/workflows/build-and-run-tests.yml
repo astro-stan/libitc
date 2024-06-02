@@ -22,6 +22,7 @@ jobs:
         compiler: ['gcc']
         USE_64BIT_EVENT_COUNTERS: [0, 1]
         ENABLE_EXTENDED_API: [0, 1]
+        ENABLE_SERIALISE_TO_STRING_API: [0, 1]
     steps:
       - name: Install compiler
         uses: rlalik/setup-cpp-compiler@master
@@ -37,14 +38,15 @@ jobs:
       - name: Configure Tests
         run: >-
           CC=${{ matrix.compiler }}
-          CFLAGS="
-            -DITC_CONFIG_ENABLE_EXTENDED_API=${{ matrix.ENABLE_EXTENDED_API }}
-            -DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.USE_64BIT_EVENT_COUNTERS }}
-          "
           meson setup --wipe --reconfigure
           ${{ env.BUILD_DIR_PREFIX }}
           -Doptimization=${{ env.OPTIMIZATION }}
           -Ddebug=${{ env.DEBUG }}
           -Dtests=true
+          -Dc_args="
+            -DITC_CONFIG_ENABLE_EXTENDED_API=${{ matrix.ENABLE_EXTENDED_API }}
+            -DITC_CONFIG_USE_64BIT_EVENT_COUNTERS=${{ matrix.USE_64BIT_EVENT_COUNTERS }}
+            -DITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API=${{ matrix.ENABLE_SERIALISE_TO_STRING_API }}
+          "
       - name: Build And Run Tests
         run: CC=${{ matrix.compiler }} meson test -C ${{ env.BUILD_DIR_PREFIX }}

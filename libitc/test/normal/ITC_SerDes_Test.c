@@ -9,8 +9,13 @@
  *
  */
 #include "ITC_SerDes.h"
-#include "ITC_SerDes_Util_package.h"
 #include "ITC_SerDes_Test.h"
+#include "ITC_config.h"
+
+#if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
+#include "ITC_SerDes_package.h"
+#endif /* !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API) */
+#include "ITC_SerDes_Util_package.h"
 
 #include "ITC_SerDes_Test_package.h"
 #include "ITC_Test_package.h"
@@ -20,9 +25,12 @@
 #include "ITC_Event_package.h"
 
 #include "ITC_Stamp.h"
-#include "ITC_config.h"
 
 #include <stdint.h>
+
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#include <string.h>
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 /******************************************************************************
  *  Private functions
@@ -256,6 +264,280 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
 
     /* Destroy the ID */
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
+/* Test serialising a Id to string fails with invalid param */
+void ITC_SerDes_Test_serialiseIdToStringFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Id_t *pt_Dummy = NULL;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Dummy,
+            &rc_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            NULL,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Dummy,
+            rc_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising an ID to string fails with corrupt ID */
+void ITC_SerDes_Test_serialiseIdToStringFailWithCorruptId(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Id_t *pt_Id;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Test different invalid IDs are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidIdTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid ID */
+        gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseIdToString(
+                pt_Id,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_ID);
+
+        /* Destroy the ID */
+        gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a leaf ID to string succeeds */
+void ITC_SerDes_Test_serialiseIdToStringLeafSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[2];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedSeedIdSerialisedData = "1";
+    const char *z_ExpectedNullIdSerialisedData = "0";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new seed ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
+
+    /* Serialise the ID to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseIdToString(pt_Id, &rc_Buffer[0], &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedSeedIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedSeedIdSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedSeedIdSerialisedData) + 1);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Create a new null ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+
+    /* Reset the buffer size */
+    u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Serialise the ID to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseIdToString(
+            pt_Id,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedNullIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedNullIdSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedNullIdSerialisedData) + 1);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising an ID to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN];
+    uint32_t u32_BufferSize;
+
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
+
+    /* Set the last byte to a random value */
+    rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1] = 0xAA;
+
+    /* The min len requires just a NULL termination byte, but the overall
+     * status is still insufficent resources, as there was no space to serialise
+     * the ID */
+    u32_BufferSize = sizeof(rc_Buffer);
+    /* Serialise the ID to string */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseIdToString(
+            pt_Id,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    /* Test the buffer was NULL terminated */
+    TEST_ASSERT_EQUAL_CHAR(
+        '\0',
+        rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1]);
+
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a parent ID to string succeeds */
+void ITC_SerDes_Test_serialiseIdToStringParentSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[22];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedIdSerialisedData = "((0, 1), ((1, 0), 1))";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* clang-format off */
+    /* Create a new ((0, 1), ((1, 0), 1)) ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
+
+    /* Serialise the ID to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseIdToString(
+            pt_Id,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedIdSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        &z_ExpectedIdSerialisedData[0],
+        &rc_Buffer[0],
+        strlen(z_ExpectedIdSerialisedData) + 1);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a parent ID to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseIdToStringParentFailWithInsufficentResources(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Id_t *pt_Id = NULL;
+    char rc_Buffer[21];
+    uint32_t u32_BufferSize;
+
+    const char *z_ExpectedIdSerialisedData = "((0, 1), ((1, 0), 1))";
+
+    /* clang-format off */
+    /* Create a new ((0, 1), ((1, 0), 1)) ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left->pt_Left, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Left->pt_Right, pt_Id->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left, pt_Id->pt_Right));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Left->pt_Left, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right->pt_Left->pt_Right, pt_Id->pt_Right->pt_Left));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right->pt_Right, pt_Id->pt_Right));
+    /* clang-format on */
+
+
+    for (uint32_t u32_I = ITC_SER_TO_STR_ID_MIN_BUFFER_LEN;
+         u32_I <= strlen(z_ExpectedIdSerialisedData);
+         u32_I++)
+    {
+        /* Init to a random value */
+        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+        u32_BufferSize = u32_I;
+        /* Serialise the ID to string */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseIdToString(
+                pt_Id,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+        /* Test the string is NULL terminated and the length was not exceeded */
+        TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
+        for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
+        {
+            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+        }
+
+        /* Test the partial output is what is expected */
+        TEST_ASSERT_EQUAL_STRING_LEN(
+            z_ExpectedIdSerialisedData,
+            &rc_Buffer[0],
+            strnlen(&rc_Buffer[0], u32_I));
+    }
+
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 }
 
 /* Test deserialising a ID fails with invalid param */
@@ -592,7 +874,7 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
     uint8_t ru8_Buffer[19] = { 0 };
 #else
     uint8_t ru8_Buffer[15] = { 0 };
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     /* Serialised (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
@@ -622,7 +904,7 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
         0xFFU,
         0xFFU,
         0xFFU,
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
 
@@ -637,7 +919,7 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT64_MAX));
 #else
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT32_MAX));
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
     /* clang-format on */
 
@@ -658,6 +940,305 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
+/* Test serialising a Event to string fails with invalid param */
+void ITC_SerDes_Test_serialiseEventToStringFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Event_t *pt_Dummy = NULL;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Dummy,
+            &rc_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            NULL,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Dummy,
+            rc_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising an Event to string fails with corrupt Event */
+void ITC_SerDes_Test_serialiseEventToStringFailWithCorruptEvent(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Event_t *pt_Event;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Test different invalid Events are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidEventTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Event */
+        gpv_InvalidEventConstructorTable[u32_I](&pt_Event);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseEventToString(
+                pt_Event,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_EVENT);
+
+        /* Destroy the Event */
+        gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a leaf Event to string succeeds */
+void ITC_SerDes_Test_serialiseEventToStringLeafSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Event_t *pt_Event = NULL;
+    char rc_Buffer[3];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedNewEventSerialisedData = "0";
+    const char *z_ExpectedBiggerEventSerialisedData = "12";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    /* Serialise the Event to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedNewEventSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedNewEventSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedNewEventSerialisedData) + 1);
+
+    /* Test the buffer len hasn't been exceeded */
+    TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[2]);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+
+    /* Create a new Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 12));
+
+    /* Reset the buffer size */
+    u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Serialise the Event to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedBiggerEventSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedBiggerEventSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedBiggerEventSerialisedData) + 1);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising an Event to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseEventToStringFailWithInsufficentResources(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Event_t *pt_Event = NULL;
+    char rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN];
+    uint32_t u32_BufferSize;
+
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    /* Set the last byte to a random value */
+    rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN - 1] = 0xAA;
+
+    /* The min len requires just a NULL termination byte, but the overall
+     * status is still insufficent resources, as there was no space to serialise
+     * the Event */
+    u32_BufferSize = sizeof(rc_Buffer);
+    /* Serialise the Event to string */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    /* Test the buffer was NULL terminated */
+    TEST_ASSERT_EQUAL_CHAR(
+        '\0',
+        rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN - 1]);
+
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a parent Event to string succeeds */
+void ITC_SerDes_Test_serialiseEventToStringParentSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Event_t *pt_Event = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[48];
+#else
+    char rc_Buffer[38];
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 18446744073709551615), 0))";
+#else
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 4294967295), 0))";
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* clang-format off */
+    /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4242));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT32_MAX));
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    /* clang-format on */
+
+    /* Serialise the Event to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseEventToString(
+            pt_Event,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedEventSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        &z_ExpectedEventSerialisedData[0],
+        &rc_Buffer[0],
+        strlen(z_ExpectedEventSerialisedData) + 1);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a parent Event to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseEventToStringParentFailWithInsufficentResources(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Event_t *pt_Event = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[47];
+#else
+    char rc_Buffer[37];
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 18446744073709551615), 0))";
+#else
+    const char *z_ExpectedEventSerialisedData = "(0, 1, (0, (4242, 0, 4294967295), 0))";
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+
+    /* clang-format off */
+    /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left, pt_Event->pt_Right, 4242));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Left, pt_Event->pt_Right->pt_Left, 0));
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Left->pt_Right, pt_Event->pt_Right->pt_Left, UINT32_MAX));
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right->pt_Right, pt_Event->pt_Right, 0));
+    /* clang-format on */
+
+    for (uint32_t u32_I = ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN;
+         u32_I <= strlen(z_ExpectedEventSerialisedData);
+         u32_I++)
+    {
+        /* Init to a random value */
+        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+        u32_BufferSize = u32_I;
+        /* Serialise the Event to string */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseEventToString(
+                pt_Event,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+        /* Test the string is NULL terminated and the length was not exceeded */
+        TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
+        for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
+        {
+            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+        }
+
+        /* Test the partial output is what is expected */
+        TEST_ASSERT_EQUAL_STRING_LEN(
+            z_ExpectedEventSerialisedData,
+            &rc_Buffer[0],
+            strnlen(&rc_Buffer[0], u32_I));
+    }
+
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 }
 
 /* Test deserialising an Event fails with invalid param */
@@ -852,7 +1433,7 @@ void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
         0xFFU,
         0xFFU,
         0xFFU,
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
@@ -876,7 +1457,7 @@ void ITC_SerDes_Test_deserialiseParentEventSuccessful(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, UINT64_MAX);
 #else
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Left->pt_Right, UINT32_MAX);
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right->pt_Right, 0);
     /* clang-format on */
 
@@ -1032,7 +1613,7 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
     uint8_t ru8_Buffer[18] = { 0 };
 #else
     uint8_t ru8_Buffer[14] = { 0 };
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
 
     uint8_t ru8_ExpectedStampSerialisedData[] = {
@@ -1046,7 +1627,7 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
         11,
 #else
         7,
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
 #if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
         ITC_SERDES_CREATE_EVENT_HEADER(false, 8),
@@ -1064,7 +1645,7 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
         0xFFU,
         0xFFU,
         0xFFU,
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
 
@@ -1082,7 +1663,7 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT64_MAX));
 #else
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT32_MAX));
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 0));
     /* clang-format on */
 
@@ -1099,6 +1680,309 @@ void ITC_SerDes_Test_serialiseStampWithParentComponentsSuccessful(void)
 
     /* Destroy the Stamp */
     TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+}
+
+/* Test serialising a Stamp to string fails with invalid param */
+void ITC_SerDes_Test_serialiseStampToStringFailInvalidParam(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Stamp_t *pt_Dummy = NULL;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Dummy,
+            &rc_Buffer[0],
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            NULL,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Dummy,
+            NULL,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+
+    u32_BufferSize = 0;
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Dummy,
+            rc_Buffer,
+            &u32_BufferSize),
+        ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a Stamp to string fails with corrupt Stamp */
+void ITC_SerDes_Test_serialiseStampToStringFailWithCorruptStamp(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Stamp_t *pt_Stamp;
+    char rc_Buffer[10] = { 0 };
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Test different invalid Stamps are handled properly */
+    for (uint32_t u32_I = 0;
+         u32_I < gu32_InvalidStampTablesSize;
+         u32_I++)
+    {
+        /* Construct an invalid Stamp */
+        gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
+
+        /* Test for the failure */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseStampToString(
+                pt_Stamp,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_CORRUPT_STAMP);
+
+        /* Destroy the Stamp */
+        gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
+    }
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a Stamp with leaf ID and Event to string succeeds */
+void ITC_SerDes_Test_serialiseStampToStringWithLeafIdAndEventSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    char rc_Buffer[8];
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+    const char *z_ExpectedNewStampSerialisedData = "{1; 0}";
+    const char *z_ExpectedBiggerStampSerialisedData = "{1; 12}";
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Serialise the Stamp to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedNewStampSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedNewStampSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedNewStampSerialisedData) + 1);
+
+    /* Test the buffer len hasn't been exceeded */
+    TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[7]);
+
+    /* Make the Event component bigger */
+    pt_Stamp->pt_Event->t_Count = 12;
+
+    /* Reset the buffer size */
+    u32_BufferSize = sizeof(rc_Buffer);
+
+    /* Serialise the Stamp to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(
+        strlen(z_ExpectedBiggerStampSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        z_ExpectedBiggerStampSerialisedData,
+        &rc_Buffer[0],
+        strlen(z_ExpectedBiggerStampSerialisedData) + 1);
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a Stamp to string fails with insufficent resources */
+void ITC_SerDes_Test_serialiseStampToStringFailWithInsufficentResources(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+    char rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN];
+    uint32_t u32_BufferSize;
+
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* Set the last byte to a random value */
+    rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN - 1] = 0xAA;
+
+    /* The min len requires just a NULL termination byte, but the overall
+     * status is still insufficent resources, as there was no space to serialise
+     * the Stamp */
+    u32_BufferSize = sizeof(rc_Buffer);
+    /* Serialise the Stamp to string */
+    TEST_FAILURE(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize),
+        ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+    /* Test the buffer was NULL terminated */
+    TEST_ASSERT_EQUAL_CHAR(
+        '\0',
+        rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN - 1]);
+
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a Stamp with parent components to string succeeds */
+void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsSuccessful(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[39];
+#else
+    char rc_Buffer[29];
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 18446744073709551615, 0)}";
+#else
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 4294967295, 0)}";
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+
+    /* Init to a random value */
+    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* clang-format off */
+    /* Add nodes to the ID component */
+    pt_Stamp->pt_Id->b_IsOwner = false;
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id->pt_Left, pt_Stamp->pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Stamp->pt_Id->pt_Right, pt_Stamp->pt_Id));
+
+    /* Add nodes to the Event component */
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT32_MAX));
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 0));
+    /* clang-format on */
+
+    /* Serialise the Stamp to string */
+    TEST_SUCCESS(
+        ITC_SerDes_serialiseStampToString(
+            pt_Stamp,
+            &rc_Buffer[0],
+            &u32_BufferSize));
+
+    /* Test the serialised data is what is expected */
+    TEST_ASSERT_EQUAL(strlen(z_ExpectedStampSerialisedData) + 1, u32_BufferSize);
+    TEST_ASSERT_EQUAL_STRING_LEN(
+        &z_ExpectedStampSerialisedData[0],
+        &rc_Buffer[0],
+        strlen(z_ExpectedStampSerialisedData) + 1);
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+}
+
+/* Test serialising a Stamp with parent components to string fails with
+ * insufficent resources */
+void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsFailWithInsufficentResources(void)
+{
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+    ITC_Stamp_t *pt_Stamp = NULL;
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    char rc_Buffer[38];
+#else
+    char rc_Buffer[28];
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    uint32_t u32_BufferSize = sizeof(rc_Buffer);
+
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 18446744073709551615, 0)}";
+#else
+    const char *z_ExpectedStampSerialisedData = "{(1, 0); (0, 4294967295, 0)}";
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+
+    /* Create a new Stamp */
+    TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
+
+    /* clang-format off */
+    /* Add nodes to the ID component */
+    pt_Stamp->pt_Id->b_IsOwner = false;
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Stamp->pt_Id->pt_Left, pt_Stamp->pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Stamp->pt_Id->pt_Right, pt_Stamp->pt_Id));
+
+    /* Add nodes to the Event component */
+#if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT64_MAX));
+#else
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Left, pt_Stamp->pt_Event, UINT32_MAX));
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Stamp->pt_Event->pt_Right, pt_Stamp->pt_Event, 0));
+    /* clang-format on */
+
+    for (uint32_t u32_I = ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN;
+         u32_I <= strlen(z_ExpectedStampSerialisedData);
+         u32_I++)
+    {
+        /* Init to a random value */
+        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+
+        u32_BufferSize = u32_I;
+        /* Serialise the Stamp to string */
+        TEST_FAILURE(
+            ITC_SerDes_serialiseStampToString(
+                pt_Stamp,
+                &rc_Buffer[0],
+                &u32_BufferSize),
+            ITC_STATUS_INSUFFICIENT_RESOURCES);
+
+        /* Test the string is NULL terminated and the length was not exceeded */
+        TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
+        for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
+        {
+            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+        }
+
+        /* Test the partial output is what is expected */
+        TEST_ASSERT_EQUAL_STRING_LEN(
+            z_ExpectedStampSerialisedData,
+            &rc_Buffer[0],
+            strnlen(&rc_Buffer[0], u32_I));
+    }
+
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
+#else
+    TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 }
 
 /* Test deserialising a Stamp fails with invalid param */
@@ -1134,7 +2018,7 @@ void ITC_SerDes_Test_deserialiseStampFailInvalidParam(void)
         ITC_STATUS_INVALID_PARAM);
 }
 
-/* Test deserialising an Stamp fails with corrupt Stamp */
+/* Test deserialising a Stamp fails with corrupt Stamp */
 void ITC_SerDes_Test_deserialiseStampFailWithCorruptStamp(void)
 {
     ITC_Stamp_t *pt_Stamp;
@@ -1291,7 +2175,7 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
         18,
 #else
         14,
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
         ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
         ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
         1,
@@ -1316,7 +2200,7 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
         0xFFU,
         0xFFU,
         0xFFU,
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
         ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
     };
     uint32_t u32_BufferSize = sizeof(ru8_Buffer);
@@ -1340,7 +2224,7 @@ void ITC_SerDes_Test_deserialiseParentStampSuccessful(void)
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left->pt_Right, UINT64_MAX);
 #else
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Left->pt_Right, UINT32_MAX);
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event->pt_Right->pt_Right, 0);
     /* clang-format on */
 

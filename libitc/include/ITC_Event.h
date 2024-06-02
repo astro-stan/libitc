@@ -20,7 +20,7 @@ typedef uint64_t ITC_Event_Counter_t;
 #else
 /* The ITC Event counter */
 typedef uint32_t ITC_Event_Counter_t;
-#endif
+#endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
 
 /* The ITC Event */
 typedef struct ITC_Event_t

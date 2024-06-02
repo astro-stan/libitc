@@ -19,6 +19,10 @@
 #include "ITC_SerDes.h"
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
+#if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
+#include "ITC_SerDes_package.h"
+#endif /* !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API) */
+
 #include "ITC_Port.h"
 
 #include <stdbool.h>
@@ -984,6 +988,151 @@ static ITC_Status_t serialiseId(
     return t_Status;
 }
 
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+
+/**
+ * @brief Serialise an existing ITC Id to ASCII string
+ *
+ * @param ppt_Id The pointer to the Id
+ * @param pc_Buffer The buffer to hold the serialised data
+ * @param pu32_BufferSize (in) The size of the buffer in bytes. (out) The size
+ * of the data inside the buffer in bytes.
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
+ */
+static ITC_Status_t serialiseIdToString(
+    const ITC_Id_t *pt_Id,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    const ITC_Id_t *pt_CurrentIdParent = NULL; /* The current ID node */
+    const ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent; /* The root parent */
+    uint32_t u32_Offset = 0;
+
+    /* Ensure there is at least space for the NULL termination */
+    if (*pu32_BufferSize < 1)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    /* Perform a pre-order traversal */
+    while (t_Status == ITC_STATUS_SUCCESS && pt_Id)
+    {
+        /* Check there is space left in the buffer, taking into account the
+         * NULL termination byte and opening bracket/ownership indicator */
+        if (u32_Offset >= (*pu32_BufferSize - 1))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+        else
+        {
+            if (ITC_ID_IS_PARENT_ID(pt_Id))
+            {
+                /* Open a bracket to signify a parent node */
+                pc_Buffer[u32_Offset] = '(';
+            }
+            else if (pt_Id->b_IsOwner)
+            {
+                pc_Buffer[u32_Offset] = '1';
+            }
+            else
+            {
+                pc_Buffer[u32_Offset] = '0';
+            }
+
+            /* Increment offset */
+            u32_Offset++;
+
+            /* Descend into left tree */
+            if (pt_Id->pt_Left)
+            {
+                /* Remember the parent address */
+                pt_CurrentIdParent = pt_Id;
+
+                pt_Id = pt_Id->pt_Left;
+            }
+            /* Valid parent ITC Id trees always have both left and right
+             * nodes. Thus, there is no need to check if the current node
+             * doesn't have a left child but has a right one.
+             *
+             * Instead directly start backtracking up the tree */
+            else
+            {
+                /* Loop until the current element is no longer reachable
+                 * through the parent's right child */
+                while (t_Status == ITC_STATUS_SUCCESS &&
+                       pt_CurrentIdParent != pt_RootIdParent &&
+                       pt_CurrentIdParent->pt_Right == pt_Id)
+                {
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_CurrentIdParent = pt_CurrentIdParent->pt_Parent;
+
+                    /* Check there is space left in the buffer, taking into
+                     * account the NULL termination byte and bracket */
+                    if (u32_Offset >= (*pu32_BufferSize - 1))
+                    {
+                        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+                    }
+                    else
+                    {
+                        /* Close the current parent node bracket */
+                        pc_Buffer[u32_Offset] = ')';
+                        u32_Offset++;
+                    }
+                }
+
+                /* There is a right subtree that has not been explored yet */
+                if (t_Status == ITC_STATUS_SUCCESS &&
+                    pt_CurrentIdParent != pt_RootIdParent)
+                {
+                    pt_Id = pt_CurrentIdParent->pt_Right;
+
+                    /* Check there is space left in the buffer, taking into
+                     * account the NULL termination byte, comma and space */
+                    if (u32_Offset >= (*pu32_BufferSize - 2))
+                    {
+                        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+                    }
+                    else
+                    {
+                        /* Add a comma to signify the start of a new node */
+                        pc_Buffer[u32_Offset] = ',';
+                        u32_Offset++;
+
+                        /* Add a space between nodes */
+                        pc_Buffer[u32_Offset] = ' ';
+                        u32_Offset++;
+                    }
+                }
+                else
+                {
+                    pt_Id = NULL;
+                }
+            }
+        }
+    }
+
+    if (t_Status != ITC_STATUS_INVALID_PARAM)
+    {
+        /* Ensure the string is always NULL-termiated */
+        pc_Buffer[u32_Offset] = '\0';
+        u32_Offset++;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Return the size of the data in the buffer */
+        *pu32_BufferSize = u32_Offset;
+    }
+
+    return t_Status;
+}
+
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+
 /**
  * @brief Deserialise an ITC Id
  *
@@ -1472,7 +1621,7 @@ ITC_Status_t ITC_SerDes_Util_serialiseId(
     ITC_Status_t t_Status; /* The current status */
 
     t_Status = ITC_SerDes_Util_validateBuffer(
-        pu8_Buffer,
+        &pu8_Buffer[0],
         pu32_BufferSize,
         (b_AddVersion) ? ITC_SERDES_ID_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN
                        : ITC_SERDES_ID_MIN_BUFFER_LEN,
@@ -1486,7 +1635,7 @@ ITC_Status_t ITC_SerDes_Util_serialiseId(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = serialiseId(
-            pt_Id, pu8_Buffer, pu32_BufferSize, b_AddVersion);
+            pt_Id, &pu8_Buffer[0], pu32_BufferSize, b_AddVersion);
     }
 
     return t_Status;
@@ -1513,7 +1662,7 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = ITC_SerDes_Util_validateBuffer(
-            pu8_Buffer,
+            &pu8_Buffer[0],
             &u32_BufferSize,
             (b_HasVersion) ? ITC_SERDES_ID_MIN_BUFFER_LEN + ITC_VERSION_MAJOR_LEN
                            : ITC_SERDES_ID_MIN_BUFFER_LEN,
@@ -1523,11 +1672,46 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = deserialiseId(
-            pu8_Buffer, u32_BufferSize, b_HasVersion, ppt_Id);
+            &pu8_Buffer[0], u32_BufferSize, b_HasVersion, ppt_Id);
     }
 
     return t_Status;
 }
+
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+
+/******************************************************************************
+ * Serialise an existing ITC Id to string
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_serialiseIdToString(
+    const ITC_Id_t *const pt_Id,
+    char *const pc_Buffer,
+    uint32_t *const pu32_BufferSize
+)
+{
+    ITC_Status_t t_Status; /* The current status */
+
+    t_Status = ITC_SerDes_Util_validateBuffer(
+        (uint8_t *)&pc_Buffer[0],
+        pu32_BufferSize,
+        ITC_SER_TO_STR_ID_MIN_BUFFER_LEN,
+        true);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateId(pt_Id, true);
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = serialiseIdToString(pt_Id, &pc_Buffer[0], pu32_BufferSize);
+    }
+
+    return t_Status;
+}
+
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
 
 #if ITC_CONFIG_ENABLE_EXTENDED_API
 
