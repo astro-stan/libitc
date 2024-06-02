@@ -19,6 +19,10 @@
 #include "ITC_SerDes.h"
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
+#if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
+#include "ITC_SerDes_package.h"
+#endif /* !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API) */
+
 #include "ITC_Port.h"
 
 #include <stdbool.h>
@@ -1674,8 +1678,6 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     return t_Status;
 }
 
-#if ITC_CONFIG_ENABLE_EXTENDED_API
-
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
 /******************************************************************************
@@ -1710,6 +1712,8 @@ ITC_Status_t ITC_SerDes_serialiseIdToString(
 }
 
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+
+#if ITC_CONFIG_ENABLE_EXTENDED_API
 
 /******************************************************************************
  * Serialise an existing ITC Id
