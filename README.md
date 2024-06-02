@@ -49,12 +49,12 @@ libitc strives to be flexible and allows turning on/off optional features. This 
 
 See [`ITC_config.h`](./libitc/include/ITC_config.h) for all available options.
 
-You can modify the header file directly to change the default configuration, or you can provide alternative values via `CFLAGS` during the [build configuration](#build-configuration) stage.
+You can modify the header file directly to change the default configuration, or you can provide alternative values via `CFLAGS` or the [builtin `c_args` Meson option](https://mesonbuild.com/Builtin-options.html#:~:text=Description-,c_args,-free%2Dform%20comma) during the [build configuration](#build-configuration) stage.
 
 For example, to enable the extended API, you can configure the build like so:
 
 ```bash
-CFLAGS="-DITC_CONFIG_ENABLE_EXTENDED_API=1" meson setup -Doptimization=2 -Ddebug=false build-with-extended-api
+meson setup -Doptimization=2 -Ddebug=false -Dc_args="-DITC_CONFIG_ENABLE_EXTENDED_API=1" build-with-extended-api
 ```
 
 #### Compilation
