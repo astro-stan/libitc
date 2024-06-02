@@ -265,7 +265,7 @@ void ITC_SerDes_Test_serialiseIdParentSuccessful(void)
 /* Test serialising a Id to string fails with invalid param */
 void ITC_SerDes_Test_serialiseIdToStringFailInvalidParam(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Dummy = NULL;
     char rc_Buffer[10] = { 0 };
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -298,13 +298,13 @@ void ITC_SerDes_Test_serialiseIdToStringFailInvalidParam(void)
         ITC_STATUS_INVALID_PARAM);
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising an ID to string fails with corrupt ID */
 void ITC_SerDes_Test_serialiseToStringIdFailWithCorruptId(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Id;
     char rc_Buffer[10] = { 0 };
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -330,13 +330,13 @@ void ITC_SerDes_Test_serialiseToStringIdFailWithCorruptId(void)
     }
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising a leaf ID to string succeeds */
 void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Id = NULL;
     char rc_Buffer[2];
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -390,13 +390,13 @@ void ITC_SerDes_Test_serialiseIdLeafToStringSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising an ID to string fails with insufficent resources */
 void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Id = NULL;
     char rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN];
     uint32_t u32_BufferSize;
@@ -426,13 +426,13 @@ void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising a parent ID to string succeeds */
 void ITC_SerDes_Test_serialiseIdParentToStringSuccessful(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Id = NULL;
     char rc_Buffer[22];
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -473,13 +473,13 @@ void ITC_SerDes_Test_serialiseIdParentToStringSuccessful(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising a parent ID to string fails with insufficent resources */
 void ITC_SerDes_Test_serialiseIdParentToStringFailWithInsufficentResources(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Id = NULL;
     char rc_Buffer[21];
     uint32_t u32_BufferSize;
@@ -533,7 +533,7 @@ void ITC_SerDes_Test_serialiseIdParentToStringFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test deserialising a ID fails with invalid param */
@@ -941,7 +941,7 @@ void ITC_SerDes_Test_serialiseEventParentSuccessful(void)
 /* Test serialising a Event to string fails with invalid param */
 void ITC_SerDes_Test_serialiseEventToStringFailInvalidParam(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Dummy = NULL;
     char rc_Buffer[10] = { 0 };
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -974,13 +974,13 @@ void ITC_SerDes_Test_serialiseEventToStringFailInvalidParam(void)
         ITC_STATUS_INVALID_PARAM);
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising an Event to string fails with corrupt Event */
 void ITC_SerDes_Test_serialiseToStringEventFailWithCorruptEvent(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Event;
     char rc_Buffer[10] = { 0 };
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -1006,13 +1006,13 @@ void ITC_SerDes_Test_serialiseToStringEventFailWithCorruptEvent(void)
     }
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising a leaf Event to string succeeds */
 void ITC_SerDes_Test_serialiseEventLeafToStringSuccessful(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Event = NULL;
     char rc_Buffer[3];
     uint32_t u32_BufferSize = sizeof(rc_Buffer);
@@ -1072,13 +1072,13 @@ void ITC_SerDes_Test_serialiseEventLeafToStringSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising an Event to string fails with insufficent resources */
 void ITC_SerDes_Test_serialiseEventToStringFailWithInsufficentResources(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Event = NULL;
     char rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN];
     uint32_t u32_BufferSize;
@@ -1108,13 +1108,13 @@ void ITC_SerDes_Test_serialiseEventToStringFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising a parent Event to string succeeds */
 void ITC_SerDes_Test_serialiseEventParentToStringSuccessful(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Event = NULL;
 #if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
     char rc_Buffer[48];
@@ -1165,13 +1165,13 @@ void ITC_SerDes_Test_serialiseEventParentToStringSuccessful(void)
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test serialising a parent Event to string fails with insufficent resources */
 void ITC_SerDes_Test_serialiseEventParentToStringFailWithInsufficentResources(void)
 {
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Event = NULL;
 #if ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
     char rc_Buffer[47];
@@ -1234,7 +1234,7 @@ void ITC_SerDes_Test_serialiseEventParentToStringFailWithInsufficentResources(vo
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 #else
     TEST_IGNORE_MESSAGE("Serialise to string API support is disabled");
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test deserialising an Event fails with invalid param */
