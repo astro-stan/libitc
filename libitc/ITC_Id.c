@@ -1012,9 +1012,9 @@ static ITC_Status_t serialiseIdToString(
     const ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent; /* The root parent */
     uint32_t u32_Offset = 0;
 
+    /* Ensure there is at least space for the NULL termination */
     if (*pu32_BufferSize < 1)
     {
-        /* Ensure there is at least space for the NULL termination */
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
@@ -1022,7 +1022,7 @@ static ITC_Status_t serialiseIdToString(
     while (t_Status == ITC_STATUS_SUCCESS && pt_Id)
     {
         /* Check there is space left in the buffer, taking into account the
-         * NULL termination byte */
+         * NULL termination byte and opening bracket/ownership indicator */
         if (u32_Offset >= (*pu32_BufferSize - 1))
         {
             t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;

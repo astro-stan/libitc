@@ -1821,9 +1821,9 @@ static ITC_Status_t serialiseEventToString(
     /* The size of the stringified current node event counter */
     uint32_t u32_EventCounterSize = 0;
 
+    /* Ensure there is at least space for the NULL termination */
     if (*pu32_BufferSize < 1)
     {
-        /* Ensure there is at least space for the NULL termination */
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
@@ -1831,7 +1831,7 @@ static ITC_Status_t serialiseEventToString(
     while (t_Status == ITC_STATUS_SUCCESS && pt_Event)
     {
         /* Check there is space left in the buffer, taking into account the
-         * NULL termination byte */
+         * NULL termination byte and bracket */
         if (u32_Offset >= (*pu32_BufferSize - 1))
         {
             t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
@@ -1845,7 +1845,7 @@ static ITC_Status_t serialiseEventToString(
             u32_Offset++;
 
             /* Check there is space left in the buffer, taking into account the
-             * NULL termination byte */
+             * NULL termination byte and at least 1 digit event counter */
              if (u32_Offset >= (*pu32_BufferSize - 1))
              {
                  t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
