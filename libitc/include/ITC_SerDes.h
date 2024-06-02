@@ -169,6 +169,8 @@ ITC_Status_t ITC_SerDes_deserialiseStamp(
 
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
 /**
  * @brief Serialise an existing ITC Id to ASCII string
  *
@@ -204,6 +206,8 @@ ITC_Status_t ITC_SerDes_serialiseEventToString(
     char *const pc_Buffer,
     uint32_t *const pu32_BufferSize
 );
+
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /**
  * @brief Serialise an existing ITC Stamp to ASCII string

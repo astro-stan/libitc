@@ -58,9 +58,11 @@
  * which can be used to get an ASCII encodded representation of an ID, Event
  * or Stamp. When enabled, the following functions become available as part of
  * the public API:
- *   * `ITC_SerDes_serialiseIdToString`
- *   * `ITC_SerDes_serialiseEventToString`
  *   * `ITC_SerDes_serialiseStampToString`
+ *   * `ITC_SerDes_serialiseIdToString` (requires
+ *          `ITC_CONFIG_ENABLE_EXTENDED_API` to also be enabled)
+ *   * `ITC_SerDes_serialiseEventToString` (requires
+ *          `ITC_CONFIG_ENABLE_EXTENDED_API` to also be enabled)
  */
 #define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (0)
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */

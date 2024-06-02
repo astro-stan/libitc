@@ -15,9 +15,9 @@
 #include "ITC_SerDes_private.h"
 #include "ITC_SerDes_Util_package.h"
 
-#if ITC_CONFIG_ENABLE_EXTENDED_API || ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_EXTENDED_API
 #include "ITC_SerDes.h"
-#endif /* ITC_CONFIG_ENABLE_EXTENDED_API || ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #include "ITC_Port.h"
 
@@ -984,7 +984,7 @@ static ITC_Status_t serialiseId(
     return t_Status;
 }
 
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
 
 /**
  * @brief Serialise an existing ITC Id to ASCII string
@@ -1127,7 +1127,7 @@ static ITC_Status_t serialiseIdToString(
     return t_Status;
 }
 
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /**
  * @brief Deserialise an ITC Id
@@ -1674,6 +1674,8 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     return t_Status;
 }
 
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
 /******************************************************************************
@@ -1708,8 +1710,6 @@ ITC_Status_t ITC_SerDes_serialiseIdToString(
 }
 
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
-
-#if ITC_CONFIG_ENABLE_EXTENDED_API
 
 /******************************************************************************
  * Serialise an existing ITC Id

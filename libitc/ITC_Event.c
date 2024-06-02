@@ -15,9 +15,9 @@
 #include "ITC_SerDes_private.h"
 #include "ITC_SerDes_Util_package.h"
 
-#if ITC_CONFIG_ENABLE_EXTENDED_API || ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_EXTENDED_API
 #include "ITC_SerDes.h"
-#endif /* ITC_CONFIG_ENABLE_EXTENDED_API || ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 #include "ITC_Id_package.h"
 #include "ITC_Id_private.h"
@@ -1727,7 +1727,7 @@ static ITC_Status_t serialiseEvent(
     return t_Status;
 }
 
-#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
+#if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API
 
 /**
  * @brief Serialise an Event counter to ASCII string
@@ -1980,7 +1980,7 @@ static ITC_Status_t serialiseEventToString(
     return t_Status;
 }
 
-#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+#endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API */
 
 
 /**
@@ -2557,6 +2557,8 @@ ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
     return t_Status;
 }
 
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
 #if ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API
 
 /******************************************************************************
@@ -2592,8 +2594,6 @@ ITC_Status_t ITC_SerDes_serialiseEventToString(
 }
 
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
-
-#if ITC_CONFIG_ENABLE_EXTENDED_API
 
 /******************************************************************************
  * Serialise an existing ITC Event
