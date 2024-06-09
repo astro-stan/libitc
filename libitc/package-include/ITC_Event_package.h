@@ -127,17 +127,14 @@ ITC_Status_t ITC_Event_leq(
  *
  * Tries to add a new event that will result in simplifying the Event tree
  *
- * @warning If the function fails, the Event might be left in a partially
- * updated state and should not be used further.
- *
- * @param pt_Event The Event to fill
+ * @param ppt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
  * @param pb_WasFilled Whether filling the Event was successful or not
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_fill(
-    ITC_Event_t *pt_Event,
+    ITC_Event_t **ppt_Event,
     const ITC_Id_t *const pt_Id,
     bool *pb_WasFilled
 );
@@ -151,16 +148,13 @@ ITC_Status_t ITC_Event_fill(
  * Try filling the Event first (using `ITC_Event_fill`). If that fails, use this
  * function to grow the Event instead.
  *
- * @warning If the function fails, the Event might be left in a partially
- * updated state and should not be used further.
- *
- * @param pt_Event The Event to fill
+ * @param ppt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_grow(
-    ITC_Event_t *pt_Event,
+    ITC_Event_t **ppt_Event,
     const ITC_Id_t *const pt_Id
 );
 

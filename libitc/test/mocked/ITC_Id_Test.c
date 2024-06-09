@@ -235,32 +235,18 @@ void ITC_Id_Test_splitIdOriginalIdIsDestroyedOnSuccess(void)
 /* Test failed normalisation of an ID is properly recovered from */
 void ITC_Id_Test_normaliseIdIsRecoveredOnFailure(void)
 {
-    ITC_Id_t t_NewId1 = { 0 };
-    ITC_Id_t t_NewId2 = { 0 };
-    ITC_Id_t *pt_NewId1 = &t_NewId1;
-    ITC_Id_t *pt_NewId2 = &t_NewId2;
-
     /* Setup expectations */
     ITC_Port_free_ExpectAndReturn(gpt_ParentId->pt_Left, ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(gpt_ParentId->pt_Right, ITC_STATUS_FAILURE);
-
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Id_t), ITC_STATUS_SUCCESS);
-    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
-    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewId1);
-
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Id_t), ITC_STATUS_SUCCESS);
-    ITC_Port_malloc_IgnoreArg_ppv_Ptr();
-    ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewId2);
 
     /* Test failing to normalise a (1, 1) ID */
     gpt_ParentId->pt_Left->b_IsOwner = true;
     gpt_ParentId->pt_Right->b_IsOwner = true;
     TEST_FAILURE(ITC_Id_normalise(gpt_ParentId), ITC_STATUS_FAILURE);
 
-    /* Test the ID is the same but the children have been restored */
-    TEST_ITC_ID_IS_SEED_SEED_ID(gpt_ParentId);
-    TEST_ASSERT_EQUAL_PTR(pt_NewId2, gpt_ParentId->pt_Left);
-    TEST_ASSERT_EQUAL_PTR(pt_NewId1, gpt_ParentId->pt_Right);
+    /* Test the ID was normalised properly, even though one of the children
+     * deallocations failed */
+    TEST_ITC_ID_IS_SEED_ID(gpt_ParentId);
 }
 
 /* Test failed summing of two IDs is properly cleaned up */

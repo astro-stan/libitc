@@ -578,9 +578,6 @@ static ITC_Status_t splitIdI(
 /**
  * @brief Normalise a (1, 1) or (0, 0) ID
  *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
- *
  * @note It is assumed the child ID nodes are leafs, have not bee freed and
  * and have the same ownership - i.e (1, 1) or (0, 0)
  *
@@ -593,11 +590,10 @@ static ITC_Status_t normId11Or00(
     ITC_Id_t *pt_Id
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
-    ITC_Status_t t_OpStatus;
+    ITC_Status_t t_Status; /* The current status */
 
-    /* Remember the node ownership. Assume both nodes have the same ownership */
-    const bool b_IsOwner = pt_Id->pt_Left->b_IsOwner;
+    /* Update the ownership */
+    pt_Id->b_IsOwner = pt_Id->pt_Left->b_IsOwner;
 
     /* Destroy the left leaf child */
     t_Status = ITC_Id_destroy(&pt_Id->pt_Left);
@@ -606,30 +602,6 @@ static ITC_Status_t normId11Or00(
     {
         /* Destroy the right leaf child */
         t_Status = ITC_Id_destroy(&pt_Id->pt_Right);
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the right leaf child */
-            t_OpStatus = newId(&pt_Id->pt_Right, pt_Id, b_IsOwner);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
-    }
-
-    if (t_Status != ITC_STATUS_SUCCESS)
-    {
-        /* Restore the left leaf child */
-        t_OpStatus = newId(&pt_Id->pt_Left, pt_Id, b_IsOwner);
-
-        if (t_OpStatus != ITC_STATUS_SUCCESS)
-        {
-            /* Return last error */
-            t_Status = t_OpStatus;
-        }
     }
 
     return t_Status;
@@ -690,34 +662,10 @@ static ITC_Status_t normIdI(
             }
         }
 
-        if (pt_Id)
+        /* norm(1, 1) = 1 or norm(0, 0) = 0 */
+        if (ITC_ID_IS_SEED_SEED_ID(pt_Id) || ITC_ID_IS_NULL_NULL_ID(pt_Id))
         {
-            /* norm(1, 1) = 1 */
-            if (ITC_ID_IS_SEED_SEED_ID(pt_Id))
-            {
-                /* Destroy the children */
-                t_Status = normId11Or00(pt_Id);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_Id->b_IsOwner = true;
-                }
-            }
-            /* norm(0, 0) = 0 */
-            else if (ITC_ID_IS_NULL_NULL_ID(pt_Id))
-            {
-                /* Destroy the children */
-                t_Status = normId11Or00(pt_Id);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_Id->b_IsOwner = false;
-                }
-            }
-            else
-            {
-                /* Nothing to do */
-            }
+            t_Status = normId11Or00(pt_Id);
         }
     }
 

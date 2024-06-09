@@ -280,7 +280,7 @@ static ITC_Status_t incEventCounter(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect overflow */
-    if (*pt_Counter + t_IncCount < *pt_Counter)
+    if (t_IncCount > (((ITC_Event_Counter_t)~0) - *pt_Counter))
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_OVERFLOW;
     }
@@ -317,7 +317,7 @@ static ITC_Status_t decEventCounter(
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
     /* Detect underflow */
-    if (*pt_Counter - t_DecCount > *pt_Counter)
+    if (t_DecCount > *pt_Counter)
     {
         t_Status = ITC_STATUS_EVENT_COUNTER_UNDERFLOW;
     }
@@ -334,9 +334,6 @@ static ITC_Status_t decEventCounter(
  *     `(n, e1, e2) = (lift(n, m), sink(e1, m), sink(e2, m))`,
  *     where `m = min(e1, e2)`.
  *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
- *
  * @note It is assumed `e1` and `e2` are normalised Events, such that
  * `min((n, e1, e2)) == n`, i.e one of the subtrees has an event counter
  * equal to 0
@@ -350,10 +347,9 @@ static ITC_Status_t liftSinkSinkEvent(
 )
 {
     ITC_Status_t t_Status;
-    ITC_Status_t t_OpStatus;
     ITC_Event_Counter_t t_Count;
 
-    /* Remember the count */
+    /* Find the min count */
     t_Count = MIN(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
     /* Lift the event counter of the root node */
@@ -363,36 +359,12 @@ static ITC_Status_t liftSinkSinkEvent(
     {
         /* Sink the left child */
         t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
+    }
 
-        if (t_Status == ITC_STATUS_SUCCESS)
-        {
-            t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
-
-            if (t_Status != ITC_STATUS_SUCCESS)
-            {
-                /* Restore the left child */
-                t_OpStatus = incEventCounter(
-                    &pt_Event->pt_Left->t_Count, t_Count);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
-            }
-        }
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the event counter of the root node */
-            t_OpStatus = decEventCounter(&pt_Event->t_Count, t_Count);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Sink the right child */
+        t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
     }
 
     return t_Status;
@@ -402,9 +374,6 @@ static ITC_Status_t liftSinkSinkEvent(
  * @brief Given an event `(n, e1, e2)` performs:
  *     `(n, e1, e2) = lift(n, m)`,
  *     where `m = max(e1, e2)`.
- *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
  *
  * @note It is assumed `e1` and `e2` are leaf Events, such that
  * `max((n, e1, e2)) == n + max(e1, e2)`
@@ -419,63 +388,22 @@ static ITC_Status_t liftDestroyDestroyEvent(
 )
 {
     ITC_Status_t t_Status;
-    ITC_Status_t t_OpStatus;
-    ITC_Event_Counter_t t_LeftCount;
-    ITC_Event_Counter_t t_RightCount;
-    ITC_Event_Counter_t t_MaxCount;
-
-    /* Remember the counts */
-    t_LeftCount = pt_Event->pt_Left->t_Count;
-    t_RightCount = pt_Event->pt_Right->t_Count;
-    t_MaxCount = MAX(t_LeftCount, t_RightCount);
 
     /* Lift the event counter of the root node */
-    t_Status = incEventCounter(&pt_Event->t_Count, t_MaxCount);
+    t_Status = incEventCounter(
+        &pt_Event->t_Count,
+        MAX(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count));
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Destroy the left leaf child */
         t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+    }
 
-        if (t_Status == ITC_STATUS_SUCCESS)
-        {
-            /* Destroy the right leaf child */
-            t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
-
-            if (t_Status != ITC_STATUS_SUCCESS)
-            {
-                /* Restore the right leaf child */
-                t_OpStatus = newEvent(
-                    &pt_Event->pt_Right, pt_Event, t_RightCount);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
-            }
-        }
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the left leaf child */
-            t_OpStatus = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-
-            /* Restore the event counter of the root node */
-            t_OpStatus = decEventCounter(&pt_Event->t_Count, t_MaxCount);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the right leaf child */
+        t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
     }
 
     return t_Status;
@@ -483,9 +411,6 @@ static ITC_Status_t liftDestroyDestroyEvent(
 
 /**
  * @brief Turn a leaf Event into a parent by allocating 2 child nodes for it
- *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
  *
  * @note It is assumed the Event passed in is a leaf event. If not, a memory
  * leak will occur as the original children will not be deallocated before
@@ -505,26 +430,14 @@ static ITC_Status_t createChildEventNodes(
 )
 {
     ITC_Status_t t_Status;
-    ITC_Status_t t_OpStatus;
 
-    /* Allocate the children */
+    /* Allocate the left child */
     t_Status = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Allocate the right child */
         t_Status = newEvent(&pt_Event->pt_Right, pt_Event, t_RightCount);
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Deallocate the other child */
-            t_OpStatus = ITC_Event_destroy(&pt_Event->pt_Left);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
     }
 
     return t_Status;
@@ -1076,7 +989,7 @@ static ITC_Status_t maxEventE(
  *  - fill((il, ir), (n, el, er)):
  *        norm((n, fill(il, el), fill(ir, er)))
  *
- * @param pt_Event The Event to fill
+ * @param ppt_Event The Event to fill
  * @param pt_Id The ID showing the ownership information for the interval
  * @param pb_WasFilled (out) Whether the event was filled or not. In some cases
  * filling an Event (simplifying + inflating) is not possible
@@ -1084,15 +997,17 @@ static ITC_Status_t maxEventE(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t fillEventE(
-    ITC_Event_t *pt_Event,
+    ITC_Event_t **ppt_Event,
     const ITC_Id_t *pt_Id,
     bool *pb_WasFilled
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
+    /* Clone of `*ppt_Event` - modifications will be done on the cloned event */
+    ITC_Event_t *pt_ClonedEvent = NULL;
+    ITC_Event_t *pt_CurrentEvent = *ppt_Event;
     /* Remember the root parents as these might be Event or ID subtrees */
-    ITC_Event_t *pt_RootEventParent = pt_Event->pt_Parent;
+    ITC_Event_t *pt_RootEventParent = (*ppt_Event)->pt_Parent;
     ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent;
 
     /* The previously iterated ID subtree.
@@ -1102,178 +1017,212 @@ static ITC_Status_t fillEventE(
     /* Init the flag */
     *pb_WasFilled = false;
 
-    while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_Event != pt_RootEventParent &&
-           pt_Id != pt_RootIdParent)
+    /* Clone the event */
+    t_Status = cloneEvent(*ppt_Event, &pt_ClonedEvent, pt_RootEventParent);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* fill(0, e) = e or fill(i, n) = n */
-        if(ITC_ID_IS_NULL_ID(pt_Id) ||
-           ITC_EVENT_IS_LEAF_EVENT(pt_Event))
+        while (t_Status == ITC_STATUS_SUCCESS &&
+               pt_CurrentEvent != pt_RootEventParent &&
+               pt_Id != pt_RootIdParent)
         {
-            pt_PrevId = pt_Id;
-
-            /* Nothing to inflate. Go up the tree */
-            pt_Id = pt_Id->pt_Parent;
-            pt_Event = pt_Event->pt_Parent;
-        }
-        /* fill(1, e) = max(e) */
-        else if (ITC_ID_IS_SEED_ID(pt_Id))
-        {
-            pt_PrevId = pt_Id;
-
-            /* Maximise Event (turn it into a leaf) */
-            t_Status = maxEventE(pt_Event);
-
-            if (t_Status == ITC_STATUS_SUCCESS)
+            /* fill(0, e) = e or fill(i, n) = n */
+            if(ITC_ID_IS_NULL_ID(pt_Id) ||
+               ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent))
             {
-                *pb_WasFilled = true;
+                pt_PrevId = pt_Id;
 
+                /* Nothing to inflate. Go up the tree */
                 pt_Id = pt_Id->pt_Parent;
-                pt_Event = pt_Event->pt_Parent;
+                pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
             }
-        }
-        /* fill((1, ir), (n, el, er)):
-         *     norm((n, max(max(el), min(er')), er')), where er' = fill(ir, er)
-         */
-        else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Left))
-        {
-            /* er' = fill(ir, er) */
-            if (pt_PrevId != pt_Id->pt_Right)
+            /* fill(1, e) = max(e) */
+            else if (ITC_ID_IS_SEED_ID(pt_Id))
             {
                 pt_PrevId = pt_Id;
 
-                pt_Id = pt_Id->pt_Right;
-                pt_Event = pt_Event->pt_Right;
-            }
-            /* norm((n, max(max(el), min(er')), er')) */
-            else
-            {
-                /* el = max(el) */
-                if (ITC_EVENT_IS_PARENT_EVENT(pt_Event->pt_Left))
+                /* Maximise Event (turn it into a leaf) */
+                t_Status = maxEventE(pt_CurrentEvent);
+
+                if (t_Status == ITC_STATUS_SUCCESS)
                 {
-                    /* Turn el into a leaf Event */
-                    t_Status = maxEventE(pt_Event->pt_Left);
-
-                    if (t_Status == ITC_STATUS_SUCCESS)
-                    {
-                        *pb_WasFilled = true;
-                    }
-                }
-
-                /* el = max(el, min(er')) */
-                if (t_Status == ITC_STATUS_SUCCESS &&
-                    (pt_Event->pt_Left->t_Count <
-                     pt_Event->pt_Right->t_Count))
-                {
-                    /* For a normalised Event: min((n, el, er)) = n */
-                    pt_Event->pt_Left->t_Count = pt_Event->pt_Right->t_Count;
-
                     *pb_WasFilled = true;
-                }
 
-                /* norm((n, el, er')) */
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    t_Status = normEventE(pt_Event);
-
-                    if (t_Status == ITC_STATUS_SUCCESS)
-                    {
-                        pt_PrevId = pt_Id;
-
-                        pt_Id = pt_Id->pt_Parent;
-                        pt_Event = pt_Event->pt_Parent;
-                    }
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
                 }
             }
-        }
-        /* fill((il, 1), (n, el, er)):
-         *     norm((n, el', max(max(er), min(el')))), where el' = fill(il, el)
-         */
-        else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
-        {
-            /* el' = fill(il, el) */
-            if (pt_PrevId != pt_Id->pt_Left)
+            /* fill((1, ir), (n, el, er)):
+             *     norm((n, max(max(el), min(er')), er')), where:
+             *         er' = fill(ir, er)
+             */
+            else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Left))
             {
-                pt_PrevId = pt_Id;
-
-                pt_Id = pt_Id->pt_Left;
-                pt_Event = pt_Event->pt_Left;
-            }
-            /* norm((n, el', max(max(er), min(el')))) */
-            else
-            {
-                /* er = max(er) */
-                if (ITC_EVENT_IS_PARENT_EVENT(pt_Event->pt_Right))
-                {
-                    /* Turn er into a leaf Event */
-                    t_Status = maxEventE(pt_Event->pt_Right);
-
-                    if (t_Status == ITC_STATUS_SUCCESS)
-                    {
-                        *pb_WasFilled = true;
-                    }
-                }
-
-                /* er = max(er, min(el')) */
-                if (t_Status == ITC_STATUS_SUCCESS &&
-                    (pt_Event->pt_Right->t_Count <
-                     pt_Event->pt_Left->t_Count))
-                {
-                    /* For a normalised Event: min((n, el, er)) = n */
-                    pt_Event->pt_Right->t_Count = pt_Event->pt_Left->t_Count;
-
-                    *pb_WasFilled = true;
-                }
-
-                /* norm((n, el', er)) */
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    t_Status = normEventE(pt_Event);
-
-                    if (t_Status == ITC_STATUS_SUCCESS)
-                    {
-                        pt_PrevId = pt_Id;
-
-                        pt_Id = pt_Id->pt_Parent;
-                        pt_Event = pt_Event->pt_Parent;
-                    }
-                }
-            }
-        }
-        /* fill((il, ir), (n, el, er)):
-         *     norm((n, fill(il, el), fill(ir, er)))
-         */
-        else
-        {
-            /* fill(il, el) */
-            if (pt_PrevId != pt_Id->pt_Left && pt_PrevId != pt_Id->pt_Right)
-            {
-                pt_PrevId = pt_Id;
-
-                pt_Id = pt_Id->pt_Left;
-                pt_Event = pt_Event->pt_Left;
-            }
-            /* fill(ir, er) */
-            else if (pt_PrevId != pt_Id->pt_Right)
-            {
-                pt_PrevId = pt_Id;
-
-                pt_Id = pt_Id->pt_Right;
-                pt_Event = pt_Event->pt_Right;
-            }
-            /* norm((n, el, er) */
-            else
-            {
-                t_Status = normEventE(pt_Event);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
+                /* er' = fill(ir, er) */
+                if (pt_PrevId != pt_Id->pt_Right)
                 {
                     pt_PrevId = pt_Id;
 
-                    pt_Id = pt_Id->pt_Parent;
-                    pt_Event = pt_Event->pt_Parent;
+                    pt_Id = pt_Id->pt_Right;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+                }
+                /* norm((n, max(max(el), min(er')), er')) */
+                else
+                {
+                    /* el = max(el) */
+                    if (ITC_EVENT_IS_PARENT_EVENT(pt_CurrentEvent->pt_Left))
+                    {
+                        /* Turn el into a leaf Event */
+                        t_Status = maxEventE(pt_CurrentEvent->pt_Left);
+
+                        if (t_Status == ITC_STATUS_SUCCESS)
+                        {
+                            *pb_WasFilled = true;
+                        }
+                    }
+
+                    /* el = max(el, min(er')) */
+                    if (t_Status == ITC_STATUS_SUCCESS &&
+                        (pt_CurrentEvent->pt_Left->t_Count <
+                            pt_CurrentEvent->pt_Right->t_Count))
+                    {
+                        /* For a normalised Event: min((n, el, er)) = n */
+                        pt_CurrentEvent->pt_Left->t_Count =
+                            pt_CurrentEvent->pt_Right->t_Count;
+
+                        *pb_WasFilled = true;
+                    }
+
+                    /* norm((n, el, er')) */
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        t_Status = normEventE(pt_CurrentEvent);
+
+                        if (t_Status == ITC_STATUS_SUCCESS)
+                        {
+                            pt_PrevId = pt_Id;
+
+                            pt_Id = pt_Id->pt_Parent;
+                            pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                        }
+                    }
                 }
             }
+            /* fill((il, 1), (n, el, er)):
+            *     norm((n, el', max(max(er), min(el')))), where:
+            *         el' = fill(il, el)
+            */
+            else if (ITC_ID_IS_SEED_ID(pt_Id->pt_Right))
+            {
+                /* el' = fill(il, el) */
+                if (pt_PrevId != pt_Id->pt_Left)
+                {
+                    pt_PrevId = pt_Id;
+
+                    pt_Id = pt_Id->pt_Left;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                }
+                /* norm((n, el', max(max(er), min(el')))) */
+                else
+                {
+                    /* er = max(er) */
+                    if (ITC_EVENT_IS_PARENT_EVENT(pt_CurrentEvent->pt_Right))
+                    {
+                        /* Turn er into a leaf Event */
+                        t_Status = maxEventE(pt_CurrentEvent->pt_Right);
+
+                        if (t_Status == ITC_STATUS_SUCCESS)
+                        {
+                            *pb_WasFilled = true;
+                        }
+                    }
+
+                    /* er = max(er, min(el')) */
+                    if (t_Status == ITC_STATUS_SUCCESS &&
+                        (pt_CurrentEvent->pt_Right->t_Count <
+                            pt_CurrentEvent->pt_Left->t_Count))
+                    {
+                        /* For a normalised Event: min((n, el, er)) = n */
+                        pt_CurrentEvent->pt_Right->t_Count =
+                            pt_CurrentEvent->pt_Left->t_Count;
+
+                        *pb_WasFilled = true;
+                    }
+
+                    /* norm((n, el', er)) */
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        t_Status = normEventE(pt_CurrentEvent);
+
+                        if (t_Status == ITC_STATUS_SUCCESS)
+                        {
+                            pt_PrevId = pt_Id;
+
+                            pt_Id = pt_Id->pt_Parent;
+                            pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                        }
+                    }
+                }
+            }
+            /* fill((il, ir), (n, el, er)):
+            *     norm((n, fill(il, el), fill(ir, er)))
+            */
+            else
+            {
+                /* fill(il, el) */
+                if (pt_PrevId != pt_Id->pt_Left && pt_PrevId != pt_Id->pt_Right)
+                {
+                    pt_PrevId = pt_Id;
+
+                    pt_Id = pt_Id->pt_Left;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                }
+                /* fill(ir, er) */
+                else if (pt_PrevId != pt_Id->pt_Right)
+                {
+                    pt_PrevId = pt_Id;
+
+                    pt_Id = pt_Id->pt_Right;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+                }
+                /* norm((n, el, er) */
+                else
+                {
+                    t_Status = normEventE(pt_CurrentEvent);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        pt_PrevId = pt_Id;
+
+                        pt_Id = pt_Id->pt_Parent;
+                        pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                    }
+                }
+            }
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Destroy the cloned Event
+             * Ignore return statuses. There is nothing else to do if the
+             * destroy fails. Also it is more important to convey that the
+             * overall fill operation succeeded */
+            (void)ITC_Event_destroy(&pt_ClonedEvent);
+        }
+        else
+        {
+            /* Destroy the original Event
+            * Ignore return statuses. There is nothing else to do if the destroy
+            * fails. Also it is more important to convey why the fill operation
+            * failed */
+            (void)ITC_Event_destroy(ppt_Event);
+
+            /* Replace the original event with the clone */
+            *ppt_Event = pt_ClonedEvent;
+
+            /* Even though this value is not supposed to be used (since the
+             * status indicates a failure), ensure it is false */
+            *pb_WasFilled = false;
         }
     }
 
@@ -1307,20 +1256,22 @@ static ITC_Status_t fillEventE(
  *    - If cl >= cr:
  *          ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er)
  *
- * @param pt_Event The Event to grow
+ * @param ppt_Event The Event to grow
  * @param pt_Id The ID showing the ownership information for the interval
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t growEventE(
-    ITC_Event_t *pt_Event,
+    ITC_Event_t **ppt_Event,
     const ITC_Id_t *pt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
-
+    /* Clone of `*ppt_Event` - modifications will be done on the cloned event */
+    ITC_Event_t *pt_ClonedEvent = NULL;
+    ITC_Event_t *pt_CurrentEvent = *ppt_Event;
     /* Remember the root parents as these might be Event or ID subtrees */
-    ITC_Event_t *pt_RootEventParent = pt_Event->pt_Parent;
+    ITC_Event_t *pt_RootEventParent = (*ppt_Event)->pt_Parent;
     ITC_Id_t *pt_RootIdParent = pt_Id->pt_Parent;
 
     /* The previously iterated ID subtree.
@@ -1343,160 +1294,186 @@ static ITC_Status_t growEventE(
     /* Init the cost pointer with the `&u64_CostLeft`. This is because if
      * `cl >= cr`, the right subtree must be expanded. Two cases exist:
      *
-     * - If the initial `pt_Event` is *not* a leaf:
+     * - If the initial `*ppt_Event` is *not* a leaf:
      *   `u64_CostLeft == u64_CostRight == 0`, thus the right subtree will be
      *   expanded on the first iteration of the loop.
      *
-     *  - If the initial `pt_Event` is a leaf:
-     *    On the first iteration, `pt_Event` will expanded into a parent node
-     *    (`grow(i, n) = (e', c + N), where (e', c) = grow(i, (n, 0, 0)))`).
+     *  - If the initial `*ppt_Event` is a leaf:
+     *    On the first iteration, `pt_CurrentEvent` will expanded into a parent
+     *    node(`grow(i, n) = (e', c + N), where (e', c) = grow(i, (n, 0, 0)))`).
      *    Thus, on the second iteration `u64_CostLeft > u64_CostRight` will be
      *    be true, which would again expand the right subtree. */
     uint64_t *pu64_CostPtr = &u64_CostLeft;
 
-    while (t_Status == ITC_STATUS_SUCCESS &&
-           pt_Event != pt_RootEventParent &&
-           pt_Id != pt_RootIdParent)
+    /* Clone the event */
+    t_Status = cloneEvent(*ppt_Event, &pt_ClonedEvent, pt_RootEventParent);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
     {
-        /* This is a special case to protect against an infinite loop if a NULL
-         * ID is encountered. */
-        if (ITC_ID_IS_NULL_ID(pt_Id))
+        while (t_Status == ITC_STATUS_SUCCESS &&
+               pt_CurrentEvent != pt_RootEventParent &&
+               pt_Id != pt_RootIdParent)
         {
-            pt_PrevId = pt_Id;
-
-            pt_Id = pt_Id->pt_Parent;
-            pt_Event = pt_Event->pt_Parent;
-        }
-        /* grow(1, n) or grow(i, n) */
-        else if (ITC_EVENT_IS_LEAF_EVENT(pt_Event))
-        {
-            /* grow(1, n) = (n + 1, 0) */
-            if (ITC_ID_IS_SEED_ID(pt_Id))
-            {
-                t_Status = incEventCounter(&pt_Event->t_Count, 1);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_PrevId = pt_Id;
-
-                    /* This case has no cost */
-
-                    pt_Id = pt_Id->pt_Parent;
-                    pt_Event = pt_Event->pt_Parent;
-                }
-            }
-            /* grow(i, n) = (e', c + N) */
-            else
-            {
-                /* Expand the event tree by adding 2 child nodes */
-                t_Status = createChildEventNodes(pt_Event, 0, 0);
-
-                if (t_Status == ITC_STATUS_SUCCESS)
-                {
-                    pt_PrevId = pt_Id;
-
-                    /* This cost is equvalent to a `shift` operation on a list
-                     * of 32-bit integers in lexicographic order, as long as
-                     * the tree height is less than UINT32_MAX */
-                    *pu64_CostPtr += UINT32_MAX;
-
-                    /* Don't go up back the tree. Instead run through the
-                     * cases again with e' (a parent node) */
-                }
-            }
-        }
-        /* grow((0, ir), (n, el, er)):
-         * ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er) */
-        else if (ITC_ID_IS_NULL_ID(pt_Id->pt_Left))
-        {
-            /* (er', cr) = grow(ir, er) */
-            if (pt_PrevId != pt_Id->pt_Right)
+            /* This is a special case to protect against an infinite loop if a
+             * NULL ID is encountered. */
+            if (ITC_ID_IS_NULL_ID(pt_Id))
             {
                 pt_PrevId = pt_Id;
-
-                pt_Id = pt_Id->pt_Right;
-                pt_Event = pt_Event->pt_Right;
-                pu64_CostPtr = &u64_CostRight;
-            }
-            /* ((n, el, er'), cr + 1) */
-            else
-            {
-                pt_PrevId = pt_Id;
-
-                u64_CostRight++;
 
                 pt_Id = pt_Id->pt_Parent;
-                pt_Event = pt_Event->pt_Parent;
+                pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
             }
-        }
-        /* grow((il, 0), (n, el, er)):
-         * ((n, el', er), cl + 1), where (el', cl) = grow(il, el) */
-        else if (ITC_ID_IS_NULL_ID(pt_Id->pt_Right))
-        {
-            /* (el', cl) = grow(il, el) */
-            if (pt_PrevId != pt_Id->pt_Left)
+            /* grow(1, n) or grow(i, n) */
+            else if (ITC_EVENT_IS_LEAF_EVENT(pt_CurrentEvent))
             {
-                pt_PrevId = pt_Id;
-
-                pt_Id = pt_Id->pt_Left;
-                pt_Event = pt_Event->pt_Left;
-                pu64_CostPtr = &u64_CostLeft;
-            }
-            /* ((n, el', er), cl + 1) */
-            else
-            {
-                pt_PrevId = pt_Id;
-
-                u64_CostLeft++;
-
-                pt_Id = pt_Id->pt_Parent;
-                pt_Event = pt_Event->pt_Parent;
-            }
-        }
-        /* grow((il, ir), (n, el, er)):
-        *  - If cl < cr:
-        *    ((n, el', er), cl + 1), where (el', cl) = grow(il, el)
-        *  - If cl >= cr:
-        *    ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er) */
-        else
-        {
-            if (pt_PrevId != pt_Id->pt_Left && pt_PrevId != pt_Id->pt_Right)
-            {
-                pt_PrevId = pt_Id;
-
-                /* cl < cr; (el', cl) = grow(il, el) */
-                if (u64_CostLeft < u64_CostRight)
+                /* grow(1, n) = (n + 1, 0) */
+                if (ITC_ID_IS_SEED_ID(pt_Id))
                 {
-                    pt_Id = pt_Id->pt_Left;
-                    pt_Event = pt_Event->pt_Left;
-                    pu64_CostPtr = &u64_CostLeft;
+                    t_Status = incEventCounter(&pt_CurrentEvent->t_Count, 1);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        pt_PrevId = pt_Id;
+
+                        /* This case has no cost */
+
+                        pt_Id = pt_Id->pt_Parent;
+                        pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                    }
                 }
-                /* cl >= cr; (er', cr) = grow(ir, er) */
+                /* grow(i, n) = (e', c + N) */
                 else
                 {
+                    /* Expand the event tree by adding 2 child nodes */
+                    t_Status = createChildEventNodes(pt_CurrentEvent, 0, 0);
+
+                    if (t_Status == ITC_STATUS_SUCCESS)
+                    {
+                        pt_PrevId = pt_Id;
+
+                        /* This cost is equvalent to a `shift` operation on a
+                         * list of 32-bit integers in lexicographic order, as
+                         * long as the tree height is less than UINT32_MAX */
+                        *pu64_CostPtr += UINT32_MAX;
+
+                        /* Don't go up back the tree. Instead run through the
+                         * cases again with e' (a parent node) */
+                    }
+                }
+            }
+            /* grow((0, ir), (n, el, er)):
+             * ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er) */
+            else if (ITC_ID_IS_NULL_ID(pt_Id->pt_Left))
+            {
+                /* (er', cr) = grow(ir, er) */
+                if (pt_PrevId != pt_Id->pt_Right)
+                {
+                    pt_PrevId = pt_Id;
+
                     pt_Id = pt_Id->pt_Right;
-                    pt_Event = pt_Event->pt_Right;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Right;
                     pu64_CostPtr = &u64_CostRight;
                 }
-            }
-            else
-            {
-                /* cl < cr; ((n, el', er), cl + 1) */
-                if (pt_PrevId == pt_Id->pt_Left)
-                {
-                    u64_CostLeft++;
-                }
-                /* cl >= cr; ((n, el, er'), cr + 1) */
+                /* ((n, el, er'), cr + 1) */
                 else
                 {
+                    pt_PrevId = pt_Id;
+
                     u64_CostRight++;
+
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
                 }
-
-                pt_PrevId = pt_Id;
-
-                pt_Id = pt_Id->pt_Parent;
-                pt_Event = pt_Event->pt_Parent;
             }
+            /* grow((il, 0), (n, el, er)):
+             * ((n, el', er), cl + 1), where (el', cl) = grow(il, el) */
+            else if (ITC_ID_IS_NULL_ID(pt_Id->pt_Right))
+            {
+                /* (el', cl) = grow(il, el) */
+                if (pt_PrevId != pt_Id->pt_Left)
+                {
+                    pt_PrevId = pt_Id;
+
+                    pt_Id = pt_Id->pt_Left;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                    pu64_CostPtr = &u64_CostLeft;
+                }
+                /* ((n, el', er), cl + 1) */
+                else
+                {
+                    pt_PrevId = pt_Id;
+
+                    u64_CostLeft++;
+
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+            /* grow((il, ir), (n, el, er)):
+             *  - If cl < cr:
+             *    ((n, el', er), cl + 1), where (el', cl) = grow(il, el)
+             *  - If cl >= cr:
+             *    ((n, el, er'), cr + 1), where (er', cr) = grow(ir, er) */
+            else
+            {
+                if (pt_PrevId != pt_Id->pt_Left && pt_PrevId != pt_Id->pt_Right)
+                {
+                    pt_PrevId = pt_Id;
+
+                    /* cl < cr; (el', cl) = grow(il, el) */
+                    if (u64_CostLeft < u64_CostRight)
+                    {
+                        pt_Id = pt_Id->pt_Left;
+                        pt_CurrentEvent = pt_CurrentEvent->pt_Left;
+                        pu64_CostPtr = &u64_CostLeft;
+                    }
+                    /* cl >= cr; (er', cr) = grow(ir, er) */
+                    else
+                    {
+                        pt_Id = pt_Id->pt_Right;
+                        pt_CurrentEvent = pt_CurrentEvent->pt_Right;
+                        pu64_CostPtr = &u64_CostRight;
+                    }
+                }
+                else
+                {
+                    /* cl < cr; ((n, el', er), cl + 1) */
+                    if (pt_PrevId == pt_Id->pt_Left)
+                    {
+                        u64_CostLeft++;
+                    }
+                    /* cl >= cr; ((n, el, er'), cr + 1) */
+                    else
+                    {
+                        u64_CostRight++;
+                    }
+
+                    pt_PrevId = pt_Id;
+
+                    pt_Id = pt_Id->pt_Parent;
+                    pt_CurrentEvent = pt_CurrentEvent->pt_Parent;
+                }
+            }
+        }
+
+        if (t_Status == ITC_STATUS_SUCCESS)
+        {
+            /* Destroy the cloned Event
+             * Ignore return statuses. There is nothing else to do if the
+             * destroy fails. Also it is more important to convey that the
+             * overall fill operation succeeded */
+            (void)ITC_Event_destroy(&pt_ClonedEvent);
+        }
+        else
+        {
+            /* Destroy the original Event
+            * Ignore return statuses. There is nothing else to do if the destroy
+            * fails. Also it is more important to convey why the grow operation
+            * failed */
+            (void)ITC_Event_destroy(ppt_Event);
+
+            /* Replace the original event with the clone */
+            *ppt_Event = pt_ClonedEvent;
         }
     }
 
@@ -2432,21 +2409,21 @@ ITC_Status_t ITC_Event_leq(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_fill(
-    ITC_Event_t *pt_Event,
+    ITC_Event_t **ppt_Event,
     const ITC_Id_t *const pt_Id,
     bool *pb_WasFilled
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    if (!pb_WasFilled)
+    if (!pb_WasFilled || !ppt_Event)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = validateEvent(pt_Event, true);
+        t_Status = validateEvent(*ppt_Event, true);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -2457,7 +2434,7 @@ ITC_Status_t ITC_Event_fill(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = fillEventE(pt_Event, pt_Id, pb_WasFilled);
+        t_Status = fillEventE(ppt_Event, pt_Id, pb_WasFilled);
     }
 
     return t_Status;
@@ -2468,13 +2445,21 @@ ITC_Status_t ITC_Event_fill(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_grow(
-    ITC_Event_t *pt_Event,
+    ITC_Event_t **ppt_Event,
     const ITC_Id_t *const pt_Id
 )
 {
-    ITC_Status_t t_Status; /* The current status */
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
 
-    t_Status = validateEvent(pt_Event, true);
+    if (!ppt_Event)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        t_Status = validateEvent(*ppt_Event, true);
+    }
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -2484,7 +2469,7 @@ ITC_Status_t ITC_Event_grow(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = growEventE(pt_Event, pt_Id);
+        t_Status = growEventE(ppt_Event, pt_Id);
     }
 
     return t_Status;
