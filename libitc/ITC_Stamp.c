@@ -1101,7 +1101,7 @@ ITC_Status_t ITC_Stamp_fork(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_event(
-    const ITC_Stamp_t *const pt_Stamp
+    ITC_Stamp_t *const pt_Stamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1115,12 +1115,12 @@ ITC_Status_t ITC_Stamp_event(
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         t_Status = ITC_Event_fill(
-            pt_Stamp->pt_Event, pt_Stamp->pt_Id, &b_WasFilled);
+            &pt_Stamp->pt_Event, pt_Stamp->pt_Id, &b_WasFilled);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS && !b_WasFilled)
     {
-        t_Status = ITC_Event_grow(pt_Stamp->pt_Event, pt_Stamp->pt_Id);
+        t_Status = ITC_Event_grow(&pt_Stamp->pt_Event, pt_Stamp->pt_Id);
     }
 
     return t_Status;

@@ -99,15 +99,12 @@ ITC_Status_t ITC_Stamp_fork(
 /**
  * @brief Add a new Event to the Stamp
  *
- * @warning If the function fails, the Stamp might be left in a partially
- * updated state and should not be used further.
- *
  * @param pt_Stamp The existing Stamp
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_event(
-    const ITC_Stamp_t *const pt_Stamp
+    ITC_Stamp_t *const pt_Stamp
 );
 
 /**
