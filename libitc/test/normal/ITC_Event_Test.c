@@ -496,7 +496,7 @@ void ITC_Event_Test_joinEventFailInvalidParam(void)
     TEST_FAILURE(ITC_Event_join(&pt_Dummy, NULL), ITC_STATUS_INVALID_PARAM);
 }
 
-/* Test joining an Event fails with corrupt Event */
+/* Test joining Events fails with corrupt Event */
 void ITC_Event_Test_joinEventFailWithCorruptEvent(void)
 {
     ITC_Event_t *pt_Event;
@@ -526,6 +526,67 @@ void ITC_Event_Test_joinEventFailWithCorruptEvent(void)
         gpv_InvalidEventDestructorTable[u32_I](&pt_Event);
     }
 
+    TEST_SUCCESS(ITC_Event_destroy(&pt_OtherEvent));
+}
+
+/* Test joining Events fails with event counter overflow */
+void ITC_Event_Test_joinEventFailWithEventCounterOverflow(void)
+{
+    ITC_Event_t *pt_Event;
+    ITC_Event_t *pt_OtherEvent;
+
+    /* clang-format off */
+    /* Create the Events */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
+
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Left, pt_OtherEvent, ((ITC_Event_Counter_t)~0)));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Right, pt_OtherEvent, 0));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_join(&pt_Event, &pt_OtherEvent),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* clang-format off */
+    /* Test the Events haven't changed */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Left, (ITC_Event_Counter_t)~0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Right, 0);
+    /* clang-format on */
+
+    /* Test again but this time make the error occur deeper in the tree */
+
+    /* clang-format off */
+    /* Modify the Events */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 1));
+    pt_OtherEvent->pt_Left->t_Count = 1;
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Left->pt_Left, pt_OtherEvent->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent->pt_Left->pt_Right, pt_OtherEvent->pt_Left, ((ITC_Event_Counter_t)~0)));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_join(&pt_Event, &pt_OtherEvent),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* clang-format off */
+    /* Test the Events haven't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Left->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Left->pt_Right, (ITC_Event_Counter_t)~0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent->pt_Right, 0);
+    /* clang-format on */
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
     TEST_SUCCESS(ITC_Event_destroy(&pt_OtherEvent));
 }
 
@@ -875,8 +936,8 @@ void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
     }
 }
 
-/* Test Event leq fails with invalid param */
-void ITC_Event_Test_eventLeqFailInvalidParam(void)
+/* Test comparing events fails with invalid param */
+void ITC_Event_Test_compareFailInvalidParam(void)
 {
     ITC_Event_t *pt_DummyEvent = NULL;
     bool b_DummyIsLeq;
@@ -894,7 +955,7 @@ void ITC_Event_Test_eventLeqFailInvalidParam(void)
 }
 
 /* Test comparing an Event fails with corrupt Event */
-void ITC_Event_Test_eventLeqFailWithCorruptEvent(void)
+void ITC_Event_Test_compareFailWithCorruptEvent(void)
 {
     ITC_Event_t *pt_Event1;
     ITC_Event_t *pt_Event2;
@@ -924,6 +985,46 @@ void ITC_Event_Test_eventLeqFailWithCorruptEvent(void)
         gpv_InvalidEventDestructorTable[u32_I](&pt_Event1);
         TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
     }
+}
+
+/* Test comparing Events fails with event counter overflow */
+void ITC_Event_Test_compareFailWithEventCounterOverflow(void)
+{
+    ITC_Event_t *pt_Event1;
+    ITC_Event_t *pt_Event2;
+    bool b_IsLeq;
+
+    /* clang-format off */
+    /* Create the Events */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left, pt_Event1, ((ITC_Event_Counter_t)~0)));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Right, pt_Event1, 0));
+
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event2, NULL, 2));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_leq(pt_Event1, pt_Event2, &b_IsLeq),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* Test again but this time make the error occur deeper in the tree */
+
+    /* clang-format off */
+    /* Modify the Event */
+    pt_Event1->pt_Left->t_Count = 1;
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Left, pt_Event1->pt_Left, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event1->pt_Left->pt_Right, pt_Event1->pt_Left, ((ITC_Event_Counter_t)~0)));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_leq(pt_Event1, pt_Event2, &b_IsLeq),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* Destroy the Events */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event1));
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event2));
 }
 
 /* Test comparing leaf Events succeeds */
@@ -1189,6 +1290,67 @@ void ITC_Event_Test_fillEventFailWithCorruptEventAndId(void)
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
+
+/* Test filling an Event fails with event counter overflow */
+void ITC_Event_Test_fillEventFailWithEventCounterOverflow(void)
+{
+    ITC_Event_t *pt_Event;
+    ITC_Id_t *pt_Id;
+    bool b_WasFilled;
+
+    /* Create the ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
+
+    /* clang-format off */
+    /* Create the Event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, ((ITC_Event_Counter_t)~0)));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, 0));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_fill(&pt_Event, pt_Id, &b_WasFilled),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* clang-format off */
+    /* Test the Event hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, ((ITC_Event_Counter_t)~0));
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
+    TEST_ASSERT_FALSE(b_WasFilled);
+    /* clang-format on */
+
+    /* Test again but this time make the error occur deeper in the tree */
+
+    /* clang-format off */
+    /* Modify the Event */
+    pt_Event->pt_Left->t_Count = ((ITC_Event_Counter_t)~0) - 1;
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Left, pt_Event->pt_Left, 1));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left->pt_Right, pt_Event->pt_Left, 0));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_fill(&pt_Event, pt_Id, &b_WasFilled),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* clang-format off */
+    /* Test the Event hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event->pt_Left, ((ITC_Event_Counter_t)~0) - 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Left, 1);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left->pt_Right, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, 0);
+    TEST_ASSERT_FALSE(b_WasFilled);
+    /* clang-format on */
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
 /* Test filling leaf Event with null and seed IDs succeeds */
 void ITC_Event_Test_fillLeafEventWithNullAndSeedIdsSucceeds(void)
 {
@@ -2155,6 +2317,63 @@ void ITC_Event_Test_growEventFailWithCorruptEventAndId(void)
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
+
+/* Test growing an Event fails with event counter overflow */
+void ITC_Event_Test_growEventFailWithEventCounterOverflow(void)
+{
+    ITC_Event_t *pt_Event;
+    ITC_Id_t *pt_Id;
+
+    /* Create the ID */
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
+
+    /* Create the Event */
+    TEST_SUCCESS(
+        ITC_TestUtil_newEvent(&pt_Event, NULL, ((ITC_Event_Counter_t)~0)));
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_grow(&pt_Event, pt_Id),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* Test the Event hasn't changed */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, ((ITC_Event_Counter_t)~0));
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Test again but this time make the error occur deeper in the tree */
+
+    /* Create the ID */
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
+    TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Left, pt_Id));
+    TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
+
+    /* clang-format off */
+    /* Add nodes to the event */
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Left, pt_Event, 0));
+    TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event->pt_Right, pt_Event, ((ITC_Event_Counter_t)~0)));
+    /* clang-format on */
+
+    /* Test for the failure */
+    TEST_FAILURE(
+        ITC_Event_grow(&pt_Event, pt_Id),
+        ITC_STATUS_EVENT_COUNTER_OVERFLOW);
+
+    /* clang-format off */
+    /* Test the Event hasn't changed */
+    TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, ((ITC_Event_Counter_t)~0));
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Left, 0);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event->pt_Right, ((ITC_Event_Counter_t)~0));
+    /* clang-format on */
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
+}
+
 /* Test growing a leaf Event with null and seed IDs succeeds */
 void ITC_Event_Test_growLeafEventWithNullAndSeedIdsSucceeds(void)
 {
