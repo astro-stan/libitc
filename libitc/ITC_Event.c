@@ -334,9 +334,6 @@ static ITC_Status_t decEventCounter(
  *     `(n, e1, e2) = (lift(n, m), sink(e1, m), sink(e2, m))`,
  *     where `m = min(e1, e2)`.
  *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
- *
  * @note It is assumed `e1` and `e2` are normalised Events, such that
  * `min((n, e1, e2)) == n`, i.e one of the subtrees has an event counter
  * equal to 0
@@ -350,10 +347,9 @@ static ITC_Status_t liftSinkSinkEvent(
 )
 {
     ITC_Status_t t_Status;
-    ITC_Status_t t_OpStatus;
     ITC_Event_Counter_t t_Count;
 
-    /* Remember the count */
+    /* Find the min count */
     t_Count = MIN(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count);
 
     /* Lift the event counter of the root node */
@@ -363,36 +359,12 @@ static ITC_Status_t liftSinkSinkEvent(
     {
         /* Sink the left child */
         t_Status = decEventCounter(&pt_Event->pt_Left->t_Count, t_Count);
+    }
 
-        if (t_Status == ITC_STATUS_SUCCESS)
-        {
-            t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
-
-            if (t_Status != ITC_STATUS_SUCCESS)
-            {
-                /* Restore the left child */
-                t_OpStatus = incEventCounter(
-                    &pt_Event->pt_Left->t_Count, t_Count);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
-            }
-        }
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the event counter of the root node */
-            t_OpStatus = decEventCounter(&pt_Event->t_Count, t_Count);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Sink the right child */
+        t_Status = decEventCounter(&pt_Event->pt_Right->t_Count, t_Count);
     }
 
     return t_Status;
@@ -402,9 +374,6 @@ static ITC_Status_t liftSinkSinkEvent(
  * @brief Given an event `(n, e1, e2)` performs:
  *     `(n, e1, e2) = lift(n, m)`,
  *     where `m = max(e1, e2)`.
- *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
  *
  * @note It is assumed `e1` and `e2` are leaf Events, such that
  * `max((n, e1, e2)) == n + max(e1, e2)`
@@ -419,63 +388,22 @@ static ITC_Status_t liftDestroyDestroyEvent(
 )
 {
     ITC_Status_t t_Status;
-    ITC_Status_t t_OpStatus;
-    ITC_Event_Counter_t t_LeftCount;
-    ITC_Event_Counter_t t_RightCount;
-    ITC_Event_Counter_t t_MaxCount;
-
-    /* Remember the counts */
-    t_LeftCount = pt_Event->pt_Left->t_Count;
-    t_RightCount = pt_Event->pt_Right->t_Count;
-    t_MaxCount = MAX(t_LeftCount, t_RightCount);
 
     /* Lift the event counter of the root node */
-    t_Status = incEventCounter(&pt_Event->t_Count, t_MaxCount);
+    t_Status = incEventCounter(
+        &pt_Event->t_Count,
+        MAX(pt_Event->pt_Left->t_Count, pt_Event->pt_Right->t_Count));
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
         /* Destroy the left leaf child */
         t_Status = ITC_Event_destroy(&pt_Event->pt_Left);
+    }
 
-        if (t_Status == ITC_STATUS_SUCCESS)
-        {
-            /* Destroy the right leaf child */
-            t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
-
-            if (t_Status != ITC_STATUS_SUCCESS)
-            {
-                /* Restore the right leaf child */
-                t_OpStatus = newEvent(
-                    &pt_Event->pt_Right, pt_Event, t_RightCount);
-
-                if (t_OpStatus != ITC_STATUS_SUCCESS)
-                {
-                    /* Return last error */
-                    t_Status = t_OpStatus;
-                }
-            }
-        }
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Restore the left leaf child */
-            t_OpStatus = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-
-            /* Restore the event counter of the root node */
-            t_OpStatus = decEventCounter(&pt_Event->t_Count, t_MaxCount);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        /* Destroy the right leaf child */
+        t_Status = ITC_Event_destroy(&pt_Event->pt_Right);
     }
 
     return t_Status;
@@ -483,9 +411,6 @@ static ITC_Status_t liftDestroyDestroyEvent(
 
 /**
  * @brief Turn a leaf Event into a parent by allocating 2 child nodes for it
- *
- * Performs the operation and tries to do damange control (revert to original
- * state) if any of the steps fail.
  *
  * @note It is assumed the Event passed in is a leaf event. If not, a memory
  * leak will occur as the original children will not be deallocated before
@@ -505,26 +430,14 @@ static ITC_Status_t createChildEventNodes(
 )
 {
     ITC_Status_t t_Status;
-    ITC_Status_t t_OpStatus;
 
-    /* Allocate the children */
+    /* Allocate the left child */
     t_Status = newEvent(&pt_Event->pt_Left, pt_Event, t_LeftCount);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
+        /* Allocate the right child */
         t_Status = newEvent(&pt_Event->pt_Right, pt_Event, t_RightCount);
-
-        if (t_Status != ITC_STATUS_SUCCESS)
-        {
-            /* Deallocate the other child */
-            t_OpStatus = ITC_Event_destroy(&pt_Event->pt_Left);
-
-            if (t_OpStatus != ITC_STATUS_SUCCESS)
-            {
-                /* Return last error */
-                t_Status = t_OpStatus;
-            }
-        }
     }
 
     return t_Status;

@@ -405,7 +405,7 @@ void ITC_Event_Test_maximiseEventFailWithCorruptEvent(void)
 }
 
 /* Test maximising a leaf Event succeeds */
-void ITC_Event_Test_maximisingLeafEventSucceeds(void)
+void ITC_Event_Test_maximiseLeafEventSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -429,7 +429,7 @@ void ITC_Event_Test_maximisingLeafEventSucceeds(void)
 }
 
 /* Test maximising a parent Event succeeds */
-void ITC_Event_Test_maximisingParentEventSucceeds(void)
+void ITC_Event_Test_maximiseParentEventSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
@@ -459,7 +459,7 @@ void ITC_Event_Test_maximisingParentEventSucceeds(void)
 }
 
 /* Test maximising a complex Event succeeds */
-void ITC_Event_Test_maximisingComplexEventSucceeds(void)
+void ITC_Event_Test_maximiseComplexEventSucceeds(void)
 {
     ITC_Event_t *pt_Event = NULL;
 
