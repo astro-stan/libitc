@@ -7,6 +7,9 @@
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
+#include "ITC_config.h"
+
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_MALLOC
 #include "ITC_Port.h"
 
 #include <stdlib.h>
@@ -57,3 +60,4 @@ ITC_Status_t ITC_Port_free(
     /* Always suceeds */
     return ITC_STATUS_SUCCESS;
 }
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_MALLOC */

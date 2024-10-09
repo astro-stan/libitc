@@ -14,6 +14,23 @@
 
 #include <stddef.h>
 
+/******************************************************************************
+ * Defines
+ ******************************************************************************/
+
+/** Use `malloc`/`free` for allocation and deallocation of ITC nodes */
+#define ITC_MEMORY_ALLOCATION_TYPE_MALLOC                                    (0)
+
+/** Use custom implementation for allocation and deallocation of ITC nodes.
+ * Choosing this option requires the implementation of the `ITC_Port_malloc`
+ * and `ITC_Port_free` functions.
+*/
+#define ITC_MEMORY_ALLOCATION_TYPE_CUSTOM                                    (1)
+
+/******************************************************************************
+ * Functions
+ ******************************************************************************/
+
 /**
  * @brief Allocate memory
  *
