@@ -39,6 +39,7 @@
  *   * `ITC_Event_destroy`
  *   * `ITC_Event_clone`
  *   * `ITC_Event_validate`
+ *   * `ITC_Event_join`
  *   * `ITC_SerDes_serialiseEvent`
  *   * `ITC_SerDes_deserialiseEvent`
  * - For Stamps - adds the following functions to the public API:
