@@ -93,9 +93,11 @@ void ITC_Stamp_Test_createPeekStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_newPeek(pt_Stamp, &pt_PeekStamp),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -205,9 +207,11 @@ void ITC_Stamp_Test_cloneStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_clone(pt_Stamp, &pt_ClonedStamp),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -311,7 +315,11 @@ void ITC_Stamp_Test_validatingStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(ITC_Stamp_validate(pt_Stamp), ITC_STATUS_CORRUPT_STAMP);
+        TEST_ASSERT_NOT_EQUAL(
+            ITC_Stamp_validate(pt_Stamp),
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the ID */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -408,9 +416,11 @@ void ITC_Stamp_Test_forkStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_fork(&pt_Stamp, &pt_OtherStamp),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -526,13 +536,17 @@ void ITC_Stamp_Test_joinStampsFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_join(&pt_Stamp, &pt_OtherStamp),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
         /* And the other way around */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_join(&pt_OtherStamp, &pt_Stamp),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -651,7 +665,11 @@ void ITC_Stamp_Test_eventStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(ITC_Stamp_event(pt_Stamp), ITC_STATUS_CORRUPT_STAMP);
+        TEST_ASSERT_NOT_EQUAL(
+            ITC_Stamp_event(pt_Stamp),
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -815,13 +833,17 @@ void ITC_Stamp_Test_compareStampFailWithCorruptStamp(void)
         TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp2));
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_compare(pt_Stamp1, pt_Stamp2, &t_Result),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
         /* And the other way around */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_compare(pt_Stamp2, pt_Stamp1, &t_Result),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamps */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp1);
@@ -1443,9 +1465,11 @@ void ITC_Stamp_Test_getIdFromStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_getId(pt_Stamp, &pt_DummyId),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -1578,9 +1602,11 @@ void ITC_Stamp_Test_setIdFromStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_setId(pt_Stamp, pt_DummyId),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -1755,9 +1781,11 @@ void ITC_Stamp_Test_getEventFromStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_getEvent(pt_Stamp, &pt_DummyEvent),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -1891,9 +1919,11 @@ void ITC_Stamp_Test_setEventFromStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_Stamp_setEvent(pt_Stamp, pt_DummyEvent),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);

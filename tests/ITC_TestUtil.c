@@ -1044,6 +1044,40 @@ static void newInvalidStampWithNoEvent(ITC_Stamp_t **ppt_Stamp)
 }
 
 /**
+ * @brief Create a new invalid Stamp with invalid Id component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidStampWithInvalidId(ITC_Stamp_t **ppt_Stamp)
+{
+    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
+    TEST_SUCCESS(ITC_Id_destroy(&(*ppt_Stamp)->pt_Id));
+    /* The exact reason the ID is invalid here is not important, since the ID
+     * validator is tested separately.
+     * The function below was chosen so that the ID component can be deallocated
+     * with the standard Stamp deallocator, thus avoiding the need to write
+     * a special deallocator function */
+    newInvalidIdWithAsymmetricRootParentLeft(&(*ppt_Stamp)->pt_Id);
+}
+
+/**
+ * @brief Create a new invalid Stamp with invalid Event component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidStampWithInvalidEvent(ITC_Stamp_t **ppt_Stamp)
+{
+    TEST_SUCCESS(ITC_Stamp_newSeed(ppt_Stamp));
+    TEST_SUCCESS(ITC_Event_destroy(&(*ppt_Stamp)->pt_Event));
+    /* The exact reason the Event is invalid here is not important, since the
+     * Event validator is tested separately.
+     * The function below was chosen so that the Event component can be
+     * deallocated with the standard Stamp deallocator, thus avoiding the need
+     * to write a special deallocator function */
+    newInvalidEventWithAsymmetricNestedParentLeft(&(*ppt_Stamp)->pt_Event);
+}
+
+/**
  * @brief Create a new invalid serialised Stamp with no ID component
  *
  * @param pt_Stamp (out) The pointer to the Stamp
@@ -1089,6 +1123,55 @@ static void newInvalidSerialisedStampWithNoEvent(
         ITC_SERDES_NULL_ID_HEADER,
         ITC_SERDES_SEED_ID_HEADER,
         ITC_SERDES_NULL_ID_HEADER,
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with invalid ID component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithInvalidId(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        2,
+        ITC_SERDES_PARENT_ID_HEADER,
+        ITC_SERDES_NULL_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+
+    *ppu8_Buffer = &ru8_Buffer[0];
+    *pu32_BufferSize = sizeof(ru8_Buffer);
+}
+
+/**
+ * @brief Create a new invalid serialised Stamp with invalid Event component
+ *
+ * @param pt_Stamp (out) The pointer to the Stamp
+ */
+static void newInvalidSerialisedStampWithInvalidEvent(
+    const uint8_t **ppu8_Buffer,
+    uint32_t *pu32_BufferSize
+)
+{
+    static const uint8_t ru8_Buffer[] =
+    {
+        ITC_VERSION_MAJOR, /* Provided by build system c args */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(true, 0),
     };
 
     *ppu8_Buffer = &ru8_Buffer[0];
@@ -1427,6 +1510,8 @@ void (*const gpv_InvalidStampConstructorTable[])(ITC_Stamp_t **) =
 {
     newInvalidStampWithNoID,
     newInvalidStampWithNoEvent,
+    newInvalidStampWithInvalidId,
+    newInvalidStampWithInvalidEvent,
 };
 
 /******************************************************************************
@@ -1438,6 +1523,8 @@ void (*const gpv_InvalidStampDestructorTable[])(ITC_Stamp_t **) =
     /* Cast the funcion pointer to the type of the table
      * This is ugly but beats needlessly having to write a destructor
      * for each invalid Stamp */
+    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
+    (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
     (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
     (void (*)(ITC_Stamp_t **))ITC_Stamp_destroy,
 };
@@ -1456,11 +1543,10 @@ const uint32_t gu32_InvalidStampTablesSize =
 void (*const gpv_InvalidSerialisedStampConstructorTable[])(
     const uint8_t **ppu8_Buffer, uint32_t *pu32_BufferSize) =
 {
-    /* Stamps here are specially crafted to trigger the `CORRUPT_STAMP` exception
-     * `CORRUPT_EVENT` and `CORRUPT_ID` exceptions are checked for in their
-     * respective unit tests. */
     newInvalidSerialisedStampWithNoID,
     newInvalidSerialisedStampWithNoEvent,
+    newInvalidSerialisedStampWithInvalidId,
+    newInvalidSerialisedStampWithInvalidEvent,
     newInvalidSerialisedStampWithNoHeader,
     newInvalidSerialisedStampWithSmallerIDComponentLengthlength,
     newInvalidSerialisedStampWithBiggerIDComponentLengthlength,
