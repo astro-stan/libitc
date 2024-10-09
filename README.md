@@ -354,7 +354,7 @@ int main(void)
 
 </details>
 
-#### Ser-Des
+#### Serialisation and Deserialisation
 
 Serialise and deserialise a Stamp.
 

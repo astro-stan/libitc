@@ -11,20 +11,16 @@
 #ifndef ITC_SERDES_PACKAGE_H_
 #define ITC_SERDES_PACKAGE_H_
 
-#include "ITC_Status.h"
 #include "ITC_config.h"
 
 #if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
+#include "ITC_Status.h"
 #include "ITC_Id.h"
 #include "ITC_Event.h"
-#endif /* !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API) */
-
 
 /******************************************************************************
  * Functions
  ******************************************************************************/
-
-#if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
 
 /**
  * @brief Serialise an existing ITC Id to ASCII string
@@ -61,7 +57,6 @@ ITC_Status_t ITC_SerDes_serialiseEventToString(
     char *const pc_Buffer,
     uint32_t *const pu32_BufferSize
 );
-
 #endif /* !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API) */
 
 #endif /* ITC_SERDES_PACKAGE_H_ */
