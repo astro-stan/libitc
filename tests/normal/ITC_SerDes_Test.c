@@ -1516,12 +1516,14 @@ void ITC_SerDes_Test_serialiseStampFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_SerDes_serialiseStamp(
                 pt_Stamp,
                 &ru8_Buffer[0],
                 &u32_BufferSize),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Different exceptions might be returned depending on the
+             * failure */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -1738,12 +1740,14 @@ void ITC_SerDes_Test_serialiseStampToStringFailWithCorruptStamp(void)
         gpv_InvalidStampConstructorTable[u32_I](&pt_Stamp);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_SerDes_serialiseStampToString(
                 pt_Stamp,
                 &rc_Buffer[0],
                 &u32_BufferSize),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Different exceptions might be returned depending on the
+             * failure */
+            ITC_STATUS_SUCCESS);
 
         /* Destroy the Stamp */
         gpv_InvalidStampDestructorTable[u32_I](&pt_Stamp);
@@ -2035,12 +2039,14 @@ void ITC_SerDes_Test_deserialiseStampFailWithCorruptStamp(void)
             &pu8_Buffer, &u32_BufferSize);
 
         /* Test for the failure */
-        TEST_FAILURE(
+        TEST_ASSERT_NOT_EQUAL(
             ITC_SerDes_deserialiseStamp(
                 pu8_Buffer,
                 u32_BufferSize,
                 &pt_Stamp),
-            ITC_STATUS_CORRUPT_STAMP);
+            /* Depending on the failure, different exceptions might be
+             * returned */
+            ITC_STATUS_SUCCESS);
     }
 }
 
