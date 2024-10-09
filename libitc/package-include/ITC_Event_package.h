@@ -74,8 +74,6 @@ ITC_Status_t ITC_Event_validate(
     const ITC_Event_t *const pt_Event
 );
 
-#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
-
 /**
  * @brief Join two existing Events into a single Event
  *
@@ -91,6 +89,8 @@ ITC_Status_t ITC_Event_join(
     ITC_Event_t **ppt_Event,
     ITC_Event_t **ppt_OtherEvent
 );
+
+#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /**
  * @brief Join two Events similar to ::ITC_Event_join() but do not modify the source Events
