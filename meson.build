@@ -84,7 +84,7 @@ if get_option('tests')
     unity_test_runner_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'vendor' / 'unity' / 'auto' / 'generate_test_runner.rb'
     unity_test_mock_generator_script = meson.current_source_dir() / 'vendor' / 'cmock' / 'lib' / 'cmock.rb'
 
-    libitc_test_src_dir = 'libitc' / 'test'
+    libitc_test_src_dir = 'tests'
     subdir(libitc_test_src_dir)
     subdir(libitc_test_src_dir / 'build')
 endif
