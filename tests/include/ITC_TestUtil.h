@@ -14,6 +14,7 @@
 #include "ITC_Event.h"
 #include "ITC_Stamp.h"
 #include "ITC_Status.h"
+#include "ITC_config.h"
 
 #include <stdint.h>
 
@@ -32,6 +33,17 @@
  * tables.
  */
 #define FIRST_NORMALISATION_RELATED_INVALID_EVENT_INDEX                      (7)
+
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+
+/* The maximum number of statically allocated ITC ID nodes */
+#define MAX_ITC_ID_NODES                                                  (82)
+/* The maximum number of statically allocated ITC Event nodes */
+#define MAX_ITC_EVENT_NODES                                               (104)
+/* The maximum number of statically allocated ITC Stamp nodes */
+#define MAX_ITC_STAMP_NODES                                               (11)
+
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
 
 /******************************************************************************
  *  Global variables

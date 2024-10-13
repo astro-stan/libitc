@@ -16,6 +16,10 @@
 #include "ITC_Event_package.h"
 #include "ITC_TestUtil.h"
 
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#include "ITC_Port.h"
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+
 /******************************************************************************
  *  Private functions
  ******************************************************************************/
@@ -1561,6 +1565,32 @@ void (*const gpv_InvalidSerialisedStampConstructorTable[])(
 
 const uint32_t gu32_InvalidSerialisedStampTableSize =
     ARRAY_COUNT(gpv_InvalidSerialisedStampConstructorTable);
+
+
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+
+/* The array storing all allocated ITC Id nodes */
+ITC_Id_t grt_ItcIdNodeAllocationArray[MAX_ITC_ID_NODES] = { 0 };
+ITC_Id_t *gpt_ItcIdNodeAllocationArray = &grt_ItcIdNodeAllocationArray[0];
+
+/* The length of the `gpt_ItcIdNodeAllocationArray` array */
+uint32_t gu32_ItcIdNodeAllocationArrayLength = ARRAY_COUNT(grt_ItcIdNodeAllocationArray);
+
+/* The array storing all allocated ITC Event nodes */
+ITC_Event_t grt_ItcEventNodeAllocationArray[MAX_ITC_EVENT_NODES] = { 0 };
+ITC_Event_t *gpt_ItcEventNodeAllocationArray = &grt_ItcEventNodeAllocationArray[0];
+
+/* The length of the `gpt_ItcEventNodeAllocationArray` array */
+uint32_t gu32_ItcEventNodeAllocationArrayLength = ARRAY_COUNT(grt_ItcEventNodeAllocationArray);
+
+/* The array storing all allocated ITC Stamp nodes */
+ITC_Stamp_t grt_ItcStampNodeAllocationArray[MAX_ITC_STAMP_NODES] = { 0 };
+ITC_Stamp_t *gpt_ItcStampNodeAllocationArray = &grt_ItcStampNodeAllocationArray[0];
+
+/* The length of the `gpt_ItcStampNodeAllocationArray` array */
+uint32_t gu32_ItcStampNodeAllocationArrayLength = ARRAY_COUNT(grt_ItcStampNodeAllocationArray);
+
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
 
 /******************************************************************************
  *  Public functions

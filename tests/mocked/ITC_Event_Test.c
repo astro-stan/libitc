@@ -69,9 +69,18 @@ void tearDown(void) {}
 void ITC_Event_Test_destroyEventCallsItcPortFree(void)
 {
     /* Setup expectations */
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent->pt_Left, ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent->pt_Right,ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent->pt_Left,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent->pt_Right,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     TEST_SUCCESS(ITC_Event_destroy(&gpt_ParentEvent));
 }
@@ -80,9 +89,18 @@ void ITC_Event_Test_destroyEventCallsItcPortFree(void)
 void ITC_Event_Test_destroyEventConinuesOnError(void)
 {
     /* Setup expectations */
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent->pt_Left, ITC_STATUS_FAILURE);
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent->pt_Right,ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent->pt_Left,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_FAILURE);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent->pt_Right,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     TEST_FAILURE(ITC_Event_destroy(&gpt_ParentEvent), ITC_STATUS_FAILURE);
 }
@@ -94,7 +112,7 @@ void ITC_Event_Test_createEventCallsItcPortMalloc(void)
 
     /* Setup expectations */
     ITC_Port_malloc_ExpectAndReturn(
-        NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&gpt_LeafEvent);
 
@@ -114,15 +132,18 @@ void ITC_Event_Test_clonedEventIsDestroyedOnFailure(void)
 
     /* Setup expectations */
     ITC_Port_malloc_ExpectAndReturn(
-        NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent);
 
     ITC_Port_malloc_ExpectAndReturn(
-        NULL, sizeof(ITC_Event_t), ITC_STATUS_FAILURE);
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_FAILURE);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
 
-    ITC_Port_free_ExpectAndReturn(pt_NewEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        pt_NewEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Test cloning failure */
     TEST_FAILURE(
@@ -134,9 +155,13 @@ void ITC_Event_Test_normaliseEventIsRecoveredOnFailure(void)
 {
     /* Setup expectations */
     ITC_Port_free_ExpectAndReturn(
-        gpt_ParentEvent->pt_Left, ITC_STATUS_SUCCESS);
+        gpt_ParentEvent->pt_Left,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(
-        gpt_ParentEvent->pt_Right, ITC_STATUS_FAILURE);
+        gpt_ParentEvent->pt_Right,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_FAILURE);
 
     /* Test failing to normalise a (0, 1, 1) Event */
     gpt_ParentEvent->pt_Left->t_Count = 1;
@@ -179,7 +204,7 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
          u32_I++)
     {
         ITC_Port_malloc_ExpectAndReturn(
-            NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+            NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
         ITC_Port_malloc_IgnoreArg_ppv_Ptr();
         ITC_Port_malloc_ReturnThruPtr_ppv_Ptr(
             (void **)&rpt_CopiedParentEvent[u32_I]);
@@ -188,7 +213,7 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
 
     /* Expect leaf event copy */
     ITC_Port_malloc_ExpectAndReturn(
-        NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&rpt_CopiedLeafEvent[0]);
 
@@ -198,7 +223,7 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
          u32_I++)
     {
         ITC_Port_malloc_ExpectAndReturn(
-            NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+            NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
         ITC_Port_malloc_IgnoreArg_ppv_Ptr();
         ITC_Port_malloc_ReturnThruPtr_ppv_Ptr(
             (void **)&rpt_CopiedLeafEvent[u32_I]);
@@ -213,12 +238,12 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
         if (u32_I == ARRAY_COUNT(rpt_NewEvent) - 1)
         {
             ITC_Port_malloc_ExpectAndReturn(
-                NULL, sizeof(ITC_Event_t), ITC_STATUS_FAILURE);
+                NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_FAILURE);
         }
         else
         {
             ITC_Port_malloc_ExpectAndReturn(
-                NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+                NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
             ITC_Port_malloc_ReturnThruPtr_ppv_Ptr(
                 (void **)&rpt_NewEvent[u32_I]);
         }
@@ -227,18 +252,42 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
     }
 
     /* Expect copied parent event deallocation */
-    ITC_Port_free_ExpectAndReturn(rpt_CopiedParentEvent[1], ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(rpt_CopiedParentEvent[2], ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(rpt_CopiedParentEvent[0], ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_CopiedParentEvent[1],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_CopiedParentEvent[2],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_CopiedParentEvent[0],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Expect copied leaf event deallocation */
-    ITC_Port_free_ExpectAndReturn(rpt_CopiedLeafEvent[1], ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(rpt_CopiedLeafEvent[2], ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(rpt_CopiedLeafEvent[0], ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_CopiedLeafEvent[1],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_CopiedLeafEvent[2],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_CopiedLeafEvent[0],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Expect joined event deallocation */
-    ITC_Port_free_ExpectAndReturn(rpt_NewEvent[1], ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(rpt_NewEvent[0], ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_NewEvent[1],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        rpt_NewEvent[0],
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Test failing to join the Events */
     TEST_FAILURE(
@@ -260,22 +309,37 @@ void ITC_Event_Test_joinOriginalAndCopiedEventsAreDestroyedOnSucess(void)
     ITC_Event_t *pt_NewEvent3 = &t_NewEvent3;
 
     /* Setup expectations */
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_ExpectAndReturn(
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent1);
 
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_ExpectAndReturn(
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent2);
 
-    ITC_Port_malloc_ExpectAndReturn(NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+    ITC_Port_malloc_ExpectAndReturn(
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent3);
 
-    ITC_Port_free_ExpectAndReturn(pt_NewEvent1, ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(pt_NewEvent2, ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(gpt_LeafEvent, ITC_STATUS_SUCCESS);
-    ITC_Port_free_ExpectAndReturn(pt_OtherEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        pt_NewEvent1,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        pt_NewEvent2,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_LeafEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        pt_OtherEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Test joining the Events */
     TEST_SUCCESS(ITC_Event_join(&gpt_LeafEvent, &pt_OtherEvent));
@@ -287,9 +351,13 @@ void ITC_Event_Test_maximiseEventIsRecoveredOnFailure(void)
 {
     /* Setup expectations */
     ITC_Port_free_ExpectAndReturn(
-        gpt_ParentEvent->pt_Left, ITC_STATUS_SUCCESS);
+        gpt_ParentEvent->pt_Left,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(
-        gpt_ParentEvent->pt_Right, ITC_STATUS_FAILURE);
+        gpt_ParentEvent->pt_Right,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_FAILURE);
 
     /* Test failing to maximise a (0, 3, 0) Event */
     gpt_ParentEvent->pt_Left->t_Count = 3;
@@ -323,20 +391,28 @@ void ITC_Event_Test_fillEventIsRecoveredOnFailure(void)
     for (uint32_t u32_I = 0; u32_I < ARRAY_COUNT(rt_ClonedParentEvent); u32_I++)
     {
         ITC_Port_malloc_ExpectAndReturn(
-            NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+            NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
         ITC_Port_malloc_IgnoreArg_ppv_Ptr();
         ITC_Port_malloc_ReturnThruPtr_ppv_Ptr(
             (void **)&pt_ClonedParentEvent[u32_I]);
     }
 
     /* Setup expectation to fail second deallocation */
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent->pt_Left, ITC_STATUS_SUCCESS);
     ITC_Port_free_ExpectAndReturn(
-        gpt_ParentEvent->pt_Right, ITC_STATUS_FAILURE);
+        gpt_ParentEvent->pt_Left,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent->pt_Right,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_FAILURE);
 
     /* The operation failed, the original event is in a corrupted state
      * expect it to be destroyed */
-    ITC_Port_free_ExpectAndReturn(gpt_ParentEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_ParentEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Test failing to fill a (0, 3, 0) Event with a seed ID */
     gpt_ParentEvent->pt_Left->t_Count = 3;
@@ -385,7 +461,7 @@ void ITC_Event_Test_growEventIsRecoveredOnFailure(void)
     for (uint32_t u32_I = 0; u32_I < ARRAY_COUNT(rt_ClonedParentEvent); u32_I++)
     {
         ITC_Port_malloc_ExpectAndReturn(
-            NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+            NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
         ITC_Port_malloc_IgnoreArg_ppv_Ptr();
         ITC_Port_malloc_ReturnThruPtr_ppv_Ptr(
             (void **)&pt_ClonedParentEvent[u32_I]);
@@ -393,19 +469,25 @@ void ITC_Event_Test_growEventIsRecoveredOnFailure(void)
 
     /* Setup expectation to fail second allocation */
     ITC_Port_malloc_ExpectAndReturn(
-        NULL, sizeof(ITC_Event_t), ITC_STATUS_SUCCESS);
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_SUCCESS);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
     ITC_Port_malloc_ReturnThruPtr_ppv_Ptr((void **)&pt_NewEvent1);
     ITC_Port_malloc_ExpectAndReturn(
-        NULL, sizeof(ITC_Event_t), ITC_STATUS_FAILURE);
+        NULL, ITC_PORT_ALLOCTYPE_ITC_EVENT_T, ITC_STATUS_FAILURE);
     ITC_Port_malloc_IgnoreArg_ppv_Ptr();
 
     /* Setup expectation to destroy the first allocation */
-    ITC_Port_free_ExpectAndReturn(&t_NewEvent1, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        &t_NewEvent1,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* The operation failed, the original event might be in a corrupted state
      * expect it to be destroyed */
-    ITC_Port_free_ExpectAndReturn(gpt_LeafEvent, ITC_STATUS_SUCCESS);
+    ITC_Port_free_ExpectAndReturn(
+        gpt_LeafEvent,
+        ITC_PORT_ALLOCTYPE_ITC_EVENT_T,
+        ITC_STATUS_SUCCESS);
 
     /* Test failing to grow a (0) Event with a (1, 0) ID */
     TEST_FAILURE(

@@ -25,6 +25,7 @@
 #include <stdbool.h>
 
 #include <string.h>
+#include <stddef.h>
 
 /******************************************************************************
  * Private functions
@@ -81,7 +82,8 @@ static ITC_Status_t newStamp(
     ITC_Status_t t_Status; /* The current status */
     ITC_Stamp_t *pt_Alloc;
 
-    t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Stamp_t));
+    t_Status = ITC_Port_malloc(
+        (void **)&pt_Alloc, ITC_PORT_ALLOCTYPE_ITC_STAMP_T);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -956,7 +958,8 @@ ITC_Status_t ITC_Stamp_destroy(
             }
         }
 
-        t_FreeStatus = ITC_Port_free(*ppt_Stamp);
+        t_FreeStatus = ITC_Port_free(
+            *ppt_Stamp, ITC_PORT_ALLOCTYPE_ITC_STAMP_T);
 
         if (t_FreeStatus != ITC_STATUS_SUCCESS)
         {

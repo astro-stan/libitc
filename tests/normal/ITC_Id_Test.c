@@ -14,15 +14,67 @@
 #include "ITC_Test_package.h"
 #include "ITC_TestUtil.h"
 
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#include "ITC_Port.h"
+
+#include <string.h>
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+
 /******************************************************************************
  *  Public functions
  ******************************************************************************/
 
 /* Init test */
-void setUp(void) {}
+void setUp(void)
+{
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+    static bool b_MemoryInit = false;
+
+    if (!b_MemoryInit)
+    {
+        TEST_SUCCESS(ITC_Port_init());
+        b_MemoryInit = true;
+    }
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+}
 
 /* Fini test */
-void tearDown(void) {}
+void tearDown(void)
+{
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+/* Test all memory is freed at the end of each test */
+
+    TEST_ASSERT_EQUAL_UINT(
+        ITC_PORT_FREE_SLOT_PATTERN,
+        ((uint8_t *)gpt_ItcIdNodeAllocationArray)[0]);
+    TEST_ASSERT_EQUAL_UINT(
+        0,
+        memcmp((const void *)&((uint8_t *)gpt_ItcIdNodeAllocationArray)[0],
+               (const void *)&((uint8_t *)gpt_ItcIdNodeAllocationArray)[1],
+               (gu32_ItcIdNodeAllocationArrayLength * sizeof(ITC_Id_t)) -
+                   1));
+
+    TEST_ASSERT_EQUAL_UINT(
+        ITC_PORT_FREE_SLOT_PATTERN,
+        ((uint8_t *)gpt_ItcEventNodeAllocationArray)[0]);
+    TEST_ASSERT_EQUAL_UINT(
+        0,
+        memcmp((const void *)&((uint8_t *)gpt_ItcEventNodeAllocationArray)[0],
+               (const void *)&((uint8_t *)gpt_ItcEventNodeAllocationArray)[1],
+               (gu32_ItcEventNodeAllocationArrayLength * sizeof(ITC_Event_t)) -
+                   1));
+
+    TEST_ASSERT_EQUAL_UINT(
+        ITC_PORT_FREE_SLOT_PATTERN,
+        ((uint8_t *)gpt_ItcStampNodeAllocationArray)[0]);
+    TEST_ASSERT_EQUAL_UINT(
+        0,
+        memcmp((const void *)&((uint8_t *)gpt_ItcStampNodeAllocationArray)[0],
+               (const void *)&((uint8_t *)gpt_ItcStampNodeAllocationArray)[1],
+               (gu32_ItcStampNodeAllocationArrayLength * sizeof(ITC_Stamp_t)) -
+                   1));
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+}
 
 /* Test destroying an ID fails with invalid param */
 void ITC_Id_Test_destroyIdFailInvalidParam(void)
