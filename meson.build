@@ -43,7 +43,6 @@ common_c_args = meson.get_compiler('c').get_supported_arguments([
     '-Wpointer-arith',
     '-Wshadow',
     '-Wshift-overflow=2',
-    # '-Wstack-usage=8192',
     '-Wstrict-prototypes',
     '-Wswitch-default',
     '-Wundef',
