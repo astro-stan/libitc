@@ -995,13 +995,27 @@ void ITC_Event_Test_compareFailInvalidParam(void)
     bool b_DummyIsLeq;
 
     TEST_FAILURE(
-        ITC_Event_leq(pt_DummyEvent, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Event_leq(
+            pt_DummyEvent,
+            pt_DummyEvent,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Event_leq(NULL, pt_DummyEvent, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Event_leq(
+            pt_DummyEvent,
+            NULL,
+            &b_DummyIsLeq),
+        ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
         ITC_Event_leq(
             NULL,
-            NULL,
+            pt_DummyEvent,
+            &b_DummyIsLeq),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Event_leq(
+            pt_DummyEvent,
+            pt_DummyEvent,
             &b_DummyIsLeq),
         ITC_STATUS_INVALID_PARAM);
 }
@@ -1277,13 +1291,27 @@ void ITC_Event_Test_fillEventFailInvalidParam(void)
     bool b_DummyWasFilled;
 
     TEST_FAILURE(
-        ITC_Event_fill(&pt_DummyEvent, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Event_fill(
+            &pt_DummyEvent,
+            pt_DummyId,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Event_fill(NULL, pt_DummyId, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Event_fill(
+            &pt_DummyEvent,
+            NULL,
+            &b_DummyWasFilled),
+        ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
         ITC_Event_fill(
             NULL,
-            NULL,
+            pt_DummyId,
+            &b_DummyWasFilled),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Event_fill(
+            &pt_DummyEvent,
+            pt_DummyId,
             &b_DummyWasFilled),
         ITC_STATUS_INVALID_PARAM);
 }

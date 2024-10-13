@@ -855,13 +855,27 @@ void ITC_Stamp_Test_compareStampsFailInvalidParam(void)
     ITC_Stamp_Comparison_t t_DummyResult;
 
     TEST_FAILURE(
-        ITC_Stamp_compare(pt_DummyStamp, NULL, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Stamp_compare(
+            pt_DummyStamp,
+            pt_DummyStamp,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
-        ITC_Stamp_compare(NULL, pt_DummyStamp, NULL), ITC_STATUS_INVALID_PARAM);
+        ITC_Stamp_compare(
+            pt_DummyStamp,
+            NULL,
+            &t_DummyResult),
+        ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(
         ITC_Stamp_compare(
             NULL,
-            NULL,
+            pt_DummyStamp,
+            &t_DummyResult),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_compare(
+            pt_DummyStamp,
+            pt_DummyStamp,
             &t_DummyResult),
         ITC_STATUS_INVALID_PARAM);
 }
@@ -1301,6 +1315,12 @@ void ITC_Stamp_Test_createStampFromIdAndEventFailInvalidParam(void)
         ITC_Stamp_newFromIdAndEvent(
             pt_DummyId,
             NULL,
+            &pt_DummyStamp),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Stamp_newFromIdAndEvent(
+            pt_DummyId,
+            pt_DummyEvent,
             &pt_DummyStamp),
         ITC_STATUS_INVALID_PARAM);
 #else
