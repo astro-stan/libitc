@@ -1386,6 +1386,8 @@ ITC_Status_t ITC_Id_validate(
     return validateId(pt_Id, true);
 }
 
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
 /******************************************************************************
  * Split an existing ITC ID into two distinct (non-overlaping) ITC IDs
  ******************************************************************************/
@@ -1395,22 +1397,16 @@ ITC_Status_t ITC_Id_split(
     ITC_Id_t **ppt_OtherId
 )
 {
-    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Status_t t_Status; /* The current status */
     ITC_Id_t *pt_NewId = NULL;
 
     if (!ppt_Id || !ppt_OtherId)
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
+    else
     {
-        t_Status = validateId(*ppt_Id, true);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = splitIdI(*ppt_Id, &pt_NewId, ppt_OtherId);
+        t_Status = ITC_Id_splitConst(*ppt_Id, &pt_NewId, ppt_OtherId);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1452,20 +1448,9 @@ ITC_Status_t ITC_Id_sum(
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
+    else
     {
-        t_Status = validateId(*ppt_Id, true);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = validateId(*ppt_OtherId, true);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = sumIdI(*ppt_Id, *ppt_OtherId, &pt_SummedId);
+        t_Status = ITC_Id_sumConst(*ppt_Id, *ppt_OtherId, &pt_SummedId);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -1491,6 +1476,8 @@ ITC_Status_t ITC_Id_sum(
 
     return t_Status;
 }
+
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /******************************************************************************
  * Split an ID similar to ::ITC_Id_split() but do not modify the source ID

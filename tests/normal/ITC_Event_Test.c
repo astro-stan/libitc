@@ -93,6 +93,33 @@ static void checkEventConcurrent(
     TEST_ASSERT_FALSE(b_IsLeq21);
 }
 
+static ITC_Status_t joinEvent(
+    ITC_Event_t **ppt_Event,
+    ITC_Event_t **ppt_OtherEvent
+)
+{
+#if !ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Event_t *pt_JoinedEvent;
+
+    t_Status = ITC_Event_joinConst(
+        *ppt_Event, *ppt_OtherEvent, &pt_JoinedEvent);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        (void)ITC_Event_destroy(ppt_Event);
+        (void)ITC_Event_destroy(ppt_OtherEvent);
+
+        /* Return the joined Event */
+        *ppt_Event = pt_JoinedEvent;
+    }
+
+    return t_Status;
+#else
+    return ITC_Event_join(ppt_Event, ppt_OtherEvent);
+#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
 /******************************************************************************
  *  Public functions
  ******************************************************************************/
@@ -542,10 +569,45 @@ void ITC_Event_Test_maximiseComplexEventSucceeds(void)
 /* Test joining Events fails with invalid param */
 void ITC_Event_Test_joinEventFailInvalidParam(void)
 {
+#if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t *pt_Dummy = NULL;
 
     TEST_FAILURE(ITC_Event_join(NULL, &pt_Dummy), ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(ITC_Event_join(&pt_Dummy, NULL), ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test const joining Events fails with invalid param */
+void ITC_Event_Test_joinEventConstFailInvalidParam(void)
+{
+    ITC_Event_t *pt_Dummy = NULL;
+
+    TEST_FAILURE(
+        ITC_Event_joinConst(
+            pt_Dummy,
+            pt_Dummy,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Event_joinConst(
+            pt_Dummy,
+            NULL,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Event_joinConst(
+            NULL,
+            pt_Dummy,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Event_joinConst(
+            pt_Dummy,
+            pt_Dummy,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test joining Events fails with corrupt Event */
@@ -567,11 +629,11 @@ void ITC_Event_Test_joinEventFailWithCorruptEvent(void)
 
         /* Test for the failure */
         TEST_FAILURE(
-            ITC_Event_join(&pt_Event, &pt_OtherEvent),
+            joinEvent(&pt_Event, &pt_OtherEvent),
             ITC_STATUS_CORRUPT_EVENT);
         /* And the other way around */
         TEST_FAILURE(
-            ITC_Event_join(&pt_OtherEvent, &pt_Event),
+            joinEvent(&pt_OtherEvent, &pt_Event),
             ITC_STATUS_CORRUPT_EVENT);
 
         /* Destroy the Events */
@@ -598,7 +660,7 @@ void ITC_Event_Test_joinEventFailWithEventCounterOverflow(void)
 
     /* Test for the failure */
     TEST_FAILURE(
-        ITC_Event_join(&pt_Event, &pt_OtherEvent),
+        joinEvent(&pt_Event, &pt_OtherEvent),
         ITC_STATUS_EVENT_COUNTER_OVERFLOW);
 
     /* clang-format off */
@@ -622,7 +684,7 @@ void ITC_Event_Test_joinEventFailWithEventCounterOverflow(void)
 
     /* Test for the failure */
     TEST_FAILURE(
-        ITC_Event_join(&pt_Event, &pt_OtherEvent),
+        joinEvent(&pt_Event, &pt_OtherEvent),
         ITC_STATUS_EVENT_COUNTER_OVERFLOW);
 
     /* clang-format off */
@@ -653,7 +715,7 @@ void ITC_Event_Test_joinTwoIdenticalLeafEventsSucceeds(void)
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_OtherEvent, NULL, 1));
 
     /* Test joining the events */
-    TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+    TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
     /* Test the joined event is a leaf with 1 counter */
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 1);
 
@@ -678,7 +740,7 @@ void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
         if(u32_I)
         {
             /* Test joining the events */
-            TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+            TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
             /* Test the joined event is a leaf with the bigger event counter */
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 4);
@@ -686,7 +748,7 @@ void ITC_Event_Test_joinTwoDifferentLeafEventsSucceeds(void)
         else
         {
             /* Test joining the events the other way around */
-            TEST_SUCCESS(ITC_Event_join(&pt_OtherEvent, &pt_Event));
+            TEST_SUCCESS(joinEvent(&pt_OtherEvent, &pt_Event));
 
             /* Test the joined event is a leaf with the bigger event counter */
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent, 4);
@@ -715,7 +777,7 @@ void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
         if(u32_I)
         {
             /* Test joining the events */
-            TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+            TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
             /* Test the joined event is a (4, 0, 6) event */
             TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 4);
@@ -725,7 +787,7 @@ void ITC_Event_Test_joinALeafAndAParentEventsSucceeds(void)
         else
         {
             /* Test joining the events the other way around */
-            TEST_SUCCESS(ITC_Event_join(&pt_OtherEvent, &pt_Event));
+            TEST_SUCCESS(joinEvent(&pt_OtherEvent, &pt_Event));
 
             /* Test the joined event is a (4, 0, 6) event */
             TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 4);
@@ -756,7 +818,7 @@ void ITC_Event_Test_joinTwoIdenticalParentEventsSucceeds(void)
     /* clang-format on */
 
     /* Test joining the events */
-    TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+    TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
     /* Test the joined event is a (1, 0, 3) event */
     TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 1);
@@ -789,7 +851,7 @@ void ITC_Event_Test_joinTwoMirroredParentEventsSucceeds(void)
         if(u32_I)
         {
             /* Test joining the events */
-            TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+            TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
             /* Test the joined event is a leaf event with 4 events */
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 4);
@@ -797,7 +859,7 @@ void ITC_Event_Test_joinTwoMirroredParentEventsSucceeds(void)
         else
         {
             /* Test joining the events the other way around */
-            TEST_SUCCESS(ITC_Event_join(&pt_OtherEvent, &pt_Event));
+            TEST_SUCCESS(joinEvent(&pt_OtherEvent, &pt_Event));
 
             /* Test the joined event is a leaf event with 4 events */
             TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_OtherEvent, 4);
@@ -830,7 +892,7 @@ void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
         if (u32_I)
         {
             /* Test joining the events */
-            TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+            TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
             /* Test the joined event is a (2, 5, 0) event */
             TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_Event, 6);
@@ -840,7 +902,7 @@ void ITC_Event_Test_joinTwoDifferentParentEventsSucceeds(void)
         else
         {
             /* Test joining the events the other way around */
-            TEST_SUCCESS(ITC_Event_join(&pt_OtherEvent, &pt_Event));
+            TEST_SUCCESS(joinEvent(&pt_OtherEvent, &pt_Event));
 
             /* Test the joined event is a (4, 0, 6) event */
             TEST_ITC_EVENT_IS_PARENT_N_EVENT(pt_OtherEvent, 6);
@@ -880,7 +942,7 @@ void ITC_Event_Test_joinSimpleAndComplexParentEventsSucceeds(void)
         if (u32_I)
         {
             /* Test joining the events */
-            TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+            TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
             /* clang-format off */
             /* Test the joined event is (1, 1, (0, 0, (1, 0, 2))) event */
@@ -896,7 +958,7 @@ void ITC_Event_Test_joinSimpleAndComplexParentEventsSucceeds(void)
         else
         {
             /* Test joining the events the other way around */
-            TEST_SUCCESS(ITC_Event_join(&pt_OtherEvent, &pt_Event));
+            TEST_SUCCESS(joinEvent(&pt_OtherEvent, &pt_Event));
 
             /* clang-format off */
             /* Test the joined event is (1, 1, (0, 0, (1, 0, 2))) event */
@@ -948,7 +1010,7 @@ void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
         if (u32_I)
         {
             /* Test joining the events */
-            TEST_SUCCESS(ITC_Event_join(&pt_Event, &pt_OtherEvent));
+            TEST_SUCCESS(joinEvent(&pt_Event, &pt_OtherEvent));
 
             /* clang-format off */
             /* Test the joined event is (6, (0, (0, 2, 0), 0), (1, 0, 2)) event */
@@ -966,7 +1028,7 @@ void ITC_Event_Test_joinTwoComplexEventsSucceeds(void)
         else
         {
             /* Test joining the events the other way around */
-            TEST_SUCCESS(ITC_Event_join(&pt_OtherEvent, &pt_Event));
+            TEST_SUCCESS(joinEvent(&pt_OtherEvent, &pt_Event));
 
             /* clang-format off */
             /* Test the joined event is (6, (0, (0, 2, 0), 0), (1, 0, 2)) event */

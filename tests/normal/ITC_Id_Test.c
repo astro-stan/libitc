@@ -20,6 +20,79 @@
 #include <string.h>
 #endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
+
+/******************************************************************************
+ *  Private functions
+ ******************************************************************************/
+
+/**
+ * @brief Split and ID and return it
+ *
+ * @param ppt_Id (in) The existing ID. (out) The first split ID
+ * @param ppt_OtherId (out) The second split ID
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t splitId(
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
+)
+{
+#if !ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Status_t t_Status; /* The current status */
+    ITC_Id_t *pt_NewId = NULL;
+
+    t_Status = ITC_Id_splitConst(*ppt_Id, &pt_NewId, ppt_OtherId);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        (void)ITC_Id_destroy(ppt_Id);
+
+        /* Return the first half of the split ID */
+        *ppt_Id = pt_NewId;
+    }
+
+    return t_Status;
+#else
+    return ITC_Id_split(ppt_Id, ppt_OtherId);
+#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/**
+ * @brief Sum and ID and return it
+ *
+ * @param ppt_Id (in) The first existing ID. (out) The summed ID
+ * @param ppt_OtherId (in) The second existing ID. (out) NULL
+ * @return `ITC_Status_t` The status of the operation
+ * @retval `ITC_STATUS_SUCCESS` on success
+ */
+static ITC_Status_t sumId(
+    ITC_Id_t **ppt_Id,
+    ITC_Id_t **ppt_OtherId
+)
+{
+#if !ITC_CONFIG_ENABLE_EXTENDED_API
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
+    ITC_Id_t *pt_SummedId = NULL;
+
+    t_Status = ITC_Id_sumConst(*ppt_Id, *ppt_OtherId, &pt_SummedId);
+
+    if (t_Status == ITC_STATUS_SUCCESS)
+    {
+        (void)ITC_Id_destroy(ppt_Id);
+        (void)ITC_Id_destroy(ppt_OtherId);
+
+        /* Return the summed ID */
+        *ppt_Id = pt_SummedId;
+    }
+
+    return t_Status;
+#else
+    return ITC_Id_sum(ppt_Id, ppt_OtherId);
+#endif /* !ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+
 /******************************************************************************
  *  Public functions
  ******************************************************************************/
@@ -218,10 +291,45 @@ void ITC_Id_Test_cloneIdSuccessful(void)
 /* Test spliting an ID fails with invalid param */
 void ITC_Id_Test_splitIdFailInvalidParam(void)
 {
+#if ITC_CONFIG_ENABLE_EXTENDED_API
   ITC_Id_t *pt_DummyId = NULL;
 
   TEST_FAILURE(ITC_Id_split(NULL, &pt_DummyId), ITC_STATUS_INVALID_PARAM);
   TEST_FAILURE(ITC_Id_split(&pt_DummyId, NULL), ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test const spliting an ID fails with invalid param */
+void ITC_Id_Test_splitIdConstFailInvalidParam(void)
+{
+  ITC_Id_t *pt_DummyId = NULL;
+
+  TEST_FAILURE(
+    ITC_Id_splitConst(
+        pt_DummyId,
+        &pt_DummyId,
+        NULL),
+    ITC_STATUS_INVALID_PARAM);
+  TEST_FAILURE(
+    ITC_Id_splitConst(
+        pt_DummyId,
+        NULL,
+        &pt_DummyId),
+    ITC_STATUS_INVALID_PARAM);
+  TEST_FAILURE(
+    ITC_Id_splitConst(
+        NULL,
+        &pt_DummyId,
+        &pt_DummyId),
+    ITC_STATUS_INVALID_PARAM);
+  TEST_FAILURE(
+    ITC_Id_splitConst(
+        pt_DummyId,
+        &pt_DummyId,
+        &pt_DummyId),
+    ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test splitting an ID fails with corrupt ID */
@@ -239,7 +347,7 @@ void ITC_Id_Test_splitIdFailWithCorruptId(void)
         gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
 
         /* Test for the failure */
-        TEST_FAILURE(ITC_Id_split(&pt_Id, &pt_OtherId), ITC_STATUS_CORRUPT_ID);
+        TEST_FAILURE(splitId(&pt_Id, &pt_OtherId), ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the ID */
         gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
@@ -256,7 +364,7 @@ void ITC_Id_Test_splitNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id, NULL));
 
     /* Split the null ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the new IDs match (0, 0) */
     TEST_ITC_ID_IS_NULL_ID(pt_Id);
@@ -270,7 +378,7 @@ void ITC_Id_Test_splitNullAndSeedIdsSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
     /* Split the seed ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the new IDs match ((1, 0), (0, 1)) */
     TEST_ITC_ID_IS_SEED_NULL_ID(pt_Id);
@@ -293,7 +401,7 @@ void ITC_Id_Test_split01And10IdsSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id->pt_Right, pt_Id));
 
     /* Split the (0, 1) ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the split IDs match ((0, (1, 0)), (0, (0, 1))) */
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id);
@@ -313,7 +421,7 @@ void ITC_Id_Test_split01And10IdsSuccessful(void)
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_Id->pt_Right, pt_Id));
 
     /* Split the (1, 0) ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the split IDs match (((1, 0), 0), ((0, 1), 0)) */
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id);
@@ -346,7 +454,7 @@ void ITC_Id_Test_split010RIdSuccessful(void)
     /* clang-format on */
 
     /* Split the (0, (1, 0)) ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the split IDs match ((0, ((1, 0), 0)), (0, ((0, 1), 0))) */
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id);
@@ -384,7 +492,7 @@ void ITC_Id_Test_split010LIdSuccessful(void)
     /* clang-format on */
 
     /* Split the ((0, 1), 0) ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the split IDs match (((0, (1, 0)), 0), ((0, (0, 1)), 0)) */
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id);
@@ -424,7 +532,7 @@ void ITC_Id_Test_split1001IdSuccessful(void)
     /* clang-format on */
 
     /* Split the ((1, 0), (0, 1)) ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the split IDs match (((1, 0), 0), (0, (0, 1))) */
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id);
@@ -463,7 +571,7 @@ void ITC_Id_Test_split010010IdSuccessful(void)
     /* clang-format on */
 
     /* Split the ((0, (1, 0)), ((0, 1), 0)) ID */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(splitId(&pt_Id, &pt_OtherId));
 
     /* Test the split IDs match (((0, (1, 0)), 0), (0, ((0, 1), 0))) */
     TEST_ITC_ID_IS_NOT_LEAF_ID(pt_Id);
@@ -874,10 +982,45 @@ void ITC_Id_Test_normalise00000IdSuccessful(void)
 /* Test summing an ID fails with invalid param */
 void ITC_Id_Test_sumIdFailInvalidParam(void)
 {
+#if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_Dummy = NULL;
 
     TEST_FAILURE(ITC_Id_sum(NULL, &pt_Dummy), ITC_STATUS_INVALID_PARAM);
     TEST_FAILURE(ITC_Id_sum(&pt_Dummy, NULL), ITC_STATUS_INVALID_PARAM);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
+}
+
+/* Test const summing an ID fails with invalid param */
+void ITC_Id_Test_sumConstIdFailInvalidParam(void)
+{
+    ITC_Id_t *pt_Dummy = NULL;
+
+    TEST_FAILURE(
+        ITC_Id_sumConst(
+            pt_Dummy,
+            pt_Dummy,
+            NULL),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Id_sumConst(
+            pt_Dummy,
+            NULL,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Id_sumConst(
+            NULL,
+            pt_Dummy,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
+    TEST_FAILURE(
+        ITC_Id_sumConst(
+            pt_Dummy,
+            pt_Dummy,
+            &pt_Dummy),
+        ITC_STATUS_INVALID_PARAM);
 }
 
 /* Test summing an ID fails with corrupt ID */
@@ -898,9 +1041,9 @@ void ITC_Id_Test_sumIdFailWithCorruptId(void)
         gpv_InvalidIdConstructorTable[u32_I](&pt_Id);
 
         /* Test for the failure */
-        TEST_FAILURE(ITC_Id_sum(&pt_Id, &pt_OtherId), ITC_STATUS_CORRUPT_ID);
+        TEST_FAILURE(sumId(&pt_Id, &pt_OtherId), ITC_STATUS_CORRUPT_ID);
         /* And the other way around */
-        TEST_FAILURE(ITC_Id_sum(&pt_OtherId, &pt_Id), ITC_STATUS_CORRUPT_ID);
+        TEST_FAILURE(sumId(&pt_OtherId, &pt_Id), ITC_STATUS_CORRUPT_ID);
 
         /* Destroy the IDs */
         gpv_InvalidIdDestructorTable[u32_I](&pt_Id);
@@ -921,7 +1064,7 @@ void ITC_Id_Test_sumId11FailOverlappingInterval(void)
 
     /* Sum the IDs */
     TEST_FAILURE(
-        ITC_Id_sum(&pt_Id, &pt_OtherId),
+        sumId(&pt_Id, &pt_OtherId),
         ITC_STATUS_OVERLAPPING_ID_INTERVAL);
 
     /* Destroy the IDs */
@@ -940,7 +1083,7 @@ void ITC_Id_Test_sumId00Succeeds(void)
     TEST_SUCCESS(ITC_TestUtil_newNullId(&pt_OtherId, NULL));
 
     /* Sum the IDs */
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+    TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
     /* Test the summed ID is a NULL ID */
     TEST_ITC_ID_IS_NULL_ID(pt_Id);
@@ -965,7 +1108,7 @@ void ITC_Id_Test_sumId01And10Succeeds(void)
         if (u32_I)
         {
             /* Sum the IDs */
-            TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+            TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_Id);
@@ -973,7 +1116,7 @@ void ITC_Id_Test_sumId01And10Succeeds(void)
         else
         {
             /* Sum the IDs the other way around */
-            TEST_SUCCESS(ITC_Id_sum(&pt_OtherId, &pt_Id));
+            TEST_SUCCESS(sumId(&pt_OtherId, &pt_Id));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_OtherId);
@@ -1002,7 +1145,7 @@ void ITC_Id_Test_sumId001And010Succeeds(void)
         if (u32_I)
         {
             /* Sum the IDs */
-            TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+            TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
             /* Test the summed ID is a (0, 1) ID */
             TEST_ITC_ID_IS_NULL_SEED_ID(pt_Id);
@@ -1010,7 +1153,7 @@ void ITC_Id_Test_sumId001And010Succeeds(void)
         else
         {
             /* Sum the IDs the other way around */
-            TEST_SUCCESS(ITC_Id_sum(&pt_OtherId, &pt_Id));
+            TEST_SUCCESS(sumId(&pt_OtherId, &pt_Id));
 
             /* Test the summed ID is a (0, 1) ID */
             TEST_ITC_ID_IS_NULL_SEED_ID(pt_OtherId);
@@ -1039,7 +1182,7 @@ void ITC_Id_Test_sumId010And100Succeeds(void)
         if (u32_I)
         {
             /* Sum the IDs */
-            TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+            TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
             /* Test the summed ID is a (1, 0) ID */
             TEST_ITC_ID_IS_SEED_NULL_ID(pt_Id);
@@ -1047,7 +1190,7 @@ void ITC_Id_Test_sumId010And100Succeeds(void)
         else
         {
             /* Sum the IDs the other way around */
-            TEST_SUCCESS(ITC_Id_sum(&pt_OtherId, &pt_Id));
+            TEST_SUCCESS(sumId(&pt_OtherId, &pt_Id));
 
             /* Test the summed ID is a (1, 0) ID */
             TEST_ITC_ID_IS_SEED_NULL_ID(pt_OtherId);
@@ -1078,7 +1221,7 @@ void ITC_Id_Test_sumId1001And0110Succeeds(void)
         if (u32_I)
         {
             /* Sum the IDs */
-            TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+            TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_Id);
@@ -1086,7 +1229,7 @@ void ITC_Id_Test_sumId1001And0110Succeeds(void)
         else
         {
             /* Sum the IDs the other way around */
-            TEST_SUCCESS(ITC_Id_sum(&pt_OtherId, &pt_Id));
+            TEST_SUCCESS(sumId(&pt_OtherId, &pt_Id));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_OtherId);
@@ -1124,7 +1267,7 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
         if (u32_I)
         {
             /* Sum the IDs */
-            TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+            TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_Id);
@@ -1132,7 +1275,7 @@ void ITC_Id_Test_sumId110001And001110Succeeds(void)
         else
         {
             /* Sum the IDs the other way around */
-            TEST_SUCCESS(ITC_Id_sum(&pt_OtherId, &pt_Id));
+            TEST_SUCCESS(sumId(&pt_OtherId, &pt_Id));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_OtherId);
@@ -1170,7 +1313,7 @@ void ITC_Id_Test_sumId001110And110001Succeeds(void)
         if (u32_I)
         {
             /* Sum the IDs */
-            TEST_SUCCESS(ITC_Id_sum(&pt_Id, &pt_OtherId));
+            TEST_SUCCESS(sumId(&pt_Id, &pt_OtherId));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_Id);
@@ -1178,7 +1321,7 @@ void ITC_Id_Test_sumId001110And110001Succeeds(void)
         else
         {
             /* Sum the IDs the other way around */
-            TEST_SUCCESS(ITC_Id_sum(&pt_OtherId, &pt_Id));
+            TEST_SUCCESS(sumId(&pt_OtherId, &pt_Id));
 
             /* Test the summed ID is a seed ID */
             TEST_ITC_ID_IS_SEED_ID(pt_OtherId);
@@ -1206,7 +1349,7 @@ void ITC_Id_Test_sumIdSplitSeedAndSumItBackToSeedSucceeds(void)
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id0, NULL));
 
     /* Split into (1, 0) and (0, 1) */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id0, &pt_Id4));
+    TEST_SUCCESS(splitId(&pt_Id0, &pt_Id4));
 
     /* Split into:
      * pt_Id0 = (((1, 0), 0), 0)
@@ -1218,21 +1361,21 @@ void ITC_Id_Test_sumIdSplitSeedAndSumItBackToSeedSucceeds(void)
      * pt_Id6 = (0, (0, (1, 0)))
      * pt_Id7 = (0, (0, (0, 1)))
      */
-    TEST_SUCCESS(ITC_Id_split(&pt_Id0, &pt_Id2));
-    TEST_SUCCESS(ITC_Id_split(&pt_Id0, &pt_Id1));
-    TEST_SUCCESS(ITC_Id_split(&pt_Id2, &pt_Id3));
-    TEST_SUCCESS(ITC_Id_split(&pt_Id4, &pt_Id6));
-    TEST_SUCCESS(ITC_Id_split(&pt_Id4, &pt_Id5));
-    TEST_SUCCESS(ITC_Id_split(&pt_Id6, &pt_Id7));
+    TEST_SUCCESS(splitId(&pt_Id0, &pt_Id2));
+    TEST_SUCCESS(splitId(&pt_Id0, &pt_Id1));
+    TEST_SUCCESS(splitId(&pt_Id2, &pt_Id3));
+    TEST_SUCCESS(splitId(&pt_Id4, &pt_Id6));
+    TEST_SUCCESS(splitId(&pt_Id4, &pt_Id5));
+    TEST_SUCCESS(splitId(&pt_Id6, &pt_Id7));
 
     /* Sum them back into a seed in arbitrary order */
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id3));
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id1));
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id4));
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id6));
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id2));
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id0));
-    TEST_SUCCESS(ITC_Id_sum(&pt_Id7, &pt_Id5));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id3));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id1));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id4));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id6));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id2));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id0));
+    TEST_SUCCESS(sumId(&pt_Id7, &pt_Id5));
 
     TEST_ITC_ID_IS_SEED_ID(pt_Id7);
     TEST_SUCCESS(ITC_Id_destroy(&pt_Id7));
