@@ -66,7 +66,7 @@ static ITC_Status_t getStaticMemory(
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
-        if (*pu32_ArrayLength < 1 || *pu32_AllocationSize < 1))
+        if (*pu32_ArrayLength < 1 || *pu32_AllocationSize < 1)
         {
             t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
         }
