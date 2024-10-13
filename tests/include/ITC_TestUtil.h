@@ -37,11 +37,11 @@
 #if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
 
 /* The maximum number of statically allocated ITC ID nodes */
-#define MAX_ITC_ID_NODES                                                  (82)
+#define MAX_ITC_ID_NODES                                                    (82)
 /* The maximum number of statically allocated ITC Event nodes */
-#define MAX_ITC_EVENT_NODES                                               (104)
+#define MAX_ITC_EVENT_NODES                                                (104)
 /* The maximum number of statically allocated ITC Stamp nodes */
-#define MAX_ITC_STAMP_NODES                                               (11)
+#define MAX_ITC_STAMP_NODES                                                 (11)
 
 #endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
