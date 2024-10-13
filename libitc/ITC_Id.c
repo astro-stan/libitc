@@ -131,7 +131,7 @@ static ITC_Status_t validateId(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t newId(
-    ITC_Id_t **ppt_Id,
+    ITC_Id_t **const ppt_Id,
     ITC_Id_t *const pt_Parent,
     const bool b_IsOwner
 )
@@ -174,7 +174,7 @@ static ITC_Status_t newId(
  */
 static ITC_Status_t cloneId(
     const ITC_Id_t *pt_Id,
-    ITC_Id_t **ppt_ClonedId,
+    ITC_Id_t **const ppt_ClonedId,
     ITC_Id_t *const pt_ParentId
 )
 {
@@ -262,9 +262,9 @@ static ITC_Status_t cloneId(
  * @return ITC_Status_t
  */
 static ITC_Status_t splitId0(
-    ITC_Id_t **ppt_Id1,
+    ITC_Id_t **const ppt_Id1,
     ITC_Id_t *const pt_ParentId1,
-    ITC_Id_t **ppt_Id2,
+    ITC_Id_t **const ppt_Id2,
     ITC_Id_t *const pt_ParentId2
 )
 {
@@ -296,9 +296,9 @@ static ITC_Status_t splitId0(
  * @return ITC_Status_t
  */
 static ITC_Status_t splitId1(
-    ITC_Id_t **ppt_Id1,
+    ITC_Id_t **const ppt_Id1,
     ITC_Id_t *const pt_ParentId1,
-    ITC_Id_t **ppt_Id2,
+    ITC_Id_t **const ppt_Id2,
     ITC_Id_t *const pt_ParentId2
 )
 {
@@ -357,8 +357,8 @@ static ITC_Status_t splitId1(
  */
 static ITC_Status_t splitIdI(
     const ITC_Id_t *pt_Id,
-    ITC_Id_t **ppt_Id1,
-    ITC_Id_t **ppt_Id2
+    ITC_Id_t **const ppt_Id1,
+    ITC_Id_t **const ppt_Id2
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -588,7 +588,7 @@ static ITC_Status_t splitIdI(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t normId11Or00(
-    ITC_Id_t *pt_Id
+    ITC_Id_t *const pt_Id
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -689,7 +689,7 @@ static ITC_Status_t normIdI(
 static ITC_Status_t sumIdI(
     const ITC_Id_t *pt_Id1,
     const ITC_Id_t *pt_Id2,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1099,7 +1099,7 @@ static ITC_Status_t deserialiseId(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1235,7 +1235,7 @@ static ITC_Status_t deserialiseId(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_newSeed(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     if (!ppt_Id)
@@ -1251,7 +1251,7 @@ ITC_Status_t ITC_Id_newSeed(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_newNull(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     if (!ppt_Id)
@@ -1267,7 +1267,7 @@ ITC_Status_t ITC_Id_newNull(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_destroy(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1352,7 +1352,7 @@ ITC_Status_t ITC_Id_destroy(
 
 ITC_Status_t ITC_Id_clone(
     const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_ClonedId
+    ITC_Id_t **const ppt_ClonedId
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1393,8 +1393,8 @@ ITC_Status_t ITC_Id_validate(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_split(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t **ppt_OtherId
+    ITC_Id_t **const ppt_Id,
+    ITC_Id_t **const ppt_OtherId
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -1437,8 +1437,8 @@ ITC_Status_t ITC_Id_split(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_sum(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t **ppt_OtherId
+    ITC_Id_t **const ppt_Id,
+    ITC_Id_t **const ppt_OtherId
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1485,8 +1485,8 @@ ITC_Status_t ITC_Id_sum(
 
 ITC_Status_t ITC_Id_splitConst(
     const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_Id1,
-    ITC_Id_t **ppt_Id2
+    ITC_Id_t **const ppt_Id1,
+    ITC_Id_t **const ppt_Id2
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1516,7 +1516,7 @@ ITC_Status_t ITC_Id_splitConst(
 ITC_Status_t ITC_Id_sumConst(
     const ITC_Id_t *const pt_Id1,
     const ITC_Id_t *const pt_Id2,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1586,7 +1586,7 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
@@ -1676,7 +1676,7 @@ ITC_Status_t ITC_SerDes_serialiseId(
 ITC_Status_t ITC_SerDes_deserialiseId(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     return ITC_SerDes_Util_deserialiseId(
@@ -1695,7 +1695,7 @@ ITC_Status_t ITC_SerDes_deserialiseId(
  ******************************************************************************/
 
 ITC_Status_t ITC_Id_normalise(
-    ITC_Id_t *pt_Id
+    ITC_Id_t *const pt_Id
 )
 {
     ITC_Status_t t_Status; /* The current status */

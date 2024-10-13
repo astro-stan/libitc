@@ -76,7 +76,7 @@ static ITC_Status_t validateStamp(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t newStamp(
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -125,12 +125,12 @@ static ITC_Status_t newStamp(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t newStampWithIdAndEvent(
-    ITC_Stamp_t **ppt_Stamp,
-    ITC_Id_t *pt_Id,
-    ITC_Event_t *pt_Event,
-    bool b_CreateNullId,
-    bool b_CloneId,
-    bool b_CloneEvent
+    ITC_Stamp_t **const ppt_Stamp,
+    ITC_Id_t *const pt_Id,
+    ITC_Event_t *const pt_Event,
+    const bool b_CreateNullId,
+    const bool b_CloneId,
+    const bool b_CloneEvent
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -223,7 +223,7 @@ static ITC_Status_t newStampWithIdAndEvent(
 static ITC_Status_t compareStamps(
     const ITC_Stamp_t *const pt_Stamp1,
     const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Stamp_Comparison_t *pt_Result
+    ITC_Stamp_Comparison_t *const pt_Result
 
 )
 {
@@ -295,8 +295,8 @@ static ITC_Status_t compareStamps(
  */
 static ITC_Status_t u32ToNetwork(
     uint32_t u32_Value,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -342,9 +342,9 @@ static ITC_Status_t u32ToNetwork(
  * @retval `ITC_STATUS_INVALID_PARAM` if `u32_BufferSize > sizeof(uint32_t)`
  */
 static ITC_Status_t u32FromNetwork(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    uint32_t *pu32_Value
+    uint32_t *const pu32_Value
 )
 {
     if (u32_BufferSize > sizeof(uint32_t))
@@ -549,7 +549,7 @@ static ITC_Status_t serialiseStamp(
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
  */
 static ITC_Status_t serialiseStampToString(
-    const ITC_Stamp_t *pt_Stamp,
+    const ITC_Stamp_t *const pt_Stamp,
     char *const pc_Buffer,
     uint32_t *const pu32_BufferSize
 )
@@ -693,7 +693,7 @@ static ITC_Status_t serialiseStampToString(
 static ITC_Status_t deserialiseStamp(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -878,7 +878,7 @@ static ITC_Status_t deserialiseStamp(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_newSeed(
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     if (!ppt_Stamp)
@@ -895,7 +895,7 @@ ITC_Status_t ITC_Stamp_newSeed(
 
 ITC_Status_t ITC_Stamp_newPeek(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Stamp_t **ppt_PeekStamp
+    ITC_Stamp_t **const ppt_PeekStamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -924,7 +924,7 @@ ITC_Status_t ITC_Stamp_newPeek(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_destroy(
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -982,7 +982,7 @@ ITC_Status_t ITC_Stamp_destroy(
 
 ITC_Status_t ITC_Stamp_clone(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Stamp_t **ppt_ClonedStamp
+    ITC_Stamp_t **const ppt_ClonedStamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1027,8 +1027,8 @@ ITC_Status_t ITC_Stamp_validate(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_fork(
-    ITC_Stamp_t **ppt_Stamp,
-    ITC_Stamp_t **ppt_OtherStamp
+    ITC_Stamp_t **const ppt_Stamp,
+    ITC_Stamp_t **const ppt_OtherStamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1134,8 +1134,8 @@ ITC_Status_t ITC_Stamp_event(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_join(
-    ITC_Stamp_t **ppt_Stamp,
-    ITC_Stamp_t **ppt_OtherStamp
+    ITC_Stamp_t **const ppt_Stamp,
+    ITC_Stamp_t **const ppt_OtherStamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1217,7 +1217,7 @@ ITC_Status_t ITC_Stamp_join(
 ITC_Status_t ITC_Stamp_compare(
     const ITC_Stamp_t *const pt_Stamp1,
     const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Stamp_Comparison_t *pt_Result
+    ITC_Stamp_Comparison_t *const pt_Result
 
 )
 {
@@ -1285,7 +1285,7 @@ ITC_Status_t ITC_SerDes_serialiseStamp(
 ITC_Status_t ITC_SerDes_deserialiseStamp(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
@@ -1355,8 +1355,8 @@ ITC_Status_t ITC_SerDes_serialiseStampToString(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_newFromId(
-    ITC_Id_t *pt_Id,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Id_t *const pt_Id,
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     if (!pt_Id || !ppt_Stamp)
@@ -1372,9 +1372,9 @@ ITC_Status_t ITC_Stamp_newFromId(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_newFromIdAndEvent(
-    ITC_Id_t *pt_Id,
-    ITC_Event_t *pt_Event,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Id_t *const pt_Id,
+    ITC_Event_t *const pt_Event,
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     if (!pt_Id || !pt_Event || !ppt_Stamp)
@@ -1391,8 +1391,8 @@ ITC_Status_t ITC_Stamp_newFromIdAndEvent(
  ******************************************************************************/
 
 ITC_Status_t ITC_Stamp_newPeekFromEvent(
-    ITC_Event_t *pt_Event,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Event_t *const pt_Event,
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     if (!pt_Event || !ppt_Stamp)
@@ -1409,7 +1409,7 @@ ITC_Status_t ITC_Stamp_newPeekFromEvent(
 
 ITC_Status_t ITC_Stamp_getId(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -1433,7 +1433,7 @@ ITC_Status_t ITC_Stamp_getId(
 
 ITC_Status_t ITC_Stamp_getEvent(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */

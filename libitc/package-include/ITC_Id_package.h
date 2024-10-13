@@ -28,7 +28,7 @@
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_newSeed(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -39,7 +39,7 @@ ITC_Status_t ITC_Id_newSeed(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_newNull(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -54,7 +54,7 @@ ITC_Status_t ITC_Id_newNull(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_destroy(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -69,7 +69,7 @@ ITC_Status_t ITC_Id_destroy(
  */
 ITC_Status_t ITC_Id_clone(
     const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_ClonedId
+    ITC_Id_t **const ppt_ClonedId
 );
 
 /**
@@ -96,8 +96,8 @@ ITC_Status_t ITC_Id_validate(
  */
 ITC_Status_t ITC_Id_splitConst(
     const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_Id1,
-    ITC_Id_t **ppt_Id2
+    ITC_Id_t **const ppt_Id1,
+    ITC_Id_t **const ppt_Id2
 );
 
 /**
@@ -112,7 +112,7 @@ ITC_Status_t ITC_Id_splitConst(
 ITC_Status_t ITC_Id_sumConst(
     const ITC_Id_t *const pt_Id1,
     const ITC_Id_t *const pt_Id2,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 #if IS_UNIT_TEST_BUILD
@@ -125,7 +125,7 @@ ITC_Status_t ITC_Id_sumConst(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_normalise(
-    ITC_Id_t *pt_Id
+    ITC_Id_t *const pt_Id
 );
 
 #endif /* IS_UNIT_TEST_BUILD */

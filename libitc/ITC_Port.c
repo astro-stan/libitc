@@ -26,10 +26,10 @@
  ******************************************************************************/
 
 static ITC_Status_t getStaticMemory(
-    ITC_Port_AllocType_t t_AllocType,
-    uint8_t **ppu8_Array,
-    uint32_t *pu32_ArrayLength,
-    uint32_t *pu32_AllocationSize
+    const ITC_Port_AllocType_t t_AllocType,
+    uint8_t **const ppu8_Array,
+    uint32_t *const pu32_ArrayLength,
+    uint32_t *const pu32_AllocationSize
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -84,7 +84,7 @@ static ITC_Status_t getStaticMemory(
 }
 
 static void *staticMalloc(
-    ITC_Port_AllocType_t t_AllocType
+    const ITC_Port_AllocType_t t_AllocType
 )
 {
     void *pv_Ptr = NULL;
@@ -120,7 +120,7 @@ static void *staticMalloc(
 
 static ITC_Status_t staticFree(
     void *pv_Ptr,
-    ITC_Port_AllocType_t t_AllocType
+    const ITC_Port_AllocType_t t_AllocType
 )
 {
     ITC_Status_t t_Status;
