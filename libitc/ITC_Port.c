@@ -169,9 +169,9 @@ static ITC_Status_t staticFree(
 
 ITC_Status_t ITC_Port_init(void)
 {
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
 
-#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
     if (!gpt_ItcIdNodeAllocationArray ||
         !gpt_ItcEventNodeAllocationArray ||
         !gpt_ItcStampNodeAllocationArray)
@@ -200,9 +200,12 @@ ITC_Status_t ITC_Port_init(void)
             ITC_PORT_FREE_SLOT_PATTERN,
             gu32_ItcStampNodeAllocationArrayLength * sizeof(ITC_Stamp_t));
     }
-#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
     return t_Status;
+#else
+    /* Always succeeds */
+    return ITC_STATUS_SUCCESS;
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 }
 
 /******************************************************************************
