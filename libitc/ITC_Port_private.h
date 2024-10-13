@@ -12,7 +12,7 @@
 
 #include "ITC_config.h"
 
-#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
 
 /******************************************************************************
  * Defines
@@ -21,6 +21,6 @@
 /* Pattern used to detect free slots in the static allocation arrays */
 #define ITC_PORT_FREE_SLOT_PATTERN                                        (0x55)
 
-#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
 #endif /* ITC_PORT_PRIVATE_H_ */

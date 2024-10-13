@@ -33,7 +33,7 @@ typedef enum {
     ITC_PORT_ALLOCTYPE_ITC_STAMP_T,
 } ITC_Port_AllocType_t;
 
-#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
 
 /******************************************************************************
  * Global variables
@@ -58,7 +58,7 @@ extern ITC_Stamp_t *gpt_ItcStampNodeAllocationArray;
 /* The length of the `gpt_ItcStampNodeAllocationArray` array */
 extern uint32_t gu32_ItcStampNodeAllocationArrayLength;
 
-#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
 /******************************************************************************
  * Functions

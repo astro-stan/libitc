@@ -14,11 +14,11 @@
 #include "ITC_Test_package.h"
 #include "ITC_TestUtil.h"
 
-#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
 #include "ITC_Port.h"
 
 #include <string.h>
-#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
 /******************************************************************************
  *  Public functions
@@ -27,7 +27,7 @@
 /* Init test */
 void setUp(void)
 {
-#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
     static bool b_MemoryInit = false;
 
     if (!b_MemoryInit)
@@ -35,13 +35,13 @@ void setUp(void)
         TEST_SUCCESS(ITC_Port_init());
         b_MemoryInit = true;
     }
-#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 }
 
 /* Fini test */
 void tearDown(void)
 {
-#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
 /* Test all memory is freed at the end of each test */
 
     TEST_ASSERT_EQUAL_UINT(
@@ -73,7 +73,7 @@ void tearDown(void)
                (const void *)&((uint8_t *)gpt_ItcStampNodeAllocationArray)[1],
                (gu32_ItcStampNodeAllocationArrayLength * sizeof(ITC_Stamp_t)) -
                    1));
-#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_CONFIG_MEMORY_ALLOCATION_TYPE_STATIC */
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 }
 
 /* Test destroying an ID fails with invalid param */
