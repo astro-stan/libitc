@@ -10,6 +10,12 @@
 #ifndef ITC_CONFIG_H_
 #define ITC_CONFIG_H_
 
+#include "ITC_Memory.h"
+
+/******************************************************************************
+ * Defines
+ ******************************************************************************/
+
 #ifndef ITC_CONFIG_USE_64BIT_EVENT_COUNTERS
 /** Whether to use 32 or 64 bit event counters
  * - 32 bit counters allow for `2^32 - 1` events to be witnessed by each node
@@ -59,13 +65,25 @@
  * which can be used to get an ASCII encoded representation of an ID, Event
  * or Stamp. When enabled, the following functions become available as part of
  * the public API:
- *   * `ITC_SerDes_serialiseStampToString`
- *   * `ITC_SerDes_serialiseIdToString` (requires
- *          `ITC_CONFIG_ENABLE_EXTENDED_API` to also be enabled)
- *   * `ITC_SerDes_serialiseEventToString` (requires
- *          `ITC_CONFIG_ENABLE_EXTENDED_API` to also be enabled)
+ * - `ITC_SerDes_serialiseStampToString`
+ * - `ITC_SerDes_serialiseIdToString` (requires
+ *        `ITC_CONFIG_ENABLE_EXTENDED_API` to also be enabled)
+ * - `ITC_SerDes_serialiseEventToString` (requires
+ *        `ITC_CONFIG_ENABLE_EXTENDED_API` to also be enabled)
  */
 #define ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API                            (0)
 #endif /* ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API */
+
+#ifndef ITC_CONFIG_MEMORY_ALLOCATION_TYPE
+/** The memory allocation type to use.
+ * Possible values:
+ * - ITC_MEMORY_ALLOCATION_TYPE_MALLOC
+ * - ITC_MEMORY_ALLOCATION_TYPE_STATIC
+ * - ITC_MEMORY_ALLOCATION_TYPE_CUSTOM
+ *
+ * See `ITC_Memory.h` for more information.
+ */
+#define ITC_CONFIG_MEMORY_ALLOCATION_TYPE    (ITC_MEMORY_ALLOCATION_TYPE_MALLOC)
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE */
 
 #endif /* ITC_CONFIG_H_ */

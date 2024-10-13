@@ -26,6 +26,7 @@
 #include "ITC_Port.h"
 
 #include <stdbool.h>
+#include <stddef.h>
 
 /******************************************************************************
  * Private functions
@@ -138,7 +139,7 @@ static ITC_Status_t newId(
     ITC_Status_t t_Status; /* The current status */
     ITC_Id_t *pt_Alloc;
 
-    t_Status = ITC_Port_malloc((void **)&pt_Alloc, sizeof(ITC_Id_t));
+    t_Status = ITC_Port_malloc((void **)&pt_Alloc, ITC_PORT_ALLOCTYPE_ITC_ID_T);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {
@@ -1317,7 +1318,8 @@ ITC_Status_t ITC_Id_destroy(
                 }
 
                 /* Free the current element */
-                t_FreeStatus = ITC_Port_free(pt_CurrentId);
+                t_FreeStatus = ITC_Port_free(
+                    pt_CurrentId, ITC_PORT_ALLOCTYPE_ITC_ID_T);
 
                 /* Return last error */
                 if (t_FreeStatus != ITC_STATUS_SUCCESS)

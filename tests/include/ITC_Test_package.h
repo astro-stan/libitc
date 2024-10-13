@@ -12,6 +12,7 @@
 
 #include "ITC_Event_Test_package.h"
 #include "ITC_Id_Test_package.h"
+#include "ITC_config.h"
 
 /******************************************************************************
  * Defines
@@ -28,5 +29,12 @@
 
 /** Test a given function fails with status t_Status */
 #define TEST_FAILURE(x, t_Status)          TEST_ASSERT_EQUAL_UINT32(t_Status, x)
+
+#if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
+
+/** Pattern used to detect free slots in the static allocation arrays */
+#define ITC_PORT_FREE_SLOT_PATTERN                                        (0x55)
+
+#endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
 #endif /* ITC_TEST_PACKAGE_H_ */

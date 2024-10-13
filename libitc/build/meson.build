@@ -6,7 +6,12 @@ libitc_lib = library(
     c_args: libitc_c_args + common_c_args,
     link_args: libitc_link_args + common_link_args,
     install: true,
-    install_dir: libitc_install_dir
+    install_dir: libitc_install_dir,
+    override_options: [
+        # Allow undefined symbols to exist
+        # Used when compiling with static memory allocation support
+        'b_lundef=false'
+    ]
 )
 
 libitc_dep = declare_dependency(

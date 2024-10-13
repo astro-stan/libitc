@@ -18,6 +18,8 @@ highly dynamic number of replicas/processes in a distributed system.
 * Minimises stack usage by **not** relying on recursion.
 * Generally tries to be as efficient and as small as possible.
 * Can be configured to use either 32 or 64-bit event counters.
+* Can be configured to use dynamic or static memory for the ITC node allocations,
+  or even to use custom `malloc`/`free` implementations.
 * Provides handy serialisation and deserialisation APIs.
 * Provides an optional "extended" API interface (based on
   [this article](https://ferd.ca/interval-tree-clocks.html)), giving you more fine-grained control over the ITC lifecycle. This is not part of the original mechanism and is intended for more advanced use cases.
@@ -56,6 +58,15 @@ For example, to enable the extended API, you can configure the build like so:
 ```bash
 meson setup -Doptimization=2 -Ddebug=false -Dc_args="-DITC_CONFIG_ENABLE_EXTENDED_API=1" build-with-extended-api
 ```
+
+#### Node Memory Allocation
+
+The [feature configuration](#feature-configuration) allows for 3 types of memory allocation:
+
+1. Dynamic memory (HEAP), using standard `malloc` and `free` libc calls
+2. Static memory, using global static arrays.
+> :warning: Static memory allocation is **not** thread-safe. See [`ITC_config.h`](./libitc/include/ITC_config.h) and [`ITC_memory.h`](./libitc/include/ITC_Memory.h) for more information.
+3. Custom `malloc` and `free` implementations
 
 #### Compilation
 
