@@ -26,7 +26,7 @@
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_newSeed(
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 );
 
 /**
@@ -39,7 +39,7 @@ ITC_Status_t ITC_Stamp_newSeed(
  */
 ITC_Status_t ITC_Stamp_newPeek(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Stamp_t **ppt_PeekStamp
+    ITC_Stamp_t **const ppt_PeekStamp
 );
 
 /**
@@ -54,7 +54,7 @@ ITC_Status_t ITC_Stamp_newPeek(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_destroy(
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 );
 
 /**
@@ -67,7 +67,7 @@ ITC_Status_t ITC_Stamp_destroy(
  */
 ITC_Status_t ITC_Stamp_clone(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Stamp_t **ppt_ClonedStamp
+    ITC_Stamp_t **const ppt_ClonedStamp
 );
 
 /**
@@ -92,8 +92,8 @@ ITC_Status_t ITC_Stamp_validate(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_fork(
-    ITC_Stamp_t **ppt_Stamp,
-    ITC_Stamp_t **ppt_OtherStamp
+    ITC_Stamp_t **const ppt_Stamp,
+    ITC_Stamp_t **const ppt_OtherStamp
 );
 
 /**
@@ -120,8 +120,8 @@ ITC_Status_t ITC_Stamp_event(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_join(
-    ITC_Stamp_t **ppt_Stamp,
-    ITC_Stamp_t **ppt_OtherStamp
+    ITC_Stamp_t **const ppt_Stamp,
+    ITC_Stamp_t **const ppt_OtherStamp
 );
 
 /**
@@ -145,7 +145,7 @@ ITC_Status_t ITC_Stamp_join(
 ITC_Status_t ITC_Stamp_compare(
     const ITC_Stamp_t *const pt_Stamp1,
     const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Stamp_Comparison_t *pt_Result
+    ITC_Stamp_Comparison_t *const pt_Result
 );
 
 #if ITC_CONFIG_ENABLE_EXTENDED_API
@@ -159,8 +159,8 @@ ITC_Status_t ITC_Stamp_compare(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_newFromId(
-    ITC_Id_t *pt_Id,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Id_t *const pt_Id,
+    ITC_Stamp_t **const ppt_Stamp
 );
 
 /**
@@ -174,9 +174,9 @@ ITC_Status_t ITC_Stamp_newFromId(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_newFromIdAndEvent(
-    ITC_Id_t *pt_Id,
-    ITC_Event_t *pt_Event,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Id_t *const pt_Id,
+    ITC_Event_t *const pt_Event,
+    ITC_Stamp_t **const ppt_Stamp
 );
 
 /**
@@ -189,8 +189,8 @@ ITC_Status_t ITC_Stamp_newFromIdAndEvent(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Stamp_newPeekFromEvent(
-    ITC_Event_t *pt_Event,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Event_t *const pt_Event,
+    ITC_Stamp_t **const ppt_Stamp
 );
 
 /**
@@ -203,7 +203,7 @@ ITC_Status_t ITC_Stamp_newPeekFromEvent(
  */
 ITC_Status_t ITC_Stamp_getId(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -216,7 +216,7 @@ ITC_Status_t ITC_Stamp_getId(
  */
 ITC_Status_t ITC_Stamp_getEvent(
     const ITC_Stamp_t *const pt_Stamp,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 /**

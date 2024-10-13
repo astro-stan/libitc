@@ -29,7 +29,7 @@
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_new(
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 /**
@@ -44,7 +44,7 @@ ITC_Status_t ITC_Event_new(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_destroy(
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 /**
@@ -57,7 +57,7 @@ ITC_Status_t ITC_Event_destroy(
  */
 ITC_Status_t ITC_Event_clone(
     const ITC_Event_t *const pt_Event,
-    ITC_Event_t **ppt_ClonedEvent
+    ITC_Event_t **const ppt_ClonedEvent
 );
 
 /**
@@ -83,8 +83,8 @@ ITC_Status_t ITC_Event_validate(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_join(
-    ITC_Event_t **ppt_Event,
-    ITC_Event_t **ppt_OtherEvent
+    ITC_Event_t **const ppt_Event,
+    ITC_Event_t **const ppt_OtherEvent
 );
 
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */

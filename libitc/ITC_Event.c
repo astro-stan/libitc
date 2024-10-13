@@ -136,7 +136,7 @@ static ITC_Status_t validateEvent(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 static ITC_Status_t newEvent(
-    ITC_Event_t **ppt_Event,
+    ITC_Event_t **const ppt_Event,
     ITC_Event_t *const pt_Parent,
     const ITC_Event_Counter_t t_Count
 )
@@ -2144,7 +2144,7 @@ static ITC_Status_t deserialiseEvent(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_new(
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 )
 {
     if (!ppt_Event)
@@ -2160,7 +2160,7 @@ ITC_Status_t ITC_Event_new(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_destroy(
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -2245,7 +2245,7 @@ ITC_Status_t ITC_Event_destroy(
 
 ITC_Status_t ITC_Event_clone(
     const ITC_Event_t *const pt_Event,
-    ITC_Event_t **ppt_ClonedEvent
+    ITC_Event_t **const ppt_ClonedEvent
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -2286,8 +2286,8 @@ ITC_Status_t ITC_Event_validate(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_join(
-    ITC_Event_t **ppt_Event,
-    ITC_Event_t **ppt_OtherEvent
+    ITC_Event_t **const ppt_Event,
+    ITC_Event_t **const ppt_OtherEvent
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -2336,7 +2336,7 @@ ITC_Status_t ITC_Event_join(
 ITC_Status_t ITC_Event_joinConst(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -2371,7 +2371,7 @@ ITC_Status_t ITC_Event_joinConst(
 ITC_Status_t ITC_Event_leq(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
-    bool *pb_IsLeq
+    bool *const pb_IsLeq
 
 )
 {
@@ -2406,9 +2406,9 @@ ITC_Status_t ITC_Event_leq(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_fill(
-    ITC_Event_t **ppt_Event,
+    ITC_Event_t **const ppt_Event,
     const ITC_Id_t *const pt_Id,
-    bool *pb_WasFilled
+    bool *const pb_WasFilled
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -2442,7 +2442,7 @@ ITC_Status_t ITC_Event_fill(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_grow(
-    ITC_Event_t **ppt_Event,
+    ITC_Event_t **const ppt_Event,
     const ITC_Id_t *const pt_Id
 )
 {
@@ -2514,7 +2514,7 @@ ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
@@ -2605,7 +2605,7 @@ ITC_Status_t ITC_SerDes_serialiseEvent(
 ITC_Status_t ITC_SerDes_deserialiseEvent(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 )
 {
     return ITC_SerDes_Util_deserialiseEvent(
@@ -2624,7 +2624,7 @@ ITC_Status_t ITC_SerDes_deserialiseEvent(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_normalise(
-    ITC_Event_t *pt_Event
+    ITC_Event_t *const pt_Event
 )
 {
     ITC_Status_t t_Status; /* The current status */
@@ -2644,7 +2644,7 @@ ITC_Status_t ITC_Event_normalise(
  ******************************************************************************/
 
 ITC_Status_t ITC_Event_maximise(
-    ITC_Event_t *pt_Event
+    ITC_Event_t *const pt_Event
 )
 {
     ITC_Status_t t_Status; /* The current status */

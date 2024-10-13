@@ -32,7 +32,7 @@
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_new(
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 /**
@@ -47,7 +47,7 @@ ITC_Status_t ITC_Event_new(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_destroy(
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 /**
@@ -60,7 +60,7 @@ ITC_Status_t ITC_Event_destroy(
  */
 ITC_Status_t ITC_Event_clone(
     const ITC_Event_t *const pt_Event,
-    ITC_Event_t **ppt_ClonedEvent
+    ITC_Event_t **const ppt_ClonedEvent
 );
 
 /**
@@ -88,7 +88,7 @@ ITC_Status_t ITC_Event_validate(
 ITC_Status_t ITC_Event_joinConst(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 /**
@@ -103,7 +103,7 @@ ITC_Status_t ITC_Event_joinConst(
 ITC_Status_t ITC_Event_leq(
     const ITC_Event_t *const pt_Event1,
     const ITC_Event_t *const pt_Event2,
-    bool *pb_IsLeq
+    bool *const pb_IsLeq
 );
 
 /**
@@ -118,9 +118,9 @@ ITC_Status_t ITC_Event_leq(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_fill(
-    ITC_Event_t **ppt_Event,
+    ITC_Event_t **const ppt_Event,
     const ITC_Id_t *const pt_Id,
-    bool *pb_WasFilled
+    bool *const pb_WasFilled
 );
 
 /**
@@ -138,7 +138,7 @@ ITC_Status_t ITC_Event_fill(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_grow(
-    ITC_Event_t **ppt_Event,
+    ITC_Event_t **const ppt_Event,
     const ITC_Id_t *const pt_Id
 );
 
@@ -152,7 +152,7 @@ ITC_Status_t ITC_Event_grow(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_normalise(
-    ITC_Event_t *pt_Event
+    ITC_Event_t *const pt_Event
 );
 
 /**
@@ -166,7 +166,7 @@ ITC_Status_t ITC_Event_normalise(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Event_maximise(
-    ITC_Event_t *pt_Event
+    ITC_Event_t *const pt_Event
 );
 
 #endif /* IS_UNIT_TEST_BUILD */

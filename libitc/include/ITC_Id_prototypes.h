@@ -29,7 +29,7 @@
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_newSeed(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -40,7 +40,7 @@ ITC_Status_t ITC_Id_newSeed(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_newNull(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -55,7 +55,7 @@ ITC_Status_t ITC_Id_newNull(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_destroy(
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -70,7 +70,7 @@ ITC_Status_t ITC_Id_destroy(
  */
 ITC_Status_t ITC_Id_clone(
     const ITC_Id_t *const pt_Id,
-    ITC_Id_t **ppt_ClonedId
+    ITC_Id_t **const ppt_ClonedId
 );
 
 /**
@@ -93,8 +93,8 @@ ITC_Status_t ITC_Id_validate(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_split(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t **ppt_OtherId
+    ITC_Id_t **const ppt_Id,
+    ITC_Id_t **const ppt_OtherId
 );
 
 /**
@@ -109,8 +109,8 @@ ITC_Status_t ITC_Id_split(
  * @retval `ITC_STATUS_SUCCESS` on success
  */
 ITC_Status_t ITC_Id_sum(
-    ITC_Id_t **ppt_Id,
-    ITC_Id_t **ppt_OtherId
+    ITC_Id_t **const ppt_Id,
+    ITC_Id_t **const ppt_OtherId
 );
 
 #endif /* ITC_CONFIG_ENABLE_EXTENDED_API */

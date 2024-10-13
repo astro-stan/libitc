@@ -90,7 +90,7 @@ ITC_Status_t ITC_SerDes_Util_deserialiseId(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
-    ITC_Id_t **ppt_Id
+    ITC_Id_t **const ppt_Id
 );
 
 /**
@@ -142,7 +142,7 @@ ITC_Status_t ITC_SerDes_Util_deserialiseEvent(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
     const bool b_HasVersion,
-    ITC_Event_t **ppt_Event
+    ITC_Event_t **const ppt_Event
 );
 
 #endif /* ITC_SERDES_UTIL_PACKAGE_H_ */
