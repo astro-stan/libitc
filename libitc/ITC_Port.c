@@ -64,10 +64,20 @@ static ITC_Status_t getStaticMemory(
         }
     }
 
-    if (t_Status == ITC_STATUS_SUCCESS &&
-        (*pu32_ArrayLength < 1 || *pu32_AllocationSize < 1))
+    if (t_Status == ITC_STATUS_SUCCESS)
     {
-        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        if (*pu32_ArrayLength < 1 || *pu32_AllocationSize < 1))
+        {
+            t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+        }
+        else if (!(*ppu8_Array))
+        {
+            t_Status = ITC_STATUS_INVALID_PARAM;
+        }
+        else
+        {
+            /* Nothing to do */
+        }
     }
 
     return t_Status;
@@ -159,26 +169,40 @@ static ITC_Status_t staticFree(
 
 ITC_Status_t ITC_Port_init(void)
 {
+    ITC_Status_t t_Status = ITC_STATUS_SUCCESS;
+
 #if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
-    memset(
-        (void *)&gpt_ItcIdNodeAllocationArray[0],
-        ITC_PORT_FREE_SLOT_PATTERN,
-        gu32_ItcIdNodeAllocationArrayLength * sizeof(ITC_Id_t)
-    );
-    memset(
-        (void *)&gpt_ItcEventNodeAllocationArray[0],
-        ITC_PORT_FREE_SLOT_PATTERN,
-        gu32_ItcEventNodeAllocationArrayLength * sizeof(ITC_Event_t)
-    );
-    memset(
-        (void *)&gpt_ItcStampNodeAllocationArray[0],
-        ITC_PORT_FREE_SLOT_PATTERN,
-        gu32_ItcStampNodeAllocationArrayLength * sizeof(ITC_Stamp_t)
-    );
+    if (!gpt_ItcIdNodeAllocationArray ||
+        !gpt_ItcEventNodeAllocationArray ||
+        !gpt_ItcStampNodeAllocationArray)
+    {
+        t_Status = ITC_STATUS_INVALID_PARAM;
+    }
+    else if (
+        gu32_ItcIdNodeAllocationArrayLength < 1 ||
+        gu32_ItcEventNodeAllocationArrayLength < 1 ||
+        gu32_ItcStampNodeAllocationArrayLength < 1)
+    {
+        t_Status = ITC_STATUS_INSUFFICIENT_RESOURCES;
+    }
+    else
+    {
+        memset(
+            (void *)&gpt_ItcIdNodeAllocationArray[0],
+            ITC_PORT_FREE_SLOT_PATTERN,
+            gu32_ItcIdNodeAllocationArrayLength * sizeof(ITC_Id_t));
+        memset(
+            (void *)&gpt_ItcEventNodeAllocationArray[0],
+            ITC_PORT_FREE_SLOT_PATTERN,
+            gu32_ItcEventNodeAllocationArrayLength * sizeof(ITC_Event_t));
+        memset(
+            (void *)&gpt_ItcStampNodeAllocationArray[0],
+            ITC_PORT_FREE_SLOT_PATTERN,
+            gu32_ItcStampNodeAllocationArrayLength * sizeof(ITC_Stamp_t));
+    }
 #endif /* ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC */
 
-    /* Always succeeds */
-    return ITC_STATUS_SUCCESS;
+    return t_Status;
 }
 
 /******************************************************************************
