@@ -15,7 +15,7 @@ highly dynamic number of replicas/processes in a distributed system.
 * Implements the full ITC mechanism as described in the research paper.
 * Written in C99. It has no dependencies apart from a few C standard library
   headers (`CMock` is only used for unit testing).
-* Minimises stack usage by **not** relying on recursion. The required stack size is `128B`.
+* Minimises stack usage by **not** relying on recursion. The required stack size is `<=144B`.
 * Generally tries to be as efficient and as small as possible.
 * Can be configured to use either 32 or 64-bit event counters.
 * Can be configured to use dynamic or static memory for the ITC node allocations,

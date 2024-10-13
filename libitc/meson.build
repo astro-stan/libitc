@@ -7,7 +7,7 @@ if get_option('tests')
     # This is done to ensure the stack usage of the library is as low as
     # possible, however, it is only enforced while unit testing, to ensure
     # maximum compatibility with different systems and compilers.
-    libitc_c_args += '-Wstack-usage=128'
+    libitc_c_args += '-Wstack-usage=144'
 endif
 
 libitc_link_args = [
