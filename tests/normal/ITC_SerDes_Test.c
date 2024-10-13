@@ -10,7 +10,7 @@
  */
 #include "ITC_SerDes.h"
 #include "ITC_SerDes_Test.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
 #include "ITC_SerDes_package.h"

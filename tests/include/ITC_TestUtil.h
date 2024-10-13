@@ -14,7 +14,7 @@
 #include "ITC_Event.h"
 #include "ITC_Stamp.h"
 #include "ITC_Status.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #include <stdint.h>
 

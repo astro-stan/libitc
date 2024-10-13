@@ -10,7 +10,7 @@
 #include "ITC_Event.h"
 #include "ITC_Event_package.h"
 #include "ITC_Event_private.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #include "ITC_SerDes_private.h"
 #include "ITC_SerDes_Util_package.h"

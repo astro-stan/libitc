@@ -10,7 +10,7 @@
 #ifndef ITC_ID_PROTOTYPES_H_
 #define ITC_ID_PROTOTYPES_H_
 
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #if ITC_CONFIG_ENABLE_EXTENDED_API
 

@@ -7,7 +7,7 @@
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #if ITC_CONFIG_MEMORY_ALLOCATION_TYPE != ITC_MEMORY_ALLOCATION_TYPE_CUSTOM
 #include "ITC_Port.h"

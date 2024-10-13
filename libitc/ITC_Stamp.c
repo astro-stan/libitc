@@ -8,7 +8,7 @@
  *
  */
 #include "ITC_Stamp.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 #include "ITC_SerDes.h"
 
 #if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)

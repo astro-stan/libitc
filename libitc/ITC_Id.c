@@ -10,7 +10,7 @@
 #include "ITC_Id.h"
 #include "ITC_Id_package.h"
 #include "ITC_Id_private.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #include "ITC_SerDes_private.h"
 #include "ITC_SerDes_Util_package.h"

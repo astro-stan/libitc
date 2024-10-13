@@ -14,7 +14,7 @@
 
 #include "ITC_Id.h"
 #include "ITC_Status.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #include <stdbool.h>
 

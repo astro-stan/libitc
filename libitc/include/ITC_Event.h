@@ -10,7 +10,7 @@
 #ifndef ITC_EVENT_H_
 #define ITC_EVENT_H_
 
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #include <stdint.h>
 

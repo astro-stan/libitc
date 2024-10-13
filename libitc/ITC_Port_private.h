@@ -10,7 +10,7 @@
 #ifndef ITC_PORT_PRIVATE_H_
 #define ITC_PORT_PRIVATE_H_
 
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #if ITC_CONFIG_MEMORY_ALLOCATION_TYPE == ITC_MEMORY_ALLOCATION_TYPE_STATIC
 

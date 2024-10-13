@@ -11,7 +11,7 @@
 #ifndef ITC_SERDES_PACKAGE_H_
 #define ITC_SERDES_PACKAGE_H_
 
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 #if !(ITC_CONFIG_ENABLE_SERIALISE_TO_STRING_API && ITC_CONFIG_ENABLE_EXTENDED_API)
 #include "ITC_Status.h"

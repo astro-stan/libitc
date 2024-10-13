@@ -11,7 +11,7 @@
 #define ITC_PORT_H_
 
 #include "ITC_Status.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 #include "ITC_Event.h"
 #include "ITC_Id.h"
 #include "ITC_Stamp.h"
@@ -70,7 +70,7 @@ extern uint32_t gu32_ItcStampNodeAllocationArrayLength;
  * Initialises the port logic for allocating/deallocating ITC nodes.
  *
  * @note This function will not be called automatically. It is the responsibility
- * of the user to call it when needed/appropriate. See `ITC_config.h` for more
+ * of the user to call it when needed/appropriate. See `ITC_Config.h` for more
  * information.
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
@@ -83,7 +83,7 @@ ITC_Status_t ITC_Port_init(void);
  * Finalises the port logic for allocating/deallocating ITC nodes.
  *
  * @note This function will not be called automatically. It is the responsibility
- * of the user to call it when needed/appropriate. See `ITC_config.h` for more
+ * of the user to call it when needed/appropriate. See `ITC_Config.h` for more
  * infosrmation.
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
