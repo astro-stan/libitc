@@ -12,7 +12,7 @@
 
 #include "ITC_Event_Test_package.h"
 #include "ITC_Id_Test_package.h"
-#include "ITC_config.h"
+#include "ITC_Config.h"
 
 /******************************************************************************
  * Defines

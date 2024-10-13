@@ -1,5 +1,5 @@
 /**
- * @file ITC_config.h
+ * @file ITC_Config.h
  * @brief Configuration options for the ITC implementation
  *
  * @copyright Copyright (c) 2024 libitc project. Released under AGPL-3.0

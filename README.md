@@ -49,7 +49,7 @@ See [Meson built-in options](https://mesonbuild.com/Builtin-options.html) for mo
 
 libitc strives to be flexible and allows turning on/off optional features. This allows you to alter/extend its feature set depending on your needs.
 
-See [`ITC_config.h`](./libitc/include/ITC_config.h) for all available options.
+See [`ITC_Config.h`](./libitc/include/ITC_Config.h) for all available options.
 
 You can modify the header file directly to change the default configuration, or you can provide alternative values via `CFLAGS` or the [builtin `c_args` Meson option](https://mesonbuild.com/Builtin-options.html#:~:text=Description-,c_args,-free%2Dform%20comma) during the [build configuration](#build-configuration) stage.
 
@@ -65,7 +65,7 @@ The [feature configuration](#feature-configuration) allows for 3 types of memory
 
 1. Dynamic memory (HEAP), using standard `malloc` and `free` libc calls
 2. Static memory, using global static arrays.
-> :warning: Static memory allocation is **not** thread-safe. See [`ITC_config.h`](./libitc/include/ITC_config.h) and [`ITC_memory.h`](./libitc/include/ITC_Memory.h) for more information.
+> :warning: Static memory allocation is **not** thread-safe. See [`ITC_Config.h`](./libitc/include/ITC_Config.h) and [`ITC_Memory.h`](./libitc/include/ITC_Memory.h) for more information.
 3. Custom `malloc` and `free` implementations
 
 #### Compilation
