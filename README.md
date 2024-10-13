@@ -65,7 +65,7 @@ The [feature configuration](#feature-configuration) allows for 3 types of memory
 
 1. Dynamic memory (HEAP), using standard `malloc` and `free` libc calls
 2. Static memory, using global static arrays.
-> :warning: Static memory allocation is **not** thread-safe. See [`ITC_config.h`](./libitc/include/ITC_config.h) for more information.
+> :warning: Static memory allocation is **not** thread-safe. See [`ITC_config.h`](./libitc/include/ITC_config.h) and [`ITC_memory.h`](./libitc/include/ITC_Memory.h) for more information.
 3. Custom `malloc` and `free` implementations
 
 #### Compilation
