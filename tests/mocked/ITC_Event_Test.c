@@ -196,6 +196,8 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
         &rt_CopiedLeafEvent[2],
     };
 
+    ITC_Event_t *pt_ResultEvent;
+
     /* Setup expectations */
 
     /* Expect parent event copy */
@@ -291,13 +293,14 @@ void ITC_Event_Test_joinedEventIsDestroyedOnFailure(void)
 
     /* Test failing to join the Events */
     TEST_FAILURE(
-        ITC_Event_join(&gpt_ParentEvent, &gpt_LeafEvent),
+        ITC_Event_joinConst(gpt_ParentEvent, gpt_LeafEvent, &pt_ResultEvent),
         ITC_STATUS_FAILURE);
 }
 
 /* Test successful joining of two Events is properly cleaned up */
 void ITC_Event_Test_joinOriginalAndCopiedEventsAreDestroyedOnSucess(void)
 {
+#if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Event_t t_OtherEvent = gt_LeafNode;
     ITC_Event_t *pt_OtherEvent = &t_OtherEvent;
 
@@ -344,6 +347,9 @@ void ITC_Event_Test_joinOriginalAndCopiedEventsAreDestroyedOnSucess(void)
     /* Test joining the Events */
     TEST_SUCCESS(ITC_Event_join(&gpt_LeafEvent, &pt_OtherEvent));
     TEST_ITC_EVENT_IS_LEAF_N_EVENT(gpt_LeafEvent, 0);
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test failed maximise an Event is properly recovered from */

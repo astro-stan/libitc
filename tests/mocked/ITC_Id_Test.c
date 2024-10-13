@@ -161,15 +161,17 @@ void ITC_Id_Test_clonedIdIsDestroyedOnFailure(void)
 }
 
 /* Test failed splitting of an ID is properly cleaned up */
-void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
+void ITC_Id_Test_splitConstIdsAreDestroyedOnFailure(void)
 {
-    ITC_Id_t *pt_OtherId;
 
     ITC_Id_t t_NewId1 = {0};
     ITC_Id_t *pt_NewId1 = &t_NewId1;
 
     ITC_Id_t t_NewId2 = {0};
     ITC_Id_t *pt_NewId2 = &t_NewId2;
+
+    ITC_Id_t *pt_ResultId1 = NULL;
+    ITC_Id_t *pt_ResultId2 = NULL;
 
     /* Setup expectations */
     ITC_Port_malloc_ExpectAndReturn(
@@ -189,9 +191,10 @@ void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
     /* Test failing to split a null ID */
     gpt_LeafId->b_IsOwner = false;
     TEST_FAILURE(
-        ITC_Id_split(
-            &gpt_LeafId,
-            &pt_OtherId),
+        ITC_Id_splitConst(
+            gpt_LeafId,
+            &pt_ResultId1,
+            &pt_ResultId2),
         ITC_STATUS_FAILURE);
 
     /* Setup expectations */
@@ -212,9 +215,10 @@ void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
     /* Test failing to split a seed ID */
     gpt_LeafId->b_IsOwner = true;
     TEST_FAILURE(
-        ITC_Id_split(
-            &gpt_LeafId,
-            &pt_OtherId),
+        ITC_Id_splitConst(
+            gpt_LeafId,
+            &pt_ResultId1,
+            &pt_ResultId2),
         ITC_STATUS_FAILURE);
 
     /* Setup expectations */
@@ -243,15 +247,17 @@ void ITC_Id_Test_splitIdsAreDestroyedOnFailure(void)
 
     /* Test failing to split a (0, 1) ID */
     TEST_FAILURE(
-        ITC_Id_split(
-            &gpt_ParentId,
-            &pt_OtherId),
+        ITC_Id_splitConst(
+            gpt_ParentId,
+            &pt_ResultId1,
+            &pt_ResultId2),
         ITC_STATUS_FAILURE);
 }
 
 /* Test original ID is destroyed when split */
 void ITC_Id_Test_splitIdOriginalIdIsDestroyedOnSuccess(void)
 {
+#if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t *pt_OtherId;
 
     ITC_Id_t t_NewId1 = {0};
@@ -279,6 +285,9 @@ void ITC_Id_Test_splitIdOriginalIdIsDestroyedOnSuccess(void)
     /* Test splitting the ID */
     gpt_LeafId->b_IsOwner = false;
     TEST_SUCCESS(ITC_Id_split(&gpt_LeafId, &pt_OtherId));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }
 
 /* Test failed normalisation of an ID is properly recovered from */
@@ -305,7 +314,7 @@ void ITC_Id_Test_normaliseIdIsRecoveredOnFailure(void)
 }
 
 /* Test failed summing of two IDs is properly cleaned up */
-void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
+void ITC_Id_Test_sumConstIdAreDestroyedOnFailure(void)
 {
     ITC_Id_t t_NewId1 = { 0 };
     ITC_Id_t *pt_NewId1 = &t_NewId1;
@@ -318,6 +327,8 @@ void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
     ITC_Id_t t_OtherIdRightChild = gt_LeftLeafOfParentId;
 
     ITC_Id_t *pt_OtherId = &t_OtherId;
+
+    ITC_Id_t *pt_ResultId;
 
     /* Fix pointers */
     t_OtherId.pt_Left = &t_OtherIdLeftChild;
@@ -350,7 +361,12 @@ void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
         ITC_STATUS_SUCCESS);
 
     /* Test summing the IDs */
-    TEST_FAILURE(ITC_Id_sum(&gpt_ParentId, &pt_OtherId), ITC_STATUS_FAILURE);
+    TEST_FAILURE(
+        ITC_Id_sumConst(
+            gpt_ParentId,
+            pt_OtherId,
+            &pt_ResultId),
+        ITC_STATUS_FAILURE);
 
     /* Setup expectations */
     ITC_Port_malloc_ExpectAndReturn(
@@ -378,15 +394,17 @@ void ITC_Id_Test_sumIdAreDestroyedOnFailure(void)
 
     /* Test summing the IDs the other way around */
     TEST_FAILURE(
-        ITC_Id_sum(
-            &pt_OtherId,
-            &gpt_ParentId),
+        ITC_Id_sumConst(
+            pt_OtherId,
+            gpt_ParentId,
+            &pt_ResultId),
         ITC_STATUS_FAILURE);
 }
 
 /* Test original IDs are destroyed when summed */
 void ITC_Id_Test_sumIdOriginalIdsAreDestroyedOnSuccess(void)
 {
+#if ITC_CONFIG_ENABLE_EXTENDED_API
     ITC_Id_t t_OtherId = gt_LeafNode;
     ITC_Id_t *pt_OtherId = &t_OtherId;
 
@@ -412,4 +430,7 @@ void ITC_Id_Test_sumIdOriginalIdsAreDestroyedOnSuccess(void)
     pt_OtherId->b_IsOwner = false;
     gpt_LeafId->b_IsOwner = true;
     TEST_SUCCESS(ITC_Id_sum(&gpt_LeafId, &pt_OtherId));
+#else
+    TEST_IGNORE_MESSAGE("Extended API support is disabled");
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 }

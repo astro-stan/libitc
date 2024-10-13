@@ -2279,6 +2279,8 @@ ITC_Status_t ITC_Event_validate(
     return validateEvent(pt_Event, true);
 }
 
+#if ITC_CONFIG_ENABLE_EXTENDED_API
+
 /******************************************************************************
  * Join two existing Events into a single Event
  ******************************************************************************/
@@ -2295,20 +2297,10 @@ ITC_Status_t ITC_Event_join(
     {
         t_Status = ITC_STATUS_INVALID_PARAM;
     }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
+    else
     {
-        t_Status = validateEvent(*ppt_Event, true);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = validateEvent(*ppt_OtherEvent, true);
-    }
-
-    if (t_Status == ITC_STATUS_SUCCESS)
-    {
-        t_Status = joinEventE(*ppt_Event, *ppt_OtherEvent, &pt_JoinedEvent);
+        t_Status = ITC_Event_joinConst(
+            *ppt_Event, *ppt_OtherEvent, &pt_JoinedEvent);
     }
 
     if (t_Status == ITC_STATUS_SUCCESS)
@@ -2334,6 +2326,8 @@ ITC_Status_t ITC_Event_join(
 
     return t_Status;
 }
+
+#endif /* ITC_CONFIG_ENABLE_EXTENDED_API */
 
 /******************************************************************************
  * Join two Events similar to ::ITC_Event_join() but do not modify the source Events
