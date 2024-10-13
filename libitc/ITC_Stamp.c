@@ -223,7 +223,7 @@ static ITC_Status_t newStampWithIdAndEvent(
 static ITC_Status_t compareStamps(
     const ITC_Stamp_t *const pt_Stamp1,
     const ITC_Stamp_t *const pt_Stamp2,
-    ITC_Stamp_Comparison_t *pt_Result
+    ITC_Stamp_Comparison_t *const pt_Result
 
 )
 {
@@ -295,8 +295,8 @@ static ITC_Status_t compareStamps(
  */
 static ITC_Status_t u32ToNetwork(
     uint32_t u32_Value,
-    uint8_t *pu8_Buffer,
-    uint32_t *pu32_BufferSize
+    uint8_t *const pu8_Buffer,
+    uint32_t *const pu32_BufferSize
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
@@ -342,9 +342,9 @@ static ITC_Status_t u32ToNetwork(
  * @retval `ITC_STATUS_INVALID_PARAM` if `u32_BufferSize > sizeof(uint32_t)`
  */
 static ITC_Status_t u32FromNetwork(
-    const uint8_t *pu8_Buffer,
+    const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    uint32_t *pu32_Value
+    uint32_t *const pu32_Value
 )
 {
     if (u32_BufferSize > sizeof(uint32_t))
@@ -549,7 +549,7 @@ static ITC_Status_t serialiseStamp(
  * @retval `ITC_STATUS_INSUFFICIENT_RESOURCES` if the buffer is not big enough
  */
 static ITC_Status_t serialiseStampToString(
-    const ITC_Stamp_t *pt_Stamp,
+    const ITC_Stamp_t *const pt_Stamp,
     char *const pc_Buffer,
     uint32_t *const pu32_BufferSize
 )
@@ -693,7 +693,7 @@ static ITC_Status_t serialiseStampToString(
 static ITC_Status_t deserialiseStamp(
     const uint8_t *const pu8_Buffer,
     const uint32_t u32_BufferSize,
-    ITC_Stamp_t **ppt_Stamp
+    ITC_Stamp_t **const ppt_Stamp
 )
 {
     ITC_Status_t t_Status = ITC_STATUS_SUCCESS; /* The current status */
