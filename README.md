@@ -1,8 +1,33 @@
 # libitc
 
-<img src="https://img.shields.io/badge/C-99-gray?color=blue" alt="C99"> <img src="https://img.shields.io/github/actions/workflow/status/sdimovv/libitc/.github%2Fworkflows%2Fbuild-and-run-tests.yml?branch=main&logo=github" alt="Build Status"> <a href="https://github.com/sdimovv/libitc/releases/latest"><img src="https://img.shields.io/github/v/release/sdimovv/libitc" alt="Latest GitHub Release"></a> <a href="./LICENSE"><img src="https://img.shields.io/github/license/sdimovv/libitc" alt="License AGPL-3.0"></a>
+<img src="https://img.shields.io/badge/C-99-gray?color=blue" alt="C99"> <img src="https://img.shields.io/github/actions/workflow/status/astro-stan/libitc/.github%2Fworkflows%2Fbuild-and-run-tests.yml?branch=main&logo=github" alt="Build Status"> <a href="https://github.com/astro-stan/libitc/releases/latest"><img src="https://img.shields.io/github/v/release/astro-stan/libitc" alt="Latest GitHub Release"></a> <a href="./LICENSE"><img src="https://img.shields.io/github/license/astro-stan/libitc" alt="License AGPL-3.0"></a>
 
 A tiny, pure C99, library implementing the [Interval Tree Clocks](https://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf) mechanism introduced by Almeida et al. in 2008.
+
+## Table Of Contents
+
+* [What Are Interval Tree Clocks?](#what-are-interval-tree-clocks)
+* [Features](#features)
+* [Getting Started](#getting-started)
+    + [Prerequisites](#prerequisites)
+    + [Building](#building)
+        - [Build Configuration](#build-configuration)
+        - [Feature Configuration](#feature-configuration)
+        * [Node Memory Allocation](#node-memory-allocation)
+        - [Compilation](#compilation)
+    + [Linking](#linking)
+    + [Usage Examples](#usage-examples)
+        - [Hello World](#hello-world)
+        - [Create-Fork-Event-Compare](#create-fork-event-compare)
+        - [Create-Fork-Event-Peek-Compare-Join](#create-fork-event-peek-compare-join)
+        - [Serialisation and Deserialisation](#serialisation-and-deserialisation)
+* [I Have a Question](#i-have-a-question)
+* [Running The Unit Tests](#running-the-unit-tests)
+* [License](#license)
+* [How To Contribute?](#how-to-contribute)
+* [Reporting Vulnerabilities](#reporting-vulnerabilities)
+* [Special Thanks To](#special-thanks-to)
+
 
 ## What Are Interval Tree Clocks?
 
@@ -14,14 +39,13 @@ highly dynamic number of replicas/processes in a distributed system.
 
 * Implements the full ITC mechanism as described in the research paper.
 * Written in C99. It has no dependencies apart from a few C standard library
-  headers (`CMock` is only used for unit testing).
+  headers ([Cmock](https://github.com/ThrowTheSwitch/CMock) and [Unity](https://github.com/ThrowTheSwitch/Unity/) are only used for unit testing).
 * Minimises stack usage by **not** relying on recursion. The required stack size is `<=144B`.
 * Generally tries to be as efficient and as small as possible.
-* Can be configured to use either 32 or 64-bit event counters.
-* Can be configured to use dynamic or static memory for the ITC node allocations,
-  or even to use custom `malloc`/`free` implementations.
+* Can be [configured](#feature-configuration) to use either 32 or 64-bit event counters.
+* Can be configured to [allocate](#node-memory-allocation) the memory for the ITC nodes dynamically (via standard `malloc`/`free` calls), statically (via user-defined global arrays), or via a custom `malloc`/`free` implementation.
 * Provides handy serialisation and deserialisation APIs.
-* Provides an optional "extended" API interface (based on
+* Provides an optional ["extended" API interface](#feature-configuration) (based on
   [this article](https://ferd.ca/interval-tree-clocks.html)), giving you more fine-grained control over the ITC lifecycle. This is not part of the original mechanism and is intended for more advanced use cases.
 
 ## Getting Started
@@ -29,7 +53,8 @@ highly dynamic number of replicas/processes in a distributed system.
 ### Prerequisites
 
 * C99-compatible compiler
-* The [Meson build system](https://mesonbuild.com/)
+* The [Meson build system](https://mesonbuild.com/), ideally with the [Ninja](https://ninja-build.org/) backend.
+
 
 ### Building
 
@@ -59,12 +84,12 @@ For example, to enable the extended API, you can configure the build like so:
 meson setup -Doptimization=2 -Ddebug=false -Dc_args="-DITC_CONFIG_ENABLE_EXTENDED_API=1" build-with-extended-api
 ```
 
-#### Node Memory Allocation
+##### Node Memory Allocation
 
 The [feature configuration](#feature-configuration) allows for 3 types of memory allocation:
 
 1. Dynamic memory (HEAP), using standard `malloc` and `free` libc calls
-2. Static memory, using global static arrays.
+2. Static memory, using global arrays.
 > :warning: Static memory allocation is **not** thread-safe. See [`ITC_Config.h`](./libitc/include/ITC_Config.h) and [`ITC_Memory.h`](./libitc/include/ITC_Memory.h) for more information.
 3. Custom `malloc` and `free` implementations
 
@@ -438,12 +463,28 @@ int main(void)
 
 </details>
 
+
+## I Have a Question
+
+Before you ask a question, make sure to:
+
+- go through the [usage examples](#usage-examples).
+- search for existing [Issues](https://github.com/astro-stan/libitc/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue.
+- search the internet for answers.
+
+If you then still feel the need to ask a question and need clarification:
+
+- Open an [Issue](https://github.com/astro-stan/libitc/issues/new).
+- Provide as much context as you can about what you're running into.
+- Provide project and platform versions, configuration, and everything else that seems relevant.
+
+
 ## Running The Unit Tests
 
 If you wish to run the unit tests for yourself, you can do so via the following commands:
 
 ```bash
-meson setup -Dtests=true test-build
+meson setup -Dtests=true -Dc_args="..." test-build
 meson test -C test-build
 ```
 
@@ -452,6 +493,16 @@ meson test -C test-build
 ## License
 
 Released under AGPL-3.0 license, see [LICENSE](./LICENSE) for details.
+
+## How To Contribute?
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## Reporting Vulnerabilities
+
+> :warning: **NEVER** open public issues or pull requests to report or fix security vulnerabilities.
+
+See the [Security Policy](./SECURITY.md).
 
 ## Special Thanks To
 
