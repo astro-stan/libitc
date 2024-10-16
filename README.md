@@ -40,7 +40,7 @@ highly dynamic number of replicas/processes in a distributed system.
 * Implements the full ITC mechanism as described in the research paper.
 * Written in C99. It has no dependencies apart from a few C standard library
   headers ([Cmock](https://github.com/ThrowTheSwitch/CMock) and [Unity](https://github.com/ThrowTheSwitch/Unity/) are only used for unit testing).
-* Minimises stack usage by **not** relying on recursion. The required stack size is `<=144B`.
+* Minimises stack usage by **not** relying on recursion. The required stack size is `<=160B`.
 * Generally tries to be as efficient and as small as possible.
 * Can be [configured](#feature-configuration) to use either 32 or 64-bit event counters.
 * Can be configured to [allocate](#node-memory-allocation) the memory for the ITC nodes dynamically (via standard `malloc`/`free` calls), statically (via user-defined global arrays), or via a custom `malloc`/`free` implementation.

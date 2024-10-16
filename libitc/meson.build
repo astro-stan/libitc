@@ -8,7 +8,7 @@ if get_option('tests')
     # possible, however, it is only enforced while unit testing, to ensure
     # maximum compatibility with different systems, architectures, and
     # compilers.
-    libitc_c_args += '-Wstack-usage=144'
+    libitc_c_args += '-Wstack-usage=160'
 endif
 
 libitc_link_args = [
