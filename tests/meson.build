@@ -6,7 +6,7 @@ libitc_test_inc = include_directories([
 ])
 
 libitc_test_c_args = [
-
+    '-Wno-sign-conversion',
 ]
 
 libitc_test_link_args = [
