@@ -47,6 +47,7 @@ common_c_args = [
     '-Wswitch-default',
     '-Wundef',
     '-Wwrite-strings',
+    '-Wconversion',
 
     # Add lib version info
     '-DITC_VERSION_MAJOR=@0@'.format(libitc_version_components[0]),

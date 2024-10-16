@@ -1638,7 +1638,8 @@ static ITC_Status_t serialiseEvent(
             /* Calculate the remaining space in the buffer, while leaving space
              * for the header */
             u32_CurrentEventCounterSize =
-                *pu32_BufferSize - (u32_Offset + sizeof(ITC_SerDes_Header_t));
+                *pu32_BufferSize -
+                (u32_Offset + (uint32_t)sizeof(ITC_SerDes_Header_t));
 
             /* Serialise the event counter */
             t_Status = eventCounterToNetwork(
@@ -1660,8 +1661,8 @@ static ITC_Status_t serialiseEvent(
                 u32_CurrentEventCounterSize);
 
             /* Increment the offset */
-            u32_Offset +=
-                sizeof(ITC_SerDes_Header_t) + u32_CurrentEventCounterSize;
+            u32_Offset += (uint32_t)sizeof(ITC_SerDes_Header_t) +
+                          u32_CurrentEventCounterSize;
 
             /* Descend into left tree */
             if (pt_Event->pt_Left)

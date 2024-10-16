@@ -401,7 +401,7 @@ void ITC_SerDes_Test_serialiseIdToStringLeafSuccessful(void)
     const char *z_ExpectedNullIdSerialisedData = "0";
 
     /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+    memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
     /* Create a new seed ID */
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
@@ -460,7 +460,7 @@ void ITC_SerDes_Test_serialiseIdToStringFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_TestUtil_newSeedId(&pt_Id, NULL));
 
     /* Set the last byte to a random value */
-    rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1] = 0xAA;
+    rc_Buffer[ITC_SER_TO_STR_ID_MIN_BUFFER_LEN - 1] = 0x55;
 
     /* The min len requires just a NULL termination byte, but the overall
      * status is still insufficent resources, as there was no space to serialise
@@ -496,7 +496,7 @@ void ITC_SerDes_Test_serialiseIdToStringParentSuccessful(void)
     const char *z_ExpectedIdSerialisedData = "((0, 1), ((1, 0), 1))";
 
     /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+    memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
     /* clang-format off */
     /* Create a new ((0, 1), ((1, 0), 1)) ID */
@@ -561,7 +561,7 @@ void ITC_SerDes_Test_serialiseIdToStringParentFailWithInsufficentResources(void)
          u32_I++)
     {
         /* Init to a random value */
-        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+        memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
         u32_BufferSize = u32_I;
         /* Serialise the ID to string */
@@ -576,7 +576,7 @@ void ITC_SerDes_Test_serialiseIdToStringParentFailWithInsufficentResources(void)
         TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
         for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
         {
-            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+            TEST_ASSERT_EQUAL_CHAR(0x55, rc_Buffer[u32_J]);
         }
 
         /* Test the partial output is what is expected */
@@ -1102,7 +1102,7 @@ void ITC_SerDes_Test_serialiseEventToStringLeafSuccessful(void)
     const char *z_ExpectedBiggerEventSerialisedData = "12";
 
     /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+    memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
     /* Create a new Event */
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
@@ -1123,7 +1123,7 @@ void ITC_SerDes_Test_serialiseEventToStringLeafSuccessful(void)
         strlen(z_ExpectedNewEventSerialisedData) + 1);
 
     /* Test the buffer len hasn't been exceeded */
-    TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[2]);
+    TEST_ASSERT_EQUAL_CHAR(0x55, rc_Buffer[2]);
 
     /* Destroy the Event */
     TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
@@ -1167,7 +1167,7 @@ void ITC_SerDes_Test_serialiseEventToStringFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_TestUtil_newEvent(&pt_Event, NULL, 0));
 
     /* Set the last byte to a random value */
-    rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN - 1] = 0xAA;
+    rc_Buffer[ITC_SER_TO_STR_EVENT_MIN_BUFFER_LEN - 1] = 0x55;
 
     /* The min len requires just a NULL termination byte, but the overall
      * status is still insufficent resources, as there was no space to serialise
@@ -1211,7 +1211,7 @@ void ITC_SerDes_Test_serialiseEventToStringParentSuccessful(void)
 #endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
 
     /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+    memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
     /* clang-format off */
     /* Create a new (0, 1, (0, (4242, 0, UINT32_MAX/UINT64_MAX), 0)) Event */
@@ -1287,7 +1287,7 @@ void ITC_SerDes_Test_serialiseEventToStringParentFailWithInsufficentResources(vo
          u32_I++)
     {
         /* Init to a random value */
-        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+        memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
         u32_BufferSize = u32_I;
         /* Serialise the Event to string */
@@ -1302,7 +1302,7 @@ void ITC_SerDes_Test_serialiseEventToStringParentFailWithInsufficentResources(vo
         TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
         for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
         {
-            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+            TEST_ASSERT_EQUAL_CHAR(0x55, rc_Buffer[u32_J]);
         }
 
         /* Test the partial output is what is expected */
@@ -1872,7 +1872,7 @@ void ITC_SerDes_Test_serialiseStampToStringWithLeafIdAndEventSuccessful(void)
     const char *z_ExpectedBiggerStampSerialisedData = "{1; 12}";
 
     /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+    memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
     /* Create a new Stamp */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
@@ -1893,7 +1893,7 @@ void ITC_SerDes_Test_serialiseStampToStringWithLeafIdAndEventSuccessful(void)
         strlen(z_ExpectedNewStampSerialisedData) + 1);
 
     /* Test the buffer len hasn't been exceeded */
-    TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[7]);
+    TEST_ASSERT_EQUAL_CHAR(0x55, rc_Buffer[7]);
 
     /* Make the Event component bigger */
     pt_Stamp->pt_Event->t_Count = 12;
@@ -1934,7 +1934,7 @@ void ITC_SerDes_Test_serialiseStampToStringFailWithInsufficentResources(void)
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
 
     /* Set the last byte to a random value */
-    rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN - 1] = 0xAA;
+    rc_Buffer[ITC_SER_TO_STR_STAMP_MIN_BUFFER_LEN - 1] = 0x55;
 
     /* The min len requires just a NULL termination byte, but the overall
      * status is still insufficent resources, as there was no space to serialise
@@ -1978,7 +1978,7 @@ void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsSuccessful(void)
 #endif /* ITC_CONFIG_USE_64BIT_EVENT_COUNTERS */
 
     /* Init to a random value */
-    memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+    memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
     /* Create a new Stamp */
     TEST_SUCCESS(ITC_Stamp_newSeed(&pt_Stamp));
@@ -2061,7 +2061,7 @@ void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsFailWithInsuffice
          u32_I++)
     {
         /* Init to a random value */
-        memset(&rc_Buffer[0], 0xAA, sizeof(rc_Buffer));
+        memset(&rc_Buffer[0], 0x55, sizeof(rc_Buffer));
 
         u32_BufferSize = u32_I;
         /* Serialise the Stamp to string */
@@ -2076,7 +2076,7 @@ void ITC_SerDes_Test_serialiseStampToStringWithParentComponentsFailWithInsuffice
         TEST_ASSERT_LESS_OR_EQUAL(u32_I - 1, strnlen(&rc_Buffer[0], u32_I));
         for (uint32_t u32_J = u32_I; u32_J < sizeof(rc_Buffer); u32_J++)
         {
-            TEST_ASSERT_EQUAL_CHAR(0xAA, rc_Buffer[u32_J]);
+            TEST_ASSERT_EQUAL_CHAR(0x55, rc_Buffer[u32_J]);
         }
 
         /* Test the partial output is what is expected */
