@@ -54,11 +54,11 @@ ITC_Status_t ITC_SerDes_Util_validateDesLibVersion(
         0 /* Also compatible with 0.x.x lib versions */
     };
 
-    for (uint8_t u8_I = 0;
-         u8_I < sizeof(ru8_SupportedDesLibVersions);
-         u8_I++)
+    for (uint32_t u32_I = 0;
+         u32_I < sizeof(ru8_SupportedDesLibVersions);
+         u32_I++)
     {
-        if (ru8_SupportedDesLibVersions[u8_I] == u8_LibVersion)
+        if (ru8_SupportedDesLibVersions[u32_I] == u8_LibVersion)
         {
             return ITC_STATUS_SUCCESS;
         }
