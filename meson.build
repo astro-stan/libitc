@@ -19,7 +19,7 @@ libitc_test_bin_install_dir = libitc_install_dir / 'tests'
 libitc_version_components = meson.project_version().split('.')
 
 # Common compiler args used with for all libs and executables
-common_c_args = meson.get_compiler('c').get_supported_arguments([
+common_c_args = [
     '-Wbidi-chars=any,ucn',
     '-Wcast-align',
     '-Wcast-qual',
@@ -52,12 +52,12 @@ common_c_args = meson.get_compiler('c').get_supported_arguments([
     '-DITC_VERSION_MAJOR=@0@'.format(libitc_version_components[0]),
     '-DITC_VERSION_MINOR=@0@'.format(libitc_version_components[1]),
     '-DITC_VERSION_PATCH=@0@'.format(libitc_version_components[2]),
-])
+]
 
 
 # Common link args used for all libs and executables
-common_link_args = meson.get_compiler('c').get_supported_link_arguments([
-])
+common_link_args = [
+]
 
 if get_option('tests')
     # Let the compiler know this is a unit test build

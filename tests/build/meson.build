@@ -53,8 +53,14 @@ libitc_test_exes_common_kwargs = {
         unity_dep,
         cmock_dep,
     ],
-    'c_args': libitc_test_c_args + common_c_args,
-    'link_args': libitc_test_link_args + common_link_args,
+    'c_args': meson.get_compiler('c').get_supported_arguments([
+        common_c_args,
+        libitc_test_c_args,
+    ]),
+    'link_args': meson.get_compiler('c').get_supported_link_arguments([
+        common_link_args,
+        libitc_test_link_args,
+    ]),
 }
 
 subdir('normal')
