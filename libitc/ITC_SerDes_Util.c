@@ -8,7 +8,9 @@
  * https://www.gnu.org/licenses/agpl-3.0.en.html
  *
  */
+#include "ITC_SerDes_package.h"
 #include "ITC_SerDes_Util_package.h"
+
 
 /******************************************************************************
  * Public functions
@@ -37,4 +39,30 @@ ITC_Status_t ITC_SerDes_Util_validateBuffer(
     }
 
     return ITC_STATUS_SUCCESS;
+}
+
+/******************************************************************************
+ * Check the deserialised library version is supported
+ ******************************************************************************/
+
+ITC_Status_t ITC_SerDes_Util_validateDesLibVersion(
+    const uint8_t u8_LibVersion
+)
+{
+    static uint8_t ru8_SupportedDesLibVersions[] = {
+        ITC_VERSION_MAJOR, /* Provided by build system c_args */
+        0 /* Also compatible with 0.x.x lib versions */
+    };
+
+    for (uint32_t u32_I = 0;
+         u32_I < sizeof(ru8_SupportedDesLibVersions);
+         u32_I++)
+    {
+        if (ru8_SupportedDesLibVersions[u32_I] == u8_LibVersion)
+        {
+            return ITC_STATUS_SUCCESS;
+        }
+    }
+
+    return ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
 }

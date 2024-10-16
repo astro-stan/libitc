@@ -676,6 +676,31 @@ void ITC_SerDes_Test_deserialiseIdFailWithIncompatibleLibVersion(void)
         ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
 }
 
+/* Test deserialising an ID from 0.x.x lib versions succeeds */
+void ITC_SerDes_Test_deserialiseIdFrom0XXLibVersionsSuccessful(void)
+{
+    ITC_Id_t *pt_Id;
+    uint8_t ru8_Buffer[] = {
+        0, /* Lib version 0.X.X */
+        ITC_SERDES_SEED_ID_HEADER
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test deserialising a seed ID */
+    TEST_SUCCESS(
+        ITC_SerDes_Util_deserialiseId(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Id));
+
+    /* Test this is a seed ID */
+    TEST_ITC_ID_IS_SEED_ID(pt_Id);
+
+    /* Destroy the ID */
+    TEST_SUCCESS(ITC_Id_destroy(&pt_Id));
+}
+
 /* Test deserialising a leaf ID suceeds */
 void ITC_SerDes_Test_deserialiseLeafIdSuccessful(void)
 {
@@ -1407,6 +1432,32 @@ void ITC_SerDes_Test_deserialiseEventFailWithIncompatibleLibVersion(void)
             true,
             &pt_Event),
         ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
+}
+
+/* Test deserialising an Event from 0.x.x lib versions succeeds */
+void ITC_SerDes_Test_deserialiseEventFrom0XXLibVersionsSuccessful(void)
+{
+    ITC_Event_t *pt_Event;
+    uint8_t ru8_Buffer[] = {
+        0, /* Lib version 0.X.X */
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 1),
+        123,
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test deserialising a leaf Event */
+    TEST_SUCCESS(
+        ITC_SerDes_Util_deserialiseEvent(
+            &ru8_Buffer[0],
+            u32_BufferSize,
+            true,
+            &pt_Event));
+
+    /* Test this is a leaf Event */
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Event, 123);
+
+    /* Destroy the Event */
+    TEST_SUCCESS(ITC_Event_destroy(&pt_Event));
 }
 
 /* Test deserialising a leaf Event suceeds */
@@ -2183,6 +2234,32 @@ void ITC_SerDes_Test_deserialiseStampFailWithIncompatibleLibVersion(void)
             u32_BufferSize,
             &pt_Stamp),
         ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION);
+}
+
+/* Test deserialising a Stamp from 0.x.x lib versions succeeds */
+void ITC_SerDes_Test_deserialiseStampFrom0XXLibVersionsSuccessful(void)
+{
+    ITC_Stamp_t *pt_Stamp;
+    uint8_t ru8_Buffer[] = {
+        0, /* Lib version 0.X.X */
+        ITC_SERDES_CREATE_STAMP_HEADER(1, 1),
+        1,
+        ITC_SERDES_SEED_ID_HEADER,
+        1,
+        ITC_SERDES_CREATE_EVENT_HEADER(false, 0),
+    };
+    uint32_t u32_BufferSize = sizeof(ru8_Buffer);
+
+    /* Test deserialising a leaf Stamp */
+    TEST_SUCCESS(
+        ITC_SerDes_deserialiseStamp(&ru8_Buffer[0], u32_BufferSize, &pt_Stamp));
+
+    /* Test this is a Stamp with a leaf seed ID and leaf 0 Event counter */
+    TEST_ITC_ID_IS_SEED_ID(pt_Stamp->pt_Id);
+    TEST_ITC_EVENT_IS_LEAF_N_EVENT(pt_Stamp->pt_Event, 0);
+
+    /* Destroy the Stamp */
+    TEST_SUCCESS(ITC_Stamp_destroy(&pt_Stamp));
 }
 
 /* Test deserialising a stamp with leaf ID and Event components suceeds */
