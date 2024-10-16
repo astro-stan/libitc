@@ -1,5 +1,5 @@
 project('itc', 'c',
-  version : '1.0.0',
+  version : '1.0.1',
   license: ['AGPL-3.0'],
   license_files: ['LICENSE'],
   meson_version: '>=1.4.0',
