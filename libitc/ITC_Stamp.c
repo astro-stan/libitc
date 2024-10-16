@@ -709,11 +709,8 @@ static ITC_Status_t deserialiseStamp(
     /* Init stamp */
     *ppt_Stamp = NULL;
 
-    /* Check the lib version (provided by build system c args) */
-    if (pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
-    {
-        t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
-    }
+    /* Check the lib version */
+    t_Status = ITC_SerDes_Util_validateDesLibVersion(pu8_Buffer[u32_Offset]);
 
     if (t_Status == ITC_STATUS_SUCCESS)
     {

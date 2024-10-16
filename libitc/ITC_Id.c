@@ -1114,10 +1114,8 @@ static ITC_Status_t deserialiseId(
      * (provided by build system c args) */
     if (b_HasVersion)
     {
-        if (pu8_Buffer[u32_Offset] != ITC_VERSION_MAJOR)
-        {
-            t_Status = ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION;
-        }
+        t_Status = ITC_SerDes_Util_validateDesLibVersion(
+            pu8_Buffer[u32_Offset]);
 
         u32_Offset += ITC_VERSION_MAJOR_LEN;
     }
