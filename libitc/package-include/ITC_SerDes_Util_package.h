@@ -44,6 +44,7 @@ ITC_Status_t ITC_SerDes_Util_validateBuffer(
 /**
  * @brief Check the deserialised library version is supported
  *
+ * @param u8_LibVersion The deserialised lib major version
  * @return `ITC_Status_t` The status of the operation
  * @retval `ITC_STATUS_SUCCESS` on success
  * @retval `ITC_STATUS_SERDES_INCOMPATIBLE_LIB_VERSION` if the version is
