@@ -3,8 +3,14 @@ libitc_lib = library(
     libitc_src,
     include_directories: [libitc_inc, libitc_pkg_inc],
     version: meson.project_version(),
-    c_args: libitc_c_args + common_c_args,
-    link_args: libitc_link_args + common_link_args,
+    c_args: meson.get_compiler('c').get_supported_arguments([
+        common_c_args,
+        libitc_c_args,
+    ]),
+    link_args: meson.get_compiler('c').get_supported_link_arguments([
+        common_link_args,
+        libitc_link_args,
+    ]),
     install: true,
     install_dir: libitc_install_dir,
     override_options: [
