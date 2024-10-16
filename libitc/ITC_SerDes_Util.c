@@ -49,7 +49,10 @@ ITC_Status_t ITC_SerDes_Util_validateDesLibVersion(
 )
 {
     static uint8_t ru8_SupportedDesLibVersions[] = {
-        ITC_VERSION_MAJOR, /* Provided by build system c_args */
+        /* The current `ITC_VERSION_MAJOR`. Hardcoded on purpose, so that
+         * this check fails if the library's major version is bumped without
+         * manually updating this function first. */
+        1,
         0 /* Also compatible with 0.x.x lib versions */
     };
 
