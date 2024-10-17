@@ -64,7 +64,7 @@ foreach libitc_test_src_file_path : libitc_test_mocked_src
 
     # Generate the test executable
     libitc_test_exe = executable(
-        'Mocked' + libitc_test_src_name.replace('_', ''),
+        libitc_test_src_name.replace('_', '').replace('ITC', 'ITCMocked'),
         libitc_test_src_file_path,
         libitc_test_runner_ch_tgt,
         libitc_test_mock_ch_tgt,
