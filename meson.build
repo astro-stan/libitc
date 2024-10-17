@@ -4,17 +4,13 @@ project('itc', 'c',
   license_files: ['LICENSE'],
   meson_version: '>=1.4.0',
   subproject_dir: 'vendor',
-  default_options : [
-        'prefix=' + meson.current_build_dir(),
-        'c_std=gnu99',
-        'default_library=both',
-        'werror=true',
-    ]
+  default_options : {
+        'prefix': meson.current_build_dir(),
+        'c_std': 'gnu99',
+        'default_library': 'both',
+        'werror': 'true',
+    }
 )
-
-# Install dirs
-libitc_install_dir = 'bin'
-libitc_test_bin_install_dir = libitc_install_dir / 'tests'
 
 libitc_version_components = meson.project_version().split('.')
 
