@@ -64,17 +64,16 @@ foreach libitc_test_src_file_path : libitc_test_mocked_src
 
     # Generate the test executable
     libitc_test_exe = executable(
-        libitc_test_src_name.replace('_', ''),
+        'Mocked' + libitc_test_src_name.replace('_', ''),
         libitc_test_src_file_path,
         libitc_test_runner_ch_tgt,
         libitc_test_mock_ch_tgt,
         libitc_test_exes_common_arg,
         install: true,
-        install_dir: libitc_mocked_test_bin_install_dir,
         # Add run path to LibITC that is relative to the binary location
         install_rpath: '$ORIGIN' / fs.relative_to(
-            get_option('prefix') / libitc_install_dir,
-            get_option('prefix') / libitc_mocked_test_bin_install_dir,
+            get_option('prefix') / get_option('libdir'),
+            get_option('prefix') / get_option('bindir'),
         ),
         kwargs: libitc_test_exes_common_kwargs
     )

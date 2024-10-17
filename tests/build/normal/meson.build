@@ -32,11 +32,10 @@ foreach libitc_test_src_file_path : libitc_test_normal_src
         libitc_test_runner_ch_tgt,
         libitc_test_exes_common_arg,
         install: true,
-        install_dir: libitc_normal_test_bin_install_dir,
         # Add run path to LibITC that is relative to the binary location
         install_rpath: '$ORIGIN' / fs.relative_to(
-            get_option('prefix') / libitc_install_dir,
-            get_option('prefix') / libitc_normal_test_bin_install_dir,
+            get_option('prefix') / get_option('libdir'),
+            get_option('prefix') / get_option('bindir'),
         ),
         kwargs: libitc_test_exes_common_kwargs
     )

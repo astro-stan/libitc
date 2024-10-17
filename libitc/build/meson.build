@@ -12,7 +12,6 @@ libitc_lib = library(
         libitc_link_args,
     ]),
     install: true,
-    install_dir: libitc_install_dir,
     override_options: [
         # Allow undefined symbols to exist
         # Used when compiling with static memory allocation support

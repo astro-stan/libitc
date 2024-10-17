@@ -1,8 +1,5 @@
 fs = import('fs')
 
-libitc_normal_test_bin_install_dir = libitc_test_bin_install_dir / 'normal'
-libitc_mocked_test_bin_install_dir = libitc_test_bin_install_dir / 'mocked'
-
 # Entrypoint for the unit tests
 # Expects Unity to generate the unit test runner function
 libitc_test_entrypoint_file = '''/* The test runner function */
