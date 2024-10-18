@@ -27,10 +27,9 @@
 
 /* Set a field in a serialised ITC node header */
 #define ITC_SERDES_HEADER_SET(t_Header, t_Field, t_Mask, t_Offset)             \
-    ((ITC_SerDes_Header_t)   \
-        ((ITC_SerDes_Header_t)((t_Header) & ((unsigned)~(t_Mask))) |                             \
-        ((ITC_SerDes_Header_t) \
-        (((ITC_SerDes_Header_t)((t_Field) << ((unsigned)(t_Offset)))) & ((unsigned)(t_Mask))))))
+    ((ITC_SerDes_Header_t)                                                     \
+        ((ITC_SerDes_Header_t)((t_Header) & ~(t_Mask)) |                       \
+         (((ITC_SerDes_Header_t)((t_Field) << (t_Offset))) & (t_Mask))))
 
 /* The header of a serialised leaf null ITC ID */
 #define ITC_SERDES_NULL_ID_HEADER                                        (0x00U)
