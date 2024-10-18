@@ -8,7 +8,7 @@ project('itc', 'c',
         'prefix': meson.current_build_dir(),
         'c_std': 'gnu99',
         'default_library': 'both',
-        'werror': 'true',
+        'werror': true,
     }
 )
 
@@ -70,7 +70,11 @@ subdir('libitc' / 'build')
 
 # Build unit tests
 if get_option('tests')
-    cmock_proj = subproject('cmock')
+    cmock_proj = subproject('cmock',
+        default_options : {
+                'werror': false,
+        },
+    )
     cmock_dep = cmock_proj.get_variable('cmock_dep')
     unity_dep = cmock_proj.get_variable('unity_dep')
 
