@@ -18,8 +18,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        compiler: [gcc, clang]
+        os: ['ubuntu-latest']
+        compiler: [gcc-10, 'gcc', clang]
         USE_64BIT_EVENT_COUNTERS: [0, 1]
         ENABLE_EXTENDED_API: [0, 1]
         ENABLE_SERIALISE_TO_STRING_API: [0, 1]
