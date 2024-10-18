@@ -27,9 +27,8 @@
 
 /* Set a field in a serialised ITC node header */
 #define ITC_SERDES_HEADER_SET(t_Header, t_Field, t_Mask, t_Offset)             \
-    ((ITC_SerDes_Header_t)                                                     \
-        ((ITC_SerDes_Header_t)((t_Header) & ~(t_Mask)) |                       \
-         (((ITC_SerDes_Header_t)((t_Field) << (t_Offset))) & (t_Mask))))
+  ((ITC_SerDes_Header_t)((t_Header) & ~(t_Mask)) |                                                  \
+   ((((ITC_SerDes_Header_t)(t_Field)) << (t_Offset)) & (t_Mask)))
 
 /* The header of a serialised leaf null ITC ID */
 #define ITC_SERDES_NULL_ID_HEADER                                        (0x00U)
@@ -96,8 +95,10 @@
 /** Create the header for a serialised ITC Event
  * @warning The `u8_CounterLen` must be `<= 15` */
 #define ITC_SERDES_CREATE_EVENT_HEADER(b_IsParent, u8_CounterLen)              \
-  ((ITC_SerDes_Header_t)(ITC_SERDES_EVENT_SET_IS_PARENT(0U, b_IsParent) |                                  \
-        ITC_SERDES_EVENT_SET_COUNTER_LEN(0U, u8_CounterLen)))
+  ((ITC_SerDes_Header_t)ITC_SERDES_EVENT_SET_IS_PARENT(                        \
+       (ITC_SerDes_Header_t)0U, b_IsParent) |                                  \
+   ITC_SERDES_EVENT_SET_COUNTER_LEN(                                           \
+        (ITC_SerDes_Header_t)0U, u8_CounterLen))
 
 /* The offset of the ID component len size in a serialised ITC Stamp header */
 #define ITC_SERDES_STAMP_ID_COMPONENT_LEN_OFFSET                            (0U)
