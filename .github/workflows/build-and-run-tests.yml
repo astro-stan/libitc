@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest']
-        compiler: ['gcc']
+        compiler: [gcc-10, 'gcc', clang]
         USE_64BIT_EVENT_COUNTERS: [0, 1]
         ENABLE_EXTENDED_API: [0, 1]
         ENABLE_SERIALISE_TO_STRING_API: [0, 1]
@@ -29,6 +29,7 @@ jobs:
         ]
     steps:
       - name: Install compiler
+        id: install_cc
         uses: rlalik/setup-cpp-compiler@master
         with:
           compiler: ${{ matrix.compiler }}
@@ -40,8 +41,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Configure Tests
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
         run: >-
-          CC=${{ matrix.compiler }}
           meson setup --wipe --reconfigure
           ${{ env.BUILD_DIR_PREFIX }}
           -Doptimization=${{ env.OPTIMIZATION }}
@@ -54,4 +56,6 @@ jobs:
             -DITC_CONFIG_MEMORY_ALLOCATION_TYPE=${{ matrix.MEMORY_ALLOCATION_TYPE }}
           "
       - name: Build And Run Tests
-        run: CC=${{ matrix.compiler }} meson test -C ${{ env.BUILD_DIR_PREFIX }}
+        env:
+          CC: ${{ steps.install_cc.outputs.cc }}
+        run: meson test -C ${{ env.BUILD_DIR_PREFIX }}
