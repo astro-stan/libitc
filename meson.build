@@ -12,7 +12,7 @@ project('itc', 'c',
 
         # Turn off -Werror for cmock and unity
         'cmock:werror': false,
-        'unity:werror': false,
+        # 'unity:werror': false,
     }
 )
 
