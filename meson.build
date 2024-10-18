@@ -8,7 +8,11 @@ project('itc', 'c',
         'prefix': meson.current_build_dir(),
         'c_std': 'gnu99',
         'default_library': 'both',
-        'werror': 'true',
+        'werror': true,
+
+        # Turn off -Werror for cmock and unity
+        'cmock:werror': false,
+        'unity:werror': false,
     }
 )
 
